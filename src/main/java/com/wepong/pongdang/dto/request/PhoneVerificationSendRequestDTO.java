@@ -4,6 +4,6 @@ import lombok.Getter;
 import jakarta.validation.constraints.NotBlank;
 
 @Getter
-public class PhoneVerificationRequestDTO {
+public class PhoneVerificationSendRequestDTO {
     @NotBlank private String phone;
 }
