@@ -48,3 +48,9 @@ amazon:
 toss:
   client-key: ${TOSS_CLIENT}
   secret-key: ${TOSS_SECRET}
+
+coolsms:
+  api:
+    key: NCSCSIR1OP3SMKKL
+    secret: CAXEHV9FZFBQGADXH7MJY63H0WFQSJ9M
+  from: "01047387321"
