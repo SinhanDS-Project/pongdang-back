@@ -27,9 +27,8 @@ public class PhoneVerificationService {
     private final CoolSmsConfig coolSmsConfig;
     private final PhoneVerificationRepository phoneVerificationRepository;
 
-    /**
-     * 인증번호 발송
-     */
+    
+    //인증번호 발송
     @Transactional
     public PhoneVerificationSendResponseDTO sendVerificationCode(PhoneVerificationSendRequestDTO requestDTO) {
         // 인증번호 생성 (범위 000000 ~ 999999)
@@ -83,5 +82,45 @@ public class PhoneVerificationService {
         }
     }
 
+    // 인증번호 확인
+    @Transactional
+    public PhoneVerificationVerifyResponseDTO verifyCode(PhoneVerificationVerifyRequestDTO requestDTO) {
+        PhoneVerificationEntity entity = phoneVerificationRepository.findByPhoneNumber(requestDTO.getPhone());
 
+        if (entity == null) {
+            return PhoneVerificationVerifyResponseDTO.builder()
+                    .phone(requestDTO.getPhone())
+                    .verified(false)
+                    .message("해당 번호로 발송된 인증번호가 없습니다.")
+                    .build();
+        }
+
+        // 만료 여부 확인
+        if (entity.getExpiredAt().toLocalDateTime().isBefore(LocalDateTime.now())) {
+            return PhoneVerificationVerifyResponseDTO.builder()
+                    .phone(requestDTO.getPhone())
+                    .verified(false)
+                    .message("인증번호가 만료되었습니다.")
+                    .build();
+        }
+
+        // 코드 일치 여부 확인
+        if (!entity.getVerificationCode().equals(requestDTO.getCode())) {
+            return PhoneVerificationVerifyResponseDTO.builder()
+                    .phone(requestDTO.getPhone())
+                    .verified(false)
+                    .message("인증번호가 일치하지 않습니다.")
+                    .build();
+        }
+
+        // 성공  isVerified = true 업데이트
+        entity.markVerified();
+        phoneVerificationRepository.save(entity);
+
+        return PhoneVerificationVerifyResponseDTO.builder()
+                .phone(requestDTO.getPhone())
+                .verified(true)
+                .message("인증 성공")
+                .build();
+    }
 }
