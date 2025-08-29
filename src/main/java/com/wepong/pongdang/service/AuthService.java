@@ -133,6 +133,7 @@ public class AuthService {
 				.birthDate(birthDate)
 				.phoneNumber(dto.getPhoneNumber())
 				.agreePrivacy(dto.isAgreePrivacy())
+                .tutorialCheck(false)
 				.build();
 
 		userRepository.save(userEntity);

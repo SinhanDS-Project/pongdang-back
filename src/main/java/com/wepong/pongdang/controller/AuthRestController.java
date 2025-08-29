@@ -90,10 +90,12 @@ public class AuthRestController {
 		if (!Pattern.matches(phonePattern, dto.getPhoneNumber())) {
 			return ResponseEntity.badRequest().contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("전화번호 형식이 올바르지 않습니다. (예: 010-0000-0000)");
 		}
-		
+
+        // 전화번호 중복 검사
 		if(authService.isPhoneNumberExists(dto.getPhoneNumber())) {
 			return ResponseEntity.badRequest().contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("이미 가입한 전화번호입니다.");
 		}
+
 
 		// 생년월일로 만 19세 이상인지 검사
 		try {
