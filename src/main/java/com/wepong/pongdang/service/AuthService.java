@@ -215,7 +215,16 @@ public class AuthService {
 		userRepository.save(userEntity);
 	}
 
-	public UserEntity findByEmail(String email) {
+    @Transactional
+    public void completeTutorial(Long userId) {
+        UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException());
+
+        userEntity.setTutorialCheck(true);
+        userRepository.save(userEntity);
+    }
+
+
+    public UserEntity findByEmail(String email) {
 		return userRepository.findByEmail(email);
 	}
 }

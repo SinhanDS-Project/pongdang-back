@@ -191,4 +191,14 @@ public class AuthRestController {
 
 		response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 	}
+
+    // 튜토리얼 완료 API
+    @PutMapping("/tutorial/complete")
+    public ResponseEntity<?> completeTutorial(@RequestHeader("Authorization") String authHeader) {
+        Long userId = authService.validateAndGetUserId(authHeader);
+        authService.completeTutorial(userId);
+
+        return ResponseEntity.ok("튜토리얼 완료 처리되었습니다.");
+    }
+
 }
