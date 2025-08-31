@@ -192,7 +192,7 @@ public class AuthRestController {
 		response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 	}
 
-    // 튜토리얼 완료 API
+    // 튜토리얼 완료
     @PutMapping("/tutorial/complete")
     public ResponseEntity<?> completeTutorial(@RequestHeader("Authorization") String authHeader) {
         Long userId = authService.validateAndGetUserId(authHeader);
@@ -200,5 +200,25 @@ public class AuthRestController {
 
         return ResponseEntity.ok("튜토리얼 완료 처리되었습니다.");
     }
+
+    // 회원탈퇴
+    @DeleteMapping("/unregister")
+    public ResponseEntity<?> unregister(@RequestHeader("Authorization") String authHeader) {
+        Long userId = authService.validateAndGetUserId(authHeader); // 토큰에서 userId 추출
+        authService.unregister(userId);
+
+        // refreshToken 쿠키 제거
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+                .path("/")
+                .maxAge(0)
+                .httpOnly(true)
+                .secure(false)
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body("회원 탈퇴가 완료되었습니다.");
+    }
+
 
 }

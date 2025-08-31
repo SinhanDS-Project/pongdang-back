@@ -216,13 +216,29 @@ public class AuthService {
 	}
 
     @Transactional
-    public void completeTutorial(Long userId) {
+    public void completeTutorial(Long userId) { //튜토리얼 완료
         UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException());
 
         userEntity.setTutorialCheck(true);
         userRepository.save(userEntity);
     }
 
+    @Transactional
+    public void unregister(Long userId) {   //회원탈퇴
+        UserEntity userEntity = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException());
+
+        // 🖼S3 프로필 이미지 삭제 (cascade로는 안 되니까 직접 처리)
+        if (userEntity.getProfileImage() != null && !userEntity.getProfileImage().isBlank()) {
+            String key = extractObjectKeyFromUrl(userEntity.getProfileImage());
+            if (key != null) {
+                s3FileService.deleteObject(key);
+            }
+        }
+
+        //  유저 삭제 → AuthToken, Wallet 은 cascade 로 같이 삭제됨
+        userRepository.delete(userEntity);
+    }
 
     public UserEntity findByEmail(String email) {
 		return userRepository.findByEmail(email);
