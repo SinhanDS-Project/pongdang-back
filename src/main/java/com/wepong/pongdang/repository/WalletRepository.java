@@ -7,6 +7,6 @@ import com.wepong.pongdang.entity.WalletEntity;
 import com.wepong.pongdang.entity.enums.WalletType;
 
 @Repository
-public interface WalletRepository extends JpaRepository<WalletEntity, Long> {
+public interface WalletRepository extends JpaRepository<WalletEntity, String> {
 	WalletEntity findByUserIdAndWalletType(Long userId, WalletType type);
 }
