@@ -21,10 +21,10 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/auth/register", "/api/auth/login", "/ws/**").permitAll()
-                    .requestMatchers("/api/auth/phone/**").permitAll()
-                    .requestMatchers("/api/email/**").permitAll()
-                    .anyRequest().authenticated()
+            .requestMatchers("/api/auth/register", "/api/auth/login", "/ws/**", "/api/quizzes/**").permitAll()
+            .requestMatchers("/api/auth/phone/**").permitAll()
+            .requestMatchers("/api/email/**").permitAll()
+            .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .cors(cors -> cors.disable());
