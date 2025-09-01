@@ -48,3 +48,14 @@ amazon:
 toss:
   client-key: ${TOSS_CLIENT}
   secret-key: ${TOSS_SECRET}
+
+gemini:
+  apiKey: ${GOOGLE_API_KEY}           # 환경변수로 주입
+  model: gemini-2.5-flash-lite        # 필요시 변경
+  temperature: 0.5
+  responseMimeType: application/json
+  
+coolsms:
+  key: ${SMS_KEY}
+  secret: ${SMS_SECRET}
+  from: ${SMS_PHONE}

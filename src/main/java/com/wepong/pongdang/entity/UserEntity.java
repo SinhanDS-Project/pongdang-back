@@ -46,6 +46,14 @@ public class UserEntity extends BaseEntity {
     @ColumnDefault("0")
     private Boolean tutorialCheck;
 
+    //  AuthToken 관계 (1:1)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private AuthTokenEntity token;
+
+    // Wallet 관계 (1:N)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private java.util.List<WalletEntity> wallets = new java.util.ArrayList<>();
+
     public void updatePassword(String password) {
         this.password = password;
     }
