@@ -59,3 +59,7 @@ coolsms:
   key: ${SMS_KEY}
   secret: ${SMS_SECRET}
   from: ${SMS_PHONE}
+
+data-go:
+  api-url: ${DATA_URL}
+  service-key: ${DATA_KEY}
