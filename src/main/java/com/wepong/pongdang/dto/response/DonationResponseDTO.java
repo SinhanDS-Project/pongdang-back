@@ -14,4 +14,13 @@ public class DonationResponseDTO {
     private int amount;
     private Long userId;
     private Long infoId;
+
+    @Builder
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Status {
+        private Long totalCount;
+        private int totalAmount;
+    }
 }

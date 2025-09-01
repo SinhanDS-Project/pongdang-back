@@ -33,7 +33,7 @@ public class DonationService {
     ModelMapper modelMapper = new ModelMapper();
 
     // 기부 정보 리스트 조회(페이징)
-    public Page<DonationInfoResponseDTO> findAll(int page, int size) {
+    public Page<DonationInfoResponseDTO> findInfoAll(int page, int size) {
         // 페이징 처리
         PageRequest pageRequest = PageRequest.of(page, size, Sort.Direction.DESC, "startDate");
         Page<DonationInfoEntity> infoList = donationInfoRepository.findAll(pageRequest);
@@ -43,7 +43,7 @@ public class DonationService {
     }
 
     // 기부 정보 리스트 조회
-    public List<DonationInfoResponseDTO> findAll() {
+    public List<DonationInfoResponseDTO> findInfoAll() {
         List<DonationInfoEntity> infoList = donationInfoRepository.findAll();
         List<DonationInfoResponseDTO> responseList = infoList.stream()
                 .map(entity -> modelMapper
@@ -54,7 +54,7 @@ public class DonationService {
     }
 
     // 기부 정보 상세 조회
-    public DonationInfoResponseDTO findById(Long infoId) {
+    public DonationInfoResponseDTO findInfoById(Long infoId) {
         DonationInfoEntity entity = donationInfoRepository.findById(infoId).orElseThrow(() -> new RuntimeException("기부 정보가 존재하지 않습니다."));
         return modelMapper.map(entity, DonationInfoResponseDTO.class);
     }
@@ -100,5 +100,23 @@ public class DonationService {
         donationRepository.save(donation);
 
         return modelMapper.map(donation, DonationResponseDTO.class);
+    }
+
+    // 기부 현황
+    public DonationResponseDTO.Status status() {
+        // donation의 amount의 합
+        List<DonationEntity> donations = donationRepository.findAll();
+        int totalAmount = donations.stream()
+                .mapToInt(DonationEntity::getAmount)
+                .sum();
+        // donation의 개수
+        Long totalCount = donationRepository.count();
+
+        DonationResponseDTO.Status status = DonationResponseDTO.Status.builder()
+                .totalCount(totalCount)
+                .totalAmount(totalAmount)
+                .build();
+
+        return status;
     }
 }

@@ -22,13 +22,13 @@ public class DonationController {
     // 기부 정보 리스트 조회
     @GetMapping("")
     public Page<DonationInfoResponseDTO> findAll(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int size) {
-        return donationService.findAll(page, size);
+        return donationService.findInfoAll(page, size);
     }
 
     @GetMapping("/{infoId}")
     // 기부 정보 상세 조회
     public DonationInfoResponseDTO findById(@PathVariable Long infoId) {
-        return donationService.findById(infoId);
+        return donationService.findInfoById(infoId);
     }
 
     @PostMapping("")
@@ -36,5 +36,10 @@ public class DonationController {
                                       @RequestHeader("Authorization") String authHeader) {
         Long userId = authService.validateAndGetUserId(authHeader);
         return donationService.pongDonate(donationRequestDTO, userId);
+    }
+
+    @GetMapping("/status")
+    public DonationResponseDTO.Status status() {
+        return donationService.status();
     }
 }
