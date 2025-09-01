@@ -5,6 +5,7 @@ import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
+import com.wepong.pongdang.dto.response.ProductResponseDTO;
 import com.wepong.pongdang.entity.UserEntity;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -26,14 +27,15 @@ public class BarcodeService {
 
     private final JavaMailSender mailSender;
     private final AuthService authService;
+    private final StoreService storeService;
 
-    public void generateBarcode(Long userId) throws IOException, WriterException, MessagingException {
+    public void generateBarcode(Long userId, Long productId) throws IOException, WriterException, MessagingException {
         UserEntity user = authService.findById(userId);
         String email = user.getEmail();
 
         String barcodeValue = generateRandomBarcodeValue();
         byte[] barcodeImage = generateBarcodeImage(barcodeValue, 300, 100);
-        sendBarcodeEmail(email, barcodeValue, barcodeImage);
+        sendBarcodeEmail(email, barcodeValue, barcodeImage, productId);
     }
 
     private String generateRandomBarcodeValue() {
@@ -52,7 +54,9 @@ public class BarcodeService {
         return baos.toByteArray();
     }
 
-    private void sendBarcodeEmail(String email, String barcodeValue, byte[] barcodeImage) throws MessagingException {
+    private void sendBarcodeEmail(String email, String barcodeValue, byte[] barcodeImage, Long productId) throws MessagingException {
+        ProductResponseDTO product = storeService.findProductById(productId);
+
         // 이메일 본문에 이미지 표시 가능
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -60,7 +64,8 @@ public class BarcodeService {
         helper.setTo(email);
         helper.setSubject("[퐁당퐁당] 상품 바코드 전송");
 
-        String htmlContent = "<p>"+barcodeValue+"</p>" +
+        String htmlContent = "<p>"+product.getName()+"</p>" +
+                             "<p>"+barcodeValue+"</p>" +
                              "<img src='cid:barcodeImage'/>";
 
         helper.setText(htmlContent, true);
