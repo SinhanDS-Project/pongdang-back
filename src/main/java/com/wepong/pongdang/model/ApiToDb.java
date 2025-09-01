@@ -22,7 +22,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
-@Component
+// @Component
 @RequiredArgsConstructor
 public class ApiToDb implements ApplicationRunner { // 서버 실행 시 한 번 실행
 
