@@ -13,7 +13,7 @@ public class DonationResponseDTO {
     private int id;
     private int amount;
     private Long userId;
-    private Long infoId;
+    private Long donationInfoId;
 
     @Builder
     @Data

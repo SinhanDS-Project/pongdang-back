@@ -9,8 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/donation")
@@ -41,5 +39,13 @@ public class DonationController {
     @GetMapping("/status")
     public DonationResponseDTO.Status status() {
         return donationService.status();
+    }
+
+    @GetMapping("/history")
+    public Page<DonationResponseDTO> findByUserId(@RequestParam(defaultValue = "1") int page,
+                                                  @RequestParam(defaultValue = "10") int size,
+                                                  @RequestHeader("Authorization") String authHeader) {
+        Long userId = authService.validateAndGetUserId(authHeader);
+        return donationService.findDonationByUserId(page, size, userId);
     }
 }

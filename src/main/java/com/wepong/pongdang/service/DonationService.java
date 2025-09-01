@@ -35,7 +35,7 @@ public class DonationService {
     // 기부 정보 리스트 조회(페이징)
     public Page<DonationInfoResponseDTO> findInfoAll(int page, int size) {
         // 페이징 처리
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.Direction.DESC, "startDate");
+        PageRequest pageRequest = PageRequest.of(page-1, size, Sort.Direction.DESC, "startDate");
         Page<DonationInfoEntity> infoList = donationInfoRepository.findAll(pageRequest);
         Page<DonationInfoResponseDTO> responseList = infoList.map(entity -> modelMapper.map(entity, DonationInfoResponseDTO.class));
 
@@ -118,5 +118,14 @@ public class DonationService {
                 .build();
 
         return status;
+    }
+
+    // 사용자 기부 내역 조회(페이징)
+    public Page<DonationResponseDTO> findDonationByUserId(int page, int size, Long userId) {
+        PageRequest pageRequest = PageRequest.of(page-1, size, Sort.Direction.DESC, "createdAt");
+        Page<DonationEntity> donaList = donationRepository.findByUserId(userId, pageRequest);
+        Page<DonationResponseDTO> responseList = donaList.map(entity -> modelMapper.map(entity, DonationResponseDTO.class));
+
+        return responseList;
     }
 }
