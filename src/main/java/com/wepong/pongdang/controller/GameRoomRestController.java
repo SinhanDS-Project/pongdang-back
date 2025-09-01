@@ -47,21 +47,6 @@ public class GameRoomRestController {
 		return ResponseEntity.ok("게임방이 생성되었습니다.");
 	}
 
-	// 게임방 수정
-//	@PutMapping(value = "/update/{roomId}", produces = "text/plain;charset=utf-8")
-//	public String updateRoom(@RequestBody GameRoomRequestDTO.UpdateGameRoomRequestDTO roomRequest,
-//							 @RequestHeader("Authorization") String authHeader, @PathVariable String roomId) {
-//		String userId = authService.validateAndGetUserId(authHeader);
-//		return gameRoomService.updateRoom(roomRequest, userId, roomId);
-//	}
-
-	// 게임방 삭제
-//	@DeleteMapping(value = "/delete/{roomId}", produces = "text/plain;charset=utf-8")
-//	public void deleteRoom(@PathVariable String roomId, @RequestHeader("Authorization") String authHeader) throws IOException {
-//		String userId = authService.validateAndGetUserId(authHeader);
-//		gameRoomService.deleteRoom(roomId);
-//	}
-
 	// 게임 시작
 	@PostMapping("/start/{roomId}")
 	public ResponseEntity<?> startGame(@PathVariable Long roomId, @RequestBody Map<String, String> request) throws IOException {
