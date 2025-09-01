@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity(name = "donation_info")
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
