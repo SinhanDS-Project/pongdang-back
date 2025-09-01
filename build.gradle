@@ -54,10 +54,12 @@ dependencies {
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 	// Google GenAI
 	implementation("com.google.genai:google-genai:1.0.0")
-  // DTO 유효성 검사 (@NotBlank, @NotNull 등)
-  implementation 'org.springframework.boot:spring-boot-starter-validation'
-  // CoolSMS SDK
-  implementation 'net.nurigo:sdk:4.2.7'
+	// DTO 유효성 검사 (@NotBlank, @NotNull 등)
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	// CoolSMS SDK
+	implementation 'net.nurigo:sdk:4.2.7'
+	// ModelMapper
+	implementation 'org.modelmapper:modelmapper:3.2.0'
 }
 
 tasks.named('test') {
