@@ -1,7 +1,9 @@
 package com.wepong.pongdang.controller;
 
 import com.google.zxing.WriterException;
+import com.wepong.pongdang.dto.request.PurchaseRequestDTO;
 import com.wepong.pongdang.dto.response.ProductResponseDTO;
+import com.wepong.pongdang.dto.response.PurchaseResponseDTO;
 import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.BarcodeService;
 import com.wepong.pongdang.service.StoreService;
@@ -28,8 +30,26 @@ public class StoreController {
     }
 
     // 상품 상세 조회
-    @GetMapping("/{productId}")
+    @GetMapping("product/{productId}")
     public ProductResponseDTO findProduct(@PathVariable Long productId) {
         return storeService.findProductById(productId);
+    }
+
+    // 상품 구매
+    @PostMapping("/purchase")
+    public PurchaseResponseDTO purchase(@RequestBody PurchaseRequestDTO purchaseRequestDTO,
+                                        @RequestHeader("Authorization") String authHeader) throws MessagingException, IOException, WriterException {
+        Long userId = authService.validateAndGetUserId(authHeader);
+        barcodeService.generateBarcode(userId, purchaseRequestDTO.getProductId());
+        return storeService.purchase(purchaseRequestDTO, userId);
+    }
+
+    // 사용자 구매 내역 조회
+    @GetMapping("/history")
+    public Page<PurchaseResponseDTO> findPurchaseByUserId(@RequestParam int page,
+                                                          @RequestParam int size,
+                                                          @RequestHeader("Authorization") String authHeader) {
+        Long userId = authService.validateAndGetUserId(authHeader);
+        return storeService.findPurchaseByUserId(page, size, userId);
     }
 }
