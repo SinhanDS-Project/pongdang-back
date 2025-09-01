@@ -36,27 +36,17 @@ public class WalletService {
 		walletRepository.save(donaWallet);
 	}
 
-	public void addPong(int point, Long userId) {
-		WalletEntity pongWallet = walletRepository.findByUserIdAndWalletType(userId, WalletType.PONG);
-		pongWallet.setPongBalance(pongWallet.getPongBalance() + point);
-		walletRepository.save(pongWallet);
-	}
-
-	public void losePong(int point, Long userId) {
-		WalletEntity pongWallet = walletRepository.findByUserIdAndWalletType(userId, WalletType.PONG);
+	// 퐁 차감
+	public void lose(int point, Long userId, WalletType type) {
+		WalletEntity pongWallet = walletRepository.findByUserIdAndWalletType(userId, type);
 		pongWallet.setPongBalance(pongWallet.getPongBalance() - point);
 		walletRepository.save(pongWallet);
 	}
 
-	public void addDona(int point, Long userId) {
-		WalletEntity pongWallet = walletRepository.findByUserIdAndWalletType(userId, WalletType.DONA);
+	// 퐁 증가
+	public void add(int point, Long userId, WalletType type) {
+		WalletEntity pongWallet = walletRepository.findByUserIdAndWalletType(userId, type);
 		pongWallet.setPongBalance(pongWallet.getPongBalance() + point);
-		walletRepository.save(pongWallet);
-	}
-
-	public void loseDona(int point, Long userId) {
-		WalletEntity pongWallet = walletRepository.findByUserIdAndWalletType(userId, WalletType.DONA);
-		pongWallet.setPongBalance(pongWallet.getPongBalance() - point);
 		walletRepository.save(pongWallet);
 	}
 }

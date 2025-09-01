@@ -3,6 +3,7 @@ package com.wepong.pongdang.controller;
 import com.wepong.pongdang.dto.response.UserResponseDTO;
 import com.wepong.pongdang.dto.request.UserUpdateRequestDTO;
 import com.wepong.pongdang.entity.UserEntity;
+import com.wepong.pongdang.entity.enums.WalletType;
 import com.wepong.pongdang.exception.EmailNotFoundException;
 import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.WalletService;
@@ -50,7 +51,7 @@ public class UserRestController {
 							@RequestBody Map<String, Integer> request) {
 		int point = request.get("point");
 		Long userId = authService.validateAndGetUserId(authHeader);
-		walletService.addPong(point, userId);
+		walletService.add(point, userId, WalletType.PONG);
 
 		return ResponseEntity.ok("퐁이 충전되었습니다.");
 	}
@@ -61,7 +62,7 @@ public class UserRestController {
 								@RequestBody Map<String, Integer> request) {
 		int point = request.get("point");
 		Long userId = authService.validateAndGetUserId(authHeader);
-		walletService.losePong(point, userId);
+		walletService.lose(point, userId, WalletType.PONG);
 
 		return ResponseEntity.ok("퐁이 차감되었습니다.");
 	}

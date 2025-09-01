@@ -6,6 +6,7 @@ import com.wepong.pongdang.entity.*;
 import com.wepong.pongdang.entity.enums.PongHistoryType;
 import com.wepong.pongdang.entity.enums.RankType;
 import com.wepong.pongdang.entity.enums.GameType;
+import com.wepong.pongdang.entity.enums.WalletType;
 import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.GameLevelService;
 import com.wepong.pongdang.service.GameService;
@@ -99,7 +100,7 @@ public class GameRestController {
 	    int betAmount = Integer.parseInt(requestBody.get("betAmount").toString());
 
 	    // 포인트 차감
-	    walletService.losePong(betAmount, userEntity.getId());
+	    walletService.lose(betAmount, userEntity.getId(), WalletType.PONG);
 
 	    return ResponseEntity.ok().build();
 	}
@@ -122,7 +123,7 @@ public class GameRestController {
 	    String gameName = requestBody.get("gameName").toString();
 
 	    // 포인트 적립
-	    walletService.addPong(winAmount, userEntity.getId());
+	    walletService.add(winAmount, userEntity.getId(), WalletType.PONG);
 
 	    // 게임 UID 조회
 		Long gameUid = gameService.selectByName(gameName)
