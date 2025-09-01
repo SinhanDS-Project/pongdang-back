@@ -25,7 +25,7 @@ public class StoreController {
 
     // 상품 리스트 조회
     @GetMapping("/product")
-    public Page<ProductResponseDTO> findProducts(@RequestParam int page, @RequestParam int size) {
+    public Page<ProductResponseDTO> findProducts(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int size) {
         return storeService.findProducts(page, size);
     }
 
@@ -46,8 +46,8 @@ public class StoreController {
 
     // 사용자 구매 내역 조회
     @GetMapping("/history")
-    public Page<PurchaseResponseDTO> findPurchaseByUserId(@RequestParam int page,
-                                                          @RequestParam int size,
+    public Page<PurchaseResponseDTO> findPurchaseByUserId(@RequestParam(defaultValue = "1") int page,
+                                                          @RequestParam(defaultValue = "10") int size,
                                                           @RequestHeader("Authorization") String authHeader) {
         Long userId = authService.validateAndGetUserId(authHeader);
         return storeService.findPurchaseByUserId(page, size, userId);
