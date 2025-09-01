@@ -42,17 +42,6 @@ public class DonationService {
         return responseList;
     }
 
-    // 기부 정보 리스트 조회
-    public List<DonationInfoResponseDTO> findInfoAll() {
-        List<DonationInfoEntity> infoList = donationInfoRepository.findAll();
-        List<DonationInfoResponseDTO> responseList = infoList.stream()
-                .map(entity -> modelMapper
-                        .map(entity, DonationInfoResponseDTO.class))
-                .toList();
-
-        return responseList;
-    }
-
     // 기부 정보 상세 조회
     public DonationInfoResponseDTO findInfoById(Long infoId) {
         DonationInfoEntity entity = donationInfoRepository.findById(infoId).orElseThrow(() -> new RuntimeException("기부 정보가 존재하지 않습니다."));
@@ -99,7 +88,7 @@ public class DonationService {
 
         donationRepository.save(donation);
 
-        return modelMapper.map(donation, DonationResponseDTO.class);
+        return DonationResponseDTO.from(donation);
     }
 
     // 기부 현황
@@ -124,7 +113,7 @@ public class DonationService {
     public Page<DonationResponseDTO> findDonationByUserId(int page, int size, Long userId) {
         PageRequest pageRequest = PageRequest.of(page-1, size, Sort.Direction.DESC, "createdAt");
         Page<DonationEntity> donaList = donationRepository.findByUserId(userId, pageRequest);
-        Page<DonationResponseDTO> responseList = donaList.map(entity -> modelMapper.map(entity, DonationResponseDTO.class));
+        Page<DonationResponseDTO> responseList = donaList.map(entity -> DonationResponseDTO.from(entity));
 
         return responseList;
     }
