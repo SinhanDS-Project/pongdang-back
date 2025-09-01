@@ -24,6 +24,7 @@ public class SecurityConfig {
             .requestMatchers("/api/auth/register", "/api/auth/login", "/ws/**", "/api/quizzes/**").permitAll()
             .requestMatchers("/api/auth/phone/**").permitAll()
             .requestMatchers("/api/email/**").permitAll()
+            .requestMatchers("/api/**").permitAll() // API 테스트용
             .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

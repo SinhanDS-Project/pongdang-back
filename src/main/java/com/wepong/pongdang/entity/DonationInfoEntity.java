@@ -1,7 +1,5 @@
 package com.wepong.pongdang.entity;
 
-import com.wepong.pongdang.entity.common.BaseEntity;
-import com.wepong.pongdang.entity.enums.DonationType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
@@ -10,6 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity(name = "donation_info")
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -37,8 +36,8 @@ public class DonationInfoEntity {
     @Column(nullable = false)
     private LocalDateTime endDate;
 
-    @Enumerated(EnumType.STRING)
-    private DonationType type;
+    @Column(nullable = false, columnDefinition = "VARCHAR(50)")
+    private String type;
 
     @Column(nullable = false)
     private Long goal;

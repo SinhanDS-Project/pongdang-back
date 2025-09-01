@@ -6,10 +6,7 @@ import com.wepong.pongdang.entity.GameEntity;
 import com.wepong.pongdang.entity.GameHistoryEntity;
 import com.wepong.pongdang.entity.PongHistoryEntity;
 import com.wepong.pongdang.entity.UserEntity;
-import com.wepong.pongdang.entity.enums.PongHistoryType;
-import com.wepong.pongdang.entity.enums.RankType;
-import com.wepong.pongdang.entity.enums.GameRoomStatus;
-import com.wepong.pongdang.entity.enums.Level;
+import com.wepong.pongdang.entity.enums.*;
 import com.wepong.pongdang.model.multi.turtle.PlayerDAO;
 import com.wepong.pongdang.model.multi.turtle.SessionService;
 import com.wepong.pongdang.model.multi.turtle.TurtleGameService;
@@ -303,7 +300,7 @@ public class TurtleRunWebsocketHandler extends TextWebSocketHandler {
 					// 1) 유저 정보 조회
 					UserEntity userEntity = authService.findById(userId);
 					if (userEntity != null) {
-						walletService.losePong(betAmount, userEntity.getId());
+						walletService.lose(betAmount, userEntity.getId(), WalletType.PONG);
 						Long gameId = gameService.selectByName(gameName).stream().findFirst()
 								.orElseThrow(() -> new IllegalStateException("'" + gameName + "' 게임을 찾을 수 없습니다."))
 								.getId();

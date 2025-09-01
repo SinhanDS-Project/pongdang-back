@@ -4,6 +4,7 @@ import com.wepong.pongdang.dto.request.PaymentConfirmDTO;
 import com.wepong.pongdang.dto.response.PaymentResponseDTO;
 import com.wepong.pongdang.entity.PaymentEntity;
 import com.wepong.pongdang.entity.enums.PaymentStatus;
+import com.wepong.pongdang.entity.enums.WalletType;
 import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.HistoryService;
 import com.wepong.pongdang.service.PaymentService;
@@ -35,7 +36,7 @@ public class PaymentRestController {
 
         if(paymentEntity.getStatus().equals(PaymentStatus.PAID)) {
             int netPoint = (int) Math.round(paymentEntity.getAmount() / 1.1);
-            walletService.addPong(netPoint, userId);
+            walletService.add(netPoint, userId, WalletType.PONG);
             historyService.insertPointHistory(userId, netPoint);
         }
 
