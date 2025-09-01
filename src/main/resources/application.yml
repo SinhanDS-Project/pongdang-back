@@ -48,3 +48,8 @@ amazon:
 toss:
   client-key: ${TOSS_CLIENT}
   secret-key: ${TOSS_SECRET}
+
+coolsms:
+  key: ${SMS_KEY}
+  secret: ${SMS_SECRET}
+  from: ${SMS_PHONE}
