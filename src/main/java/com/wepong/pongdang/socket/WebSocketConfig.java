@@ -1,39 +1,36 @@
 package com.wepong.pongdang.socket;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.ComponentScan;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.socket.config.annotation.EnableWebSocket;
-import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
-import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
+import org.springframework.messaging.simp.config.ChannelRegistration;
+import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.web.socket.config.annotation.*;
 
 // 웹소켓 설정
 @Configuration
-@EnableWebSocket
-@ComponentScan(basePackages = "com.wepong") // 또는 포함 경로 지정
-public class WebSocketConfig implements WebSocketConfigurer {
+@EnableWebSocketMessageBroker
+@RequiredArgsConstructor
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-	@Autowired
-	private GameRoomWebSocketHandler gameRoomWebSocketHandler;
-	@Autowired
-	private TurtleRunWebsocketHandler turtleRunWebSocketHandler;
-	@Autowired
-	private TurtleHandshakeInterceptor turtleHandshakeInterceptor;
-	@Autowired
-	private GameRoomListWebSocket gameRoomListWebSocket;
-	
+	private final StompAuthChannelInterceptor channelInterceptor;
+
 	@Override
-	public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-		registry.addHandler(gameRoomWebSocketHandler, "/ws/game/turtleroom/**")
-		.setAllowedOrigins("*")
-		.addInterceptors(turtleHandshakeInterceptor);
-		
-		registry.addHandler(turtleRunWebSocketHandler, "/ws/game/turtle/**")
-				// 다른 게임에서 사용 시 엔드포인트 추가
-		.setAllowedOrigins("*")
-		.addInterceptors(turtleHandshakeInterceptor);
-		
-		registry.addHandler(gameRoomListWebSocket, "/ws/gameroom")
-		.setAllowedOrigins("*");
+	public void registerStompEndpoints(StompEndpointRegistry registry) {
+		// STOMP 연결 엔드포인트는 하나로 관리
+		// 메시지 처리는 각 구독/발행 경로로 관리
+		registry.addEndpoint("/ws")
+				.setAllowedOriginPatterns("http://localhost:3000")
+				.withSockJS();
+	}
+
+	@Override
+	public void configureClientInboundChannel(ChannelRegistration registration) {
+		registration.interceptors(channelInterceptor);
+	}
+
+	@Override
+	public void configureMessageBroker(MessageBrokerRegistry registry) {
+		registry.enableSimpleBroker("/topic", "/queue");
+		registry.setApplicationDestinationPrefixes("/app");
 	}
 }

@@ -10,9 +10,9 @@ import com.wepong.pongdang.entity.enums.PongHistoryType;
 import com.wepong.pongdang.entity.enums.RankType;
 import com.wepong.pongdang.entity.enums.GameRoomStatus;
 import com.wepong.pongdang.entity.enums.Level;
-import com.wepong.pongdang.entity.enums.PointHistoryType;
 import com.wepong.pongdang.model.multi.turtle.PlayerDAO;
 import com.wepong.pongdang.model.multi.turtle.SessionService;
+import com.wepong.pongdang.model.multi.turtle.TurtleGameService;
 import com.wepong.pongdang.service.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -322,7 +322,7 @@ public class TurtleRunWebsocketHandler extends TextWebSocketHandler {
 
 						// 포인트 히스토리 저장
 						PongHistoryEntity pongHistoryEntity = PongHistoryEntity.builder()
-								.type(PongHistoryType.GAME)
+								.type(PongHistoryType.GAME_P)
 								.amount(Math.abs(winAmount - betAmount))
 								.build();
 
