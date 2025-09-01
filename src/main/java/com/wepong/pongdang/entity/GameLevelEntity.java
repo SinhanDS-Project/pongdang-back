@@ -4,6 +4,9 @@ import com.wepong.pongdang.entity.enums.Level;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity(name = "game_level")
 @Getter
 @Builder
@@ -27,4 +30,12 @@ public class GameLevelEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "game_id")
     private GameEntity game;
+
+    // RewardPerResult (1:N)
+    @OneToMany(mappedBy = "gameLevel", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<RewardPerResultEntity> rewards = new ArrayList<>();
+
+    // GameRoom (1:N)
+    @OneToMany(mappedBy = "gameLevel", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<GameRoomEntity> rooms = new ArrayList<>();
 }

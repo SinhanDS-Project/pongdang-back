@@ -1,11 +1,16 @@
 package com.wepong.pongdang.entity;
 
 import com.wepong.pongdang.entity.common.BaseEntity;
+import com.wepong.pongdang.entity.mapping.DonationEntity;
+import com.wepong.pongdang.entity.mapping.PurchaseEntity;
+import com.wepong.pongdang.entity.mapping.ReplyEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity(name = "user") // 테이블 이름
 @Getter
@@ -52,7 +57,41 @@ public class UserEntity extends BaseEntity {
 
     // Wallet 관계 (1:N)
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private java.util.List<WalletEntity> wallets = new java.util.ArrayList<>();
+    private List<WalletEntity> wallets = new ArrayList<>();
+
+    // 포인트 기록 (1:N)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<PongHistoryEntity> pongHistories = new ArrayList<>();
+
+    // 게임 이력 (1:N)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<GameHistoryEntity> gameHistories = new ArrayList<>();
+
+    // 구매 이력 (1:N)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<PurchaseEntity> purchases = new ArrayList<>();
+
+
+    // 기부 (1:N)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<DonationEntity> donations = new ArrayList<>();
+
+    // 퀴즈 기록 (1:N)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<QuizCheckEntity> quizChecks = new ArrayList<>();
+
+    // 게시글 (1:N)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<BoardEntity> boards = new ArrayList<>();
+
+    // 댓글 (1:N)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<ReplyEntity> replies = new ArrayList<>();
+
+    // 챗봇 로그 (1:N)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<ChatLogsEntity> chatLogs = new ArrayList<>();
+
 
     public void updatePassword(String password) {
         this.password = password;

@@ -35,6 +35,14 @@ public class GameService {
     public List<GameEntity> selectByName(String name) {
 		  return gameRepository.findByName(name);
 	  }
+
+    //삭제
+    @Transactional
+    public void deleteGame(Long gameId) {
+        GameEntity game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new IllegalArgumentException("게임을 찾을 수 없습니다. ID=" + gameId));
+        gameRepository.delete(game);
+    }
 }
 	 
 
