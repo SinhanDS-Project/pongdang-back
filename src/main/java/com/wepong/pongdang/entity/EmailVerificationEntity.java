@@ -27,6 +27,7 @@ public class EmailVerificationEntity {
     @Column(nullable = false)
     private boolean isVerified;
 
+
     public void markVerified() {
         this.isVerified = true;
     }

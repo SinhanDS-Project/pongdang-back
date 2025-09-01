@@ -21,13 +21,14 @@ public class QuizCheckEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 간단히 userId만 저장 (연관관계 매핑이 필요하면 @ManyToOne으로 변경)
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-
     @Column(name = "quiz_date", nullable = false)
     private LocalDate quizDate;
 
     @Column(nullable = false)
     private boolean taken = false;            // 제출 여부
+
+    //  유저 연관관계
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
 }

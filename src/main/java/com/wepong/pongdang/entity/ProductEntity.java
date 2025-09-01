@@ -1,8 +1,12 @@
 package com.wepong.pongdang.entity;
 
 import com.wepong.pongdang.entity.common.BaseEntity;
+import com.wepong.pongdang.entity.mapping.PurchaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity(name = "product")
 @Getter
@@ -26,4 +30,7 @@ public class ProductEntity extends BaseEntity {
 
     @Column(columnDefinition = "VARCHAR(225) DEFAULT ''")
     private String img;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<PurchaseEntity> purchases = new ArrayList<>();
 }

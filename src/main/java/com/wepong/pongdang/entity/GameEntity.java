@@ -6,6 +6,9 @@ import com.wepong.pongdang.entity.enums.GameType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity(name = "game")
 @Getter
 @Setter
@@ -32,4 +35,12 @@ public class GameEntity extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private GameStatus status;
+
+    //  GameLevel (1:N)
+    @OneToMany(mappedBy = "game", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<GameLevelEntity> levels = new ArrayList<>();
+
+    //  GameHistory (1:N)
+    @OneToMany(mappedBy = "game", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<GameHistoryEntity> histories = new ArrayList<>();
 }

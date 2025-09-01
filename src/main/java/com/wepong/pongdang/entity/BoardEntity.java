@@ -2,9 +2,13 @@ package com.wepong.pongdang.entity;
 
 import com.wepong.pongdang.entity.common.BaseEntity;
 import com.wepong.pongdang.entity.enums.BoardType;
+import com.wepong.pongdang.entity.mapping.ReplyEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity(name = "board")
 @Getter
@@ -41,6 +45,11 @@ public class BoardEntity extends BaseEntity {
     @JoinColumn(name = "user_id")
     private UserEntity user;
 
+    // 댓글 (1:N)
+    @OneToMany(mappedBy = "board", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<ReplyEntity> replies = new ArrayList<>();
+
+
     public void incrementViewCount() {
         this.viewCount++;
     }
@@ -48,4 +57,6 @@ public class BoardEntity extends BaseEntity {
     public void incrementLikeCount() {
         this.likeCount++;
     }
+
+
 }

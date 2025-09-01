@@ -205,4 +205,11 @@ public class GameRestController {
 	public GameLevelEntity selectLevelByRoom(@PathVariable Long levelId) {
 		return gameLevelService.selectByLevelUid(levelId);
 	}
+
+    // 게임 삭제
+    @DeleteMapping("/{gameId}")
+    public ResponseEntity<?> deleteGame(@PathVariable Long gameId) {
+        gameService.deleteGame(gameId);
+        return ResponseEntity.ok("게임이 삭제되었습니다.");
+    }
 }

@@ -7,9 +7,7 @@ import com.wepong.pongdang.entity.AuthTokenEntity;
 import com.wepong.pongdang.entity.UserEntity;
 import com.wepong.pongdang.exception.*;
 import com.wepong.pongdang.model.aws.S3FileServiceReturnKey;
-import com.wepong.pongdang.repository.TokenRepository;
-import com.wepong.pongdang.repository.UserRepository;
-import com.wepong.pongdang.repository.WalletRepository;
+import com.wepong.pongdang.repository.*;
 import com.wepong.pongdang.util.JWTUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +32,9 @@ public class AuthService {
 	private final WalletRepository walletRepository;
 	private final WalletService walletService;
 
+
+    private final PhoneVerificationRepository phoneVerificationRepository;
+    private final VerificationRepository verificationRepository;
 	@Autowired
 	private JWTUtil jwtUtil;
 	
@@ -48,6 +49,8 @@ public class AuthService {
 		
 		UserEntity userEntity = userRepository.findByEmail(request.getEmail());
 		AuthTokenEntity token = tokenRepository.findByUserId(userEntity.getId());
+
+
 
 		if (userEntity == null) {
 			throw new UserNotFoundException();
@@ -131,7 +134,7 @@ public class AuthService {
 				.nickname(dto.getNickname())
 				.email(dto.getEmail())
 				.birthDate(birthDate)
-				.phoneNumber(dto.getPhoneNumber())
+				.phoneNumber(dto.getPhoneNumber().replaceAll("-", ""))
 				.agreePrivacy(dto.isAgreePrivacy())
                 .tutorialCheck(false)
 				.build();
@@ -235,6 +238,12 @@ public class AuthService {
                 s3FileService.deleteObject(key);
             }
         }
+
+        // 휴대폰 인증 삭제
+        phoneVerificationRepository.deleteByPhoneNumber(userEntity.getPhoneNumber());
+
+        // 이메일 인증 삭제
+        verificationRepository.deleteByEmail(userEntity.getEmail());
 
         //  유저 삭제 → AuthToken, Wallet 은 cascade 로 같이 삭제됨
         userRepository.delete(userEntity);

@@ -12,4 +12,7 @@ public interface PhoneVerificationRepository extends JpaRepository<PhoneVerifica
 
     // 특정 전화번호 + 인증번호로 조회 (검증할 때 유용)
     PhoneVerificationEntity findByPhoneNumberAndVerificationCode(String phoneNumber, String verificationCode);
+    
+    //삭제
+    void deleteByPhoneNumber(String phoneNumber);
 }
