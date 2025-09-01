@@ -6,7 +6,6 @@ import com.wepong.pongdang.entity.*;
 import com.wepong.pongdang.entity.enums.PongHistoryType;
 import com.wepong.pongdang.entity.enums.RankType;
 import com.wepong.pongdang.entity.enums.GameType;
-import com.wepong.pongdang.entity.enums.PointHistoryType;
 import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.GameLevelService;
 import com.wepong.pongdang.service.GameService;
