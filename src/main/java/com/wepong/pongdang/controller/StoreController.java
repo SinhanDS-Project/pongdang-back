@@ -39,8 +39,8 @@ public class StoreController {
     }
 
     // 상품 검색
-    @PostMapping("/product/search")
-    public Page<ProductResponseDTO> searchProducts(@RequestBody String keyword,
+    @GetMapping("/product/search")
+    public Page<ProductResponseDTO> searchProducts(@RequestParam String keyword,
                                                    @RequestParam(defaultValue = "1") int page,
                                                    @RequestParam(defaultValue = "10") int size) {
         return storeService.searchProducts(keyword, page, size);
