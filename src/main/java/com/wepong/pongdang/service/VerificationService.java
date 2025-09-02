@@ -55,7 +55,7 @@ public class VerificationService {
 	private void sendTempPassword(String email, String tempPassword) {
 		SimpleMailMessage message = new SimpleMailMessage();
 		message.setTo(email);
-		message.setSubject("[Bettopia] 임시 비밀번호 발급 안내");
+		message.setSubject("[퐁당퐁당] 임시 비밀번호 발급 안내");
 		message.setText("임시 비밀번호: " + tempPassword + "\n로그인 후 반드시 비밀번호를 변경해 주세요.");
 		mailSender.send(message);
 	}
@@ -93,7 +93,7 @@ public class VerificationService {
 	private void sendEmail(String email, String code) {
 		SimpleMailMessage message = new SimpleMailMessage();
 		message.setTo(email);
-		message.setSubject("[Bettopia] 이메일 인증번호 안내");
+		message.setSubject("[퐁당퐁당] 이메일 인증번호 안내");
 		message.setText("인증번호: " + code + "\n인증번호 유효시간은 5분입니다.");
 		mailSender.send(message);
 	}

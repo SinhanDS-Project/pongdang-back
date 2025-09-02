@@ -1,6 +1,7 @@
 package com.wepong.pongdang.entity;
 
 import com.wepong.pongdang.entity.common.BaseEntity;
+import com.wepong.pongdang.entity.enums.ProductType;
 import com.wepong.pongdang.entity.mapping.PurchaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -30,6 +31,9 @@ public class ProductEntity extends BaseEntity {
 
     @Column(columnDefinition = "VARCHAR(225) DEFAULT ''")
     private String img;
+
+    @Enumerated(EnumType.STRING)
+    private ProductType type;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<PurchaseEntity> purchases = new ArrayList<>();
