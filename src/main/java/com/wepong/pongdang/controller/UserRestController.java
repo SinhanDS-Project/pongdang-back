@@ -3,6 +3,7 @@ package com.wepong.pongdang.controller;
 import com.wepong.pongdang.dto.response.UserResponseDTO;
 import com.wepong.pongdang.dto.request.UserUpdateRequestDTO;
 import com.wepong.pongdang.entity.UserEntity;
+import com.wepong.pongdang.entity.WalletEntity;
 import com.wepong.pongdang.entity.enums.WalletType;
 import com.wepong.pongdang.exception.EmailNotFoundException;
 import com.wepong.pongdang.service.AuthService;
@@ -32,8 +33,11 @@ public class UserRestController {
 		String profileFullUrl = (userEntity.getProfileImage() != null && !userEntity.getProfileImage().isBlank())
 		                        ? baseUrl + userEntity.getProfileImage()
 		                        : "";
-		
-		return UserResponseDTO.from(userEntity, profileFullUrl);
+
+		WalletEntity pong = walletService.findByIdAndType(userEntity.getId(), WalletType.PONG);
+		WalletEntity dona = walletService.findByIdAndType(userEntity.getId(), WalletType.DONA);
+
+		return UserResponseDTO.from(userEntity, profileFullUrl, pong, dona);
 	}
 
 	// 회원정보 수정
