@@ -41,12 +41,12 @@ public class UserRestController {
 	}
 
 	// 회원정보 수정
-	@PostMapping("/update")
-	public ResponseEntity<?> updateMyInfo(@ModelAttribute UserUpdateRequestDTO userRequest,
+	@PutMapping("/update")
+	public ResponseEntity<?> updateMyInfo(@RequestBody UserUpdateRequestDTO userRequest,
 							 			  @RequestHeader("Authorization") String authHeader) {
 		Long userId = authService.validateAndGetUserId(authHeader);
 		authService.updateUser(userRequest, userId);
-	    return ResponseEntity.ok().build();
+	    return ResponseEntity.ok("회원 정보 수정이 완료되었습니다.");
 	}
 
 	// 포인트 충전
