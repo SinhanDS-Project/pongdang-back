@@ -60,13 +60,4 @@ public class StoreController {
         barcodeService.generateBarcode(userId, purchaseRequestDTO.getProductId());
         return storeService.purchase(purchaseRequestDTO, userId);
     }
-
-    // 사용자 구매 내역 조회
-    @GetMapping("/history")
-    public Page<PurchaseResponseDTO> findPurchaseByUserId(@RequestParam(defaultValue = "1") int page,
-                                                          @RequestParam(defaultValue = "10") int size,
-                                                          @RequestHeader("Authorization") String authHeader) {
-        Long userId = authService.validateAndGetUserId(authHeader);
-        return storeService.findPurchaseByUserId(page, size, userId);
-    }
 }
