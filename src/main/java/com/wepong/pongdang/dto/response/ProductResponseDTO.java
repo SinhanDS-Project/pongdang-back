@@ -2,6 +2,7 @@ package com.wepong.pongdang.dto.response;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.wepong.pongdang.entity.enums.ProductType;
 import com.wepong.pongdang.model.aws.S3ImagePathDeserializer;
 import com.wepong.pongdang.model.aws.S3ImageUrlSerializer;
 import lombok.AllArgsConstructor;
@@ -21,4 +22,5 @@ public class ProductResponseDTO {
     @JsonSerialize(using = S3ImageUrlSerializer.class)
     @JsonDeserialize(using = S3ImagePathDeserializer.class)
     private String img;
+    private ProductType type;
 }

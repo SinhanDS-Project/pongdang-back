@@ -4,6 +4,7 @@ import com.google.zxing.WriterException;
 import com.wepong.pongdang.dto.request.PurchaseRequestDTO;
 import com.wepong.pongdang.dto.response.ProductResponseDTO;
 import com.wepong.pongdang.dto.response.PurchaseResponseDTO;
+import com.wepong.pongdang.entity.enums.ProductType;
 import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.BarcodeService;
 import com.wepong.pongdang.service.StoreService;
@@ -27,6 +28,22 @@ public class StoreController {
     @GetMapping("/product")
     public Page<ProductResponseDTO> findProducts(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int size) {
         return storeService.findProducts(page, size);
+    }
+
+    // 카테고리 별 조회
+    @GetMapping("/product/category")
+    public Page<ProductResponseDTO> findProductByType(@RequestParam(defaultValue = "1") int page,
+                                                      @RequestParam(defaultValue = "10") int size,
+                                                      @RequestParam ProductType type) {
+        return storeService.findProductByType(type, page, size);
+    }
+
+    // 상품 검색
+    @PostMapping("/product/search")
+    public Page<ProductResponseDTO> searchProducts(@RequestBody String keyword,
+                                                   @RequestParam(defaultValue = "1") int page,
+                                                   @RequestParam(defaultValue = "10") int size) {
+        return storeService.searchProducts(keyword, page, size);
     }
 
     // 상품 상세 조회

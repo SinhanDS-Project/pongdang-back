@@ -7,6 +7,7 @@ import com.wepong.pongdang.entity.PongHistoryEntity;
 import com.wepong.pongdang.entity.ProductEntity;
 import com.wepong.pongdang.entity.UserEntity;
 import com.wepong.pongdang.entity.enums.PongHistoryType;
+import com.wepong.pongdang.entity.enums.ProductType;
 import com.wepong.pongdang.entity.enums.WalletType;
 import com.wepong.pongdang.entity.mapping.PurchaseEntity;
 import com.wepong.pongdang.repository.ProductRepository;
@@ -33,6 +34,15 @@ public class StoreService {
     public Page<ProductResponseDTO> findProducts(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page-1, size, Sort.Direction.DESC, "createdAt");
         Page<ProductEntity> productList = productRepository.findAll(pageRequest);
+        Page<ProductResponseDTO> responseList = productList.map(entity -> modelMapper.map(entity, ProductResponseDTO.class));
+
+        return responseList;
+    }
+
+    // 카테고리 별 상품 조회(페이징)
+    public Page<ProductResponseDTO> findProductByType(ProductType type, int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page-1, size, Sort.Direction.DESC, "createdAt");
+        Page<ProductEntity> productList = productRepository.findByType(pageRequest, type);
         Page<ProductResponseDTO> responseList = productList.map(entity -> modelMapper.map(entity, ProductResponseDTO.class));
 
         return responseList;
@@ -77,6 +87,15 @@ public class StoreService {
         PageRequest pageRequest = PageRequest.of(page-1, size, Sort.Direction.DESC, "createdAt");
         Page<PurchaseEntity> purchaseList = purchaseRepository.findByUserId(userId, pageRequest);
         Page<PurchaseResponseDTO> responseList = purchaseList.map(entity -> PurchaseResponseDTO.from(entity));
+
+        return responseList;
+    }
+
+    // 상품 검색
+    public Page<ProductResponseDTO> searchProducts(String keyword, int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page-1, size, Sort.Direction.DESC, "createdAt");
+        Page<ProductEntity> productList = productRepository.findByNameContaining(pageRequest, keyword);
+        Page<ProductResponseDTO> responseList = productList.map(entity -> modelMapper.map(entity, ProductResponseDTO.class));
 
         return responseList;
     }
