@@ -25,11 +25,13 @@ public class WalletService {
 		WalletEntity pongWallet = WalletEntity.builder()
 			.walletType(WalletType.PONG)
 			.user(user)
-			.build();
+            .pongBalance(0L)
+            .build();
 
 		WalletEntity donaWallet = WalletEntity.builder()
 			.walletType(WalletType.DONA)
 			.user(user)
+            .pongBalance(0L)
 			.build();
 
 		walletRepository.save(pongWallet);
