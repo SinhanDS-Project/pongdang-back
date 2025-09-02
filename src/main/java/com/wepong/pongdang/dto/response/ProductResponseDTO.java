@@ -22,5 +22,5 @@ public class ProductResponseDTO {
     @JsonSerialize(using = S3ImageUrlSerializer.class)
     @JsonDeserialize(using = S3ImagePathDeserializer.class)
     private String img;
-    private ProductType type;
+    private ProductType productType;
 }
