@@ -32,7 +32,7 @@ public class BoardRestController {
 	
 	private static final int PAGE_SIZE = 10;
 	// 게시글 리스트 조회, 페이징 (카테고리별)
-	@GetMapping("/boardlist")
+	@GetMapping
 	public BoardResponseDTO.BoardListDTO list(@RequestParam(defaultValue = "1") int page,
 			@RequestParam(defaultValue = "FREE") BoardType category,
 			@RequestParam(defaultValue = "createdAt") String sort) {
@@ -48,7 +48,7 @@ public class BoardRestController {
 	}
 
 	// 게시글 상세보기 시 조회수 증가
-	@GetMapping("/boarddetail/{boardId}")
+    @GetMapping("/{boardId}")
 	public BoardResponseDTO.BoardDetailDTO getBoardDetail2(@PathVariable Long boardId,
 			@RequestHeader(value = "Authorization", required = false, defaultValue="") String authHeader) {
 
@@ -72,7 +72,7 @@ public class BoardRestController {
 	}
 
 	// 게시글 등록 (로그인한 사용자만 가능)
-	@PostMapping("/boardinsert")
+    @PostMapping
 	public ResponseEntity<?> insertBoard(@RequestBody InsertBoardRequestDTO dto, @RequestHeader(value="Authorization", required=false,defaultValue="") String authHeader) {
 		Long userId = authService.validateAndGetUserId(authHeader);
 
@@ -82,7 +82,7 @@ public class BoardRestController {
 	}
 
 	// 게시글 수정 (로그인 && 본인 글만 가능)
-	@PutMapping("/boardupdate/{boardId}")
+    @PutMapping("/{boardId}")
 	public ResponseEntity<?> updateBoard(@PathVariable Long boardId, @RequestBody UpdateBoardRequestDTO dto,
 											  @RequestHeader(value="Authorization", required=false, defaultValue="") String authHeader) {
 		Long userId = authService.validateAndGetUserId(authHeader);
@@ -93,7 +93,7 @@ public class BoardRestController {
 	}
 
 	// 게시글 삭제 (로그인 && 본인 글만 가능)
-	@DeleteMapping("/boarddelete/{boardId}")
+    @DeleteMapping("/{boardId}")
 	public ResponseEntity<?> deleteBoard(@PathVariable Long boardId, @RequestHeader(value="Authorization", required=false) String authHeader) {
 		Long userId = authService.validateAndGetUserId(authHeader);
 
