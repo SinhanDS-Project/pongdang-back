@@ -10,11 +10,7 @@ public interface QuizRepository extends JpaRepository<QuizEntity, Long> {
 
     List<QuizEntity> findByQuizDateOrderByPosition(LocalDate quizDate);
 
-    void deleteByQuizDate(LocalDate quizDate);
-
-    boolean existsByQuizDateAndPosition(LocalDate quizDate, Integer position);
-
-    boolean existsByQuestionAndChoice1AndChoice2AndChoice3AndChoice4AndQuizDateBefore(String question, String choice1, String choice2, String choice3, String choice4, LocalDate today);
+    boolean existsByQuizDate(LocalDate quizDate);
 
     List<QuizEntity> findByQuizDateBefore(LocalDate today);
 }
