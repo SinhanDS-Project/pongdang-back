@@ -56,7 +56,7 @@ public class MySQLConfig {
                 .dataSource(dataSource)
                 .packages("net.wepong.mysql.entity")
                 .persistenceUnit("second")
-                .properties(props) // Map 한 방으로 끝
+                .properties(props)
                 .build();
     }
 
