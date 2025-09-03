@@ -87,12 +87,6 @@ public class GameRestController {
     public ResponseEntity<?> successGame(@RequestHeader("Authorization") String authHeader) {
 
         Long id = authService.validateAndGetUserId(authHeader);
-        UserEntity userEntity = authService.findById(id);
-
-        if (userEntity == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "유저를 찾을 수 없습니다."));
-        }
 
         // 퐁 히스토리 저장 (ADD 타입)
         PongHistoryEntity pongHistoryEntity = PongHistoryEntity.builder()
