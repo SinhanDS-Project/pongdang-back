@@ -30,17 +30,18 @@ public class BoardRestController {
 	@Autowired
 	private S3FileService s3FileService;
 	
-	private static final int PAGE_SIZE = 10;
+
 	// 게시글 리스트 조회, 페이징 (카테고리별)
 	@GetMapping
 	public BoardResponseDTO.BoardListDTO list(@RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "5")  int size,
 			@RequestParam(defaultValue = "FREE") BoardType category,
 			@RequestParam(defaultValue = "createdAt") String sort) {
 
-		int offset = (page - 1) * PAGE_SIZE;
-        Page<BoardEntity> boards = boardService.getBoards(offset, PAGE_SIZE, category, sort);
+		int offset = (page - 1) * size;
+        Page<BoardEntity> boards = boardService.getBoards(offset, size, category, sort);
         long totalCount = boardService.getCountByCategory(category);
-        int totalPages = (int)Math.ceil((double) totalCount / PAGE_SIZE);
+        int totalPages = (int)Math.ceil((double) totalCount / size);
 
 		Page<BoardResponseDTO.BoardDetailDTO> details = boards.map(BoardResponseDTO.BoardDetailDTO::from);
 
