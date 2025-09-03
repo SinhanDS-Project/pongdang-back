@@ -5,6 +5,7 @@ import com.wepong.pongdang.dto.request.UserRegisterDTO;
 import com.wepong.pongdang.dto.request.UserUpdateRequestDTO;
 import com.wepong.pongdang.entity.AuthTokenEntity;
 import com.wepong.pongdang.entity.UserEntity;
+import com.wepong.pongdang.entity.enums.WalletType;
 import com.wepong.pongdang.exception.*;
 import com.wepong.pongdang.model.aws.S3FileServiceReturnKey;
 import com.wepong.pongdang.repository.*;
@@ -142,6 +143,9 @@ public class AuthService {
 		userRepository.save(userEntity);
 
 		walletService.insertWallet(userEntity);
+
+        // 기본 포인트 10 지급
+        walletService.add(10, userEntity.getId(), WalletType.PONG);
 	}
 
 	public void updateUser(UserUpdateRequestDTO userRequest, Long userId) {
