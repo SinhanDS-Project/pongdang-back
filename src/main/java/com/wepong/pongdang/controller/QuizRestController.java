@@ -1,72 +1,62 @@
 package com.wepong.pongdang.controller;
 
 
+import com.wepong.pongdang.dto.request.QuizRequestDTO;
 import com.wepong.pongdang.dto.response.QuizResponseDTO;
+import com.wepong.pongdang.entity.PongHistoryEntity;
 import com.wepong.pongdang.entity.QuizEntity;
-import com.wepong.pongdang.service.QuizService;
+import com.wepong.pongdang.entity.enums.PongHistoryType;
+import com.wepong.pongdang.entity.enums.WalletType;
+import com.wepong.pongdang.exception.UnauthorizedAccessException;
+import com.wepong.pongdang.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/quizzes")
+@RequestMapping("/api/quiz")
 public class QuizRestController {
 
+    private final AuthService authService;
     private final QuizService quizService;
-
-    // (관리) 오늘 세트 생성/갱신
-    @PostMapping("/generate-quiz")
-    public ResponseEntity<List<QuizResponseDTO.QuizView>> generateToday() {
-        // 1) 오늘 문제 생성 & 저장
-        quizService.generateTodayAndSave();
-
-        // 2) 중복된 문제 있으면 재생성 → DB update
-        quizService.regenerateDuplicates();
-
-        // 3) 최종 확정된 오늘 문제 다시 읽어오기
-        List<QuizEntity> saved = quizService.getToday();
-
-        // 4) DTO 변환해서 반환
-        return ResponseEntity.ok(
-                saved.stream()
-                        .map(q -> QuizResponseDTO.QuizView.builder()
-                                .position(q.getPosition())
-                                .question(q.getQuestion())
-                                .choice1(q.getChoice1())
-                                .choice2(q.getChoice2())
-                                .choice3(q.getChoice3())
-                                .choice4(q.getChoice4())
-                                .answerIdx(q.getAnswerIdx())
-                                .explanation(q.getExplanation())
-                                .build())
-                        .toList()
-        );
-    }
+    private final QuizCheckService quizCheckService;
+    private final HistoryService historyService;
+    private final WalletService walletService;
 
     // 오늘 세트 조회(사용자용)
-    @GetMapping("/today-quiz")
-    public ResponseEntity<List<QuizResponseDTO.QuizView>> today() {
-        List<QuizEntity> list = quizService.getToday();
-        return ResponseEntity.ok(
-                list.stream()
-                        .map(q -> QuizResponseDTO.QuizView.builder()
-                                .position(q.getPosition())
-                                .question(q.getQuestion())
-                                .choice1(q.getChoice1())
-                                .choice2(q.getChoice2())
-                                .choice3(q.getChoice3())
-                                .choice4(q.getChoice4())
-                                .answerIdx(q.getAnswerIdx())
-                                .explanation(q.getExplanation())
-                                .build())
-                        .toList()
-        );
+    @GetMapping("")
+    public List<QuizResponseDTO.QuizView> today(
+            @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        if (authHeader == null || authHeader.isBlank()) {
+            throw new UnauthorizedAccessException(); // "로그인 후 이용이 가능한 서비스입니다"
+        }
+
+        return quizService.getTodayWithAutoGenerate();
     }
+
+    // 오늘 퀴즈 풀이 체크
+    @PostMapping("/check")
+    public QuizResponseDTO.QuizCheckResponse markTodayQuizTaken(
+            @RequestHeader("Authorization") String authHeader
+    ) {
+        Long userId = authService.validateAndGetUserId(authHeader);
+        return quizCheckService.markTodayQuizTaken(userId);
+    }
+
+    // 퀴즈 제출
+    @PostMapping("/submit")
+    public QuizResponseDTO.QuizSubmitResponse submitQuiz(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody QuizRequestDTO request
+    ) {
+        Long userId = authService.validateAndGetUserId(authHeader);
+        return quizCheckService.submitQuiz(userId, request);
+    }
+
 }
 

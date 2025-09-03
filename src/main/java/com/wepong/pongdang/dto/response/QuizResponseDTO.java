@@ -38,5 +38,16 @@ public class QuizResponseDTO {
         private Integer answerIdx;
         private String explanation;
     }
+
+    @Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
+    public static class QuizCheckResponse {
+        private String message;
+    }
+
+    @Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
+    public static class QuizSubmitResponse {
+        private String message;
+        private Integer reward;
+    }
 }
 

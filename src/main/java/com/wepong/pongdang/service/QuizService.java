@@ -39,7 +39,7 @@ public class QuizService {
 
 
     @Transactional
-    public List<QuizEntity> generateTodayAndSave() {
+    public void generateTodayAndSave() {
         // 1) 프롬프트로 퀴즈 생성 요청
         Content user = Content.builder()
                 .role("user")
@@ -75,9 +75,15 @@ public class QuizService {
                 throw new IllegalStateException("answer_idx는 0~3이어야 합니다.");
         }
 
-        // 4) 저장: 오늘 데이터 삭제 후 INSERT
+        // 4) 저장: 오늘 데이터가 있는 경우 아무것도 X
         LocalDate today = LocalDate.now(KST);
-//        quizRepository.deleteByQuizDate(today);
+
+        boolean exists = quizRepository.existsByQuizDate(today);
+        if (exists) {
+            // 오늘 퀴즈 이미 있음 → 아무것도 하지 않음
+            System.out.println("아무것도 안 함");
+            return;
+        }
 
         // 여기서는 단순히 그대로 저장
         for (QuizResponseDTO.GeneratedQuestion gq : body.getQuestions()) {
@@ -94,8 +100,6 @@ public class QuizService {
                     .build();
             quizRepository.save(entity);
         }
-
-        return quizRepository.findByQuizDateOrderByPosition(today);
     }
 
     @Transactional
@@ -138,7 +142,6 @@ public class QuizService {
                             .role("user")
                             .parts(List.of(Part.fromText(prompt)))
                             .build();
-                    System.out.println(user.parts());
                     GenerateContentResponse res = client.models.generateContent(
                             model,
                             List.of(user),
@@ -183,10 +186,30 @@ public class QuizService {
 
 
     /** 오늘자 퀴즈 조회 */
-    @Transactional(readOnly = true)
-    public List<QuizEntity> getToday() {
+    public List<QuizResponseDTO.QuizView> getToday() {
         LocalDate today = LocalDate.now(KST);
-        return quizRepository.findByQuizDateOrderByPosition(today);
+
+        return quizRepository.findByQuizDateOrderByPosition(today)
+                .stream()
+                .map(QuizEntity::toDto)
+                .toList();
+    }
+
+    public List<QuizResponseDTO.QuizView> getTodayWithAutoGenerate() {
+        LocalDate today = LocalDate.now(KST);
+        List<QuizEntity> list = quizRepository.findByQuizDateOrderByPosition(today);
+
+        // 오늘 퀴즈 없으면 생성 후 재조회
+        if (list.isEmpty()) {
+            generateTodayAndSave();
+            regenerateDuplicates();
+            list = quizRepository.findByQuizDateOrderByPosition(today);
+        }
+
+        // Entity → DTO 변환
+        return list.stream()
+                .map(QuizEntity::toDto)
+                .toList();
     }
 }
 
