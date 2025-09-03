@@ -39,7 +39,7 @@ public class QuizService {
 
 
     @Transactional
-    public List<QuizEntity> generateTodayAndSave() {
+    public void generateTodayAndSave() {
         // 1) 프롬프트로 퀴즈 생성 요청
         Content user = Content.builder()
                 .role("user")
@@ -75,9 +75,15 @@ public class QuizService {
                 throw new IllegalStateException("answer_idx는 0~3이어야 합니다.");
         }
 
-        // 4) 저장: 오늘 데이터 삭제 후 INSERT
+        // 4) 저장: 오늘 데이터가 있는 경우 아무것도 X
         LocalDate today = LocalDate.now(KST);
-//        quizRepository.deleteByQuizDate(today);
+
+        boolean exists = quizRepository.existsByQuizDate(today);
+        if (exists) {
+            // 오늘 퀴즈 이미 있음 → 아무것도 하지 않음
+            System.out.println("아무것도 안 함");
+            return;
+        }
 
         // 여기서는 단순히 그대로 저장
         for (QuizResponseDTO.GeneratedQuestion gq : body.getQuestions()) {
@@ -94,8 +100,6 @@ public class QuizService {
                     .build();
             quizRepository.save(entity);
         }
-
-        return quizRepository.findByQuizDateOrderByPosition(today);
     }
 
     @Transactional
@@ -138,7 +142,6 @@ public class QuizService {
                             .role("user")
                             .parts(List.of(Part.fromText(prompt)))
                             .build();
-                    System.out.println(user.parts());
                     GenerateContentResponse res = client.models.generateContent(
                             model,
                             List.of(user),

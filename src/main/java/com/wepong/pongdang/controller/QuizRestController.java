@@ -35,16 +35,7 @@ public class QuizRestController {
         // 4) DTO 변환해서 반환
         return ResponseEntity.ok(
                 saved.stream()
-                        .map(q -> QuizResponseDTO.QuizView.builder()
-                                .position(q.getPosition())
-                                .question(q.getQuestion())
-                                .choice1(q.getChoice1())
-                                .choice2(q.getChoice2())
-                                .choice3(q.getChoice3())
-                                .choice4(q.getChoice4())
-                                .answerIdx(q.getAnswerIdx())
-                                .explanation(q.getExplanation())
-                                .build())
+                        .map(QuizEntity::toDto)
                         .toList()
         );
     }
@@ -53,20 +44,20 @@ public class QuizRestController {
     @GetMapping("/today-quiz")
     public ResponseEntity<List<QuizResponseDTO.QuizView>> today() {
         List<QuizEntity> list = quizService.getToday();
+
+        // ✅ 오늘 퀴즈가 없으면 자동 생성 후 다시 조회
+        if (list.isEmpty()) {
+            quizService.generateTodayAndSave();
+            quizService.regenerateDuplicates();
+            list = quizService.getToday();
+        }
+
         return ResponseEntity.ok(
                 list.stream()
-                        .map(q -> QuizResponseDTO.QuizView.builder()
-                                .position(q.getPosition())
-                                .question(q.getQuestion())
-                                .choice1(q.getChoice1())
-                                .choice2(q.getChoice2())
-                                .choice3(q.getChoice3())
-                                .choice4(q.getChoice4())
-                                .answerIdx(q.getAnswerIdx())
-                                .explanation(q.getExplanation())
-                                .build())
+                        .map(QuizEntity::toDto)
                         .toList()
         );
     }
+
 }
 
