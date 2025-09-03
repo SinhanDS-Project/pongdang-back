@@ -1,6 +1,7 @@
 package com.wepong.pongdang.dto.response;
 
 import com.wepong.pongdang.entity.UserEntity;
+import com.wepong.pongdang.entity.WalletEntity;
 import com.wepong.pongdang.model.aws.S3ImagePathDeserializer;
 import com.wepong.pongdang.model.aws.S3ImageUrlSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -26,8 +27,10 @@ public class UserResponseDTO {
     @JsonSerialize(using = S3ImageUrlSerializer.class)
     @JsonDeserialize(using = S3ImagePathDeserializer.class)
     private String profileImg;
+    private Long pongBalance;
+    private Long donaBalance;
 
-    public static UserResponseDTO from(UserEntity userEntity, String profileImg) {
+    public static UserResponseDTO from(UserEntity userEntity, String profileImg, WalletEntity pong, WalletEntity dona) {
         return UserResponseDTO.builder()
                 .id(userEntity.getId())
                 .nickname(userEntity.getNickname())
@@ -36,6 +39,8 @@ public class UserResponseDTO {
                 .email(userEntity.getEmail())
                 .profileImg(profileImg)
                 .phoneNumber(userEntity.getPhoneNumber())
+                .pongBalance(pong.getPongBalance())
+                .donaBalance(dona.getPongBalance())
                 .build();
     }
 }

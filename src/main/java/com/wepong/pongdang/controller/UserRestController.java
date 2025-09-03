@@ -3,6 +3,7 @@ package com.wepong.pongdang.controller;
 import com.wepong.pongdang.dto.response.UserResponseDTO;
 import com.wepong.pongdang.dto.request.UserUpdateRequestDTO;
 import com.wepong.pongdang.entity.UserEntity;
+import com.wepong.pongdang.entity.WalletEntity;
 import com.wepong.pongdang.entity.enums.WalletType;
 import com.wepong.pongdang.exception.EmailNotFoundException;
 import com.wepong.pongdang.service.AuthService;
@@ -32,17 +33,20 @@ public class UserRestController {
 		String profileFullUrl = (userEntity.getProfileImage() != null && !userEntity.getProfileImage().isBlank())
 		                        ? baseUrl + userEntity.getProfileImage()
 		                        : "";
-		
-		return UserResponseDTO.from(userEntity, profileFullUrl);
+
+		WalletEntity pong = walletService.findByIdAndType(userEntity.getId(), WalletType.PONG);
+		WalletEntity dona = walletService.findByIdAndType(userEntity.getId(), WalletType.DONA);
+
+		return UserResponseDTO.from(userEntity, profileFullUrl, pong, dona);
 	}
 
 	// 회원정보 수정
-	@PostMapping("/update")
-	public ResponseEntity<?> updateMyInfo(@ModelAttribute UserUpdateRequestDTO userRequest,
+	@PutMapping("/update")
+	public ResponseEntity<?> updateMyInfo(@RequestBody UserUpdateRequestDTO userRequest,
 							 			  @RequestHeader("Authorization") String authHeader) {
 		Long userId = authService.validateAndGetUserId(authHeader);
 		authService.updateUser(userRequest, userId);
-	    return ResponseEntity.ok().build();
+	    return ResponseEntity.ok("회원 정보 수정이 완료되었습니다.");
 	}
 
 	// 포인트 충전

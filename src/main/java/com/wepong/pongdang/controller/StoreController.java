@@ -39,8 +39,8 @@ public class StoreController {
     }
 
     // 상품 검색
-    @PostMapping("/product/search")
-    public Page<ProductResponseDTO> searchProducts(@RequestBody String keyword,
+    @GetMapping("/product/search")
+    public Page<ProductResponseDTO> searchProducts(@RequestParam String keyword,
                                                    @RequestParam(defaultValue = "1") int page,
                                                    @RequestParam(defaultValue = "10") int size) {
         return storeService.searchProducts(keyword, page, size);
@@ -59,14 +59,5 @@ public class StoreController {
         Long userId = authService.validateAndGetUserId(authHeader);
         barcodeService.generateBarcode(userId, purchaseRequestDTO.getProductId());
         return storeService.purchase(purchaseRequestDTO, userId);
-    }
-
-    // 사용자 구매 내역 조회
-    @GetMapping("/history")
-    public Page<PurchaseResponseDTO> findPurchaseByUserId(@RequestParam(defaultValue = "1") int page,
-                                                          @RequestParam(defaultValue = "10") int size,
-                                                          @RequestHeader("Authorization") String authHeader) {
-        Long userId = authService.validateAndGetUserId(authHeader);
-        return storeService.findPurchaseByUserId(page, size, userId);
     }
 }
