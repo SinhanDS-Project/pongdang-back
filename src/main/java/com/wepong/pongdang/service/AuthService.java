@@ -151,14 +151,14 @@ public class AuthService {
 	public void updateUser(UserUpdateRequestDTO userRequest, Long userId) {
 		// 기존 정보 조회
 		UserEntity existingUserEntity = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException());
-	    
-	    // 🔐 현재 비밀번호 확인
-	    if (!passwordEncoder.matches(userRequest.getPassword(), existingUserEntity.getPassword())) {
-	        throw new InvalidUpdatePasswordException();
-	    }
-	    
+
 	    // 🔒 새 비밀번호가 들어온 경우 암호화 후 저장
 	    if (userRequest.getNewPassword() != null && !userRequest.getNewPassword().isBlank()) {
+			// 🔐 현재 비밀번호 확인
+			if (!passwordEncoder.matches(userRequest.getPassword(), existingUserEntity.getPassword())) {
+				throw new InvalidUpdatePasswordException();
+			}
+
 	        String encodedNewPassword = passwordEncoder.encode(userRequest.getNewPassword());
 	        existingUserEntity.setPassword(encodedNewPassword);
 	    } else {
@@ -170,12 +170,12 @@ public class AuthService {
 		if (userRequest.getNewNickname() != null && !userRequest.getNewNickname().isBlank()) {
 			existingUserEntity.setNickname(userRequest.getNewNickname());
 		} else {
-			existingUserEntity.setNickname(userRequest.getNickname());
+			existingUserEntity.setNickname(existingUserEntity.getNickname());
 		}
 
 	    // ✅ 프로필 이미지 처리
 	    MultipartFile newImage = userRequest.getProfileImage();
-	    String oldUrl = userRequest.getProfileImgUrl();
+	    String oldUrl = existingUserEntity.getProfileImage();
 	    if (newImage != null && !newImage.isEmpty()) {
 	        if (oldUrl != null && !oldUrl.isBlank()) {
 		        // 기존 이미지가 있다면 S3에서 삭제
