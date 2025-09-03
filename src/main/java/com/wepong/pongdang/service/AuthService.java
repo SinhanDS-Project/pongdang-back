@@ -100,7 +100,7 @@ public class AuthService {
 		}
 		String token = authHeader.substring(7);
 		if (!jwtUtil.validateToken(token)) {
-			throw new SessionExpiredException();
+			throw new UnauthorizedAccessException();
 		}
 		return jwtUtil.getUserIdFromToken(token);
 	}
