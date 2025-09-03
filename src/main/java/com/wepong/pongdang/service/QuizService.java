@@ -186,10 +186,30 @@ public class QuizService {
 
 
     /** 오늘자 퀴즈 조회 */
-    @Transactional(readOnly = true)
-    public List<QuizEntity> getToday() {
+    public List<QuizResponseDTO.QuizView> getToday() {
         LocalDate today = LocalDate.now(KST);
-        return quizRepository.findByQuizDateOrderByPosition(today);
+
+        return quizRepository.findByQuizDateOrderByPosition(today)
+                .stream()
+                .map(QuizEntity::toDto)
+                .toList();
+    }
+
+    public List<QuizResponseDTO.QuizView> getTodayWithAutoGenerate() {
+        LocalDate today = LocalDate.now(KST);
+        List<QuizEntity> list = quizRepository.findByQuizDateOrderByPosition(today);
+
+        // 오늘 퀴즈 없으면 생성 후 재조회
+        if (list.isEmpty()) {
+            generateTodayAndSave();
+            regenerateDuplicates();
+            list = quizRepository.findByQuizDateOrderByPosition(today);
+        }
+
+        // Entity → DTO 변환
+        return list.stream()
+                .map(QuizEntity::toDto)
+                .toList();
     }
 }
 
