@@ -54,8 +54,7 @@ public class HistoryService {
         return HistoryResponseDTO.GameResponseDTO.from(details);
     }
 
-    public HistoryResponseDTO.PointResponseDTO pointHistoryList(Long userId, int page) {
-        int size = 10;
+    public HistoryResponseDTO.PointResponseDTO pointHistoryList(Long userId, int page, int size) {
         int offset = (page - 1) * size;
         Pageable pageable = PageRequest.of(offset / size, size);
         Page<PongHistoryEntity> list = pongHistoryRepository.findByUserId(userId, pageable);

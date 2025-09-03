@@ -93,7 +93,7 @@ public class HistoryResponseDTO {
 	public static class PointDetailResponseDTO {
 		private Long id;
 		private Long userId;
-		private PongHistoryType type;
+		private PongHistoryType pongHistoryType;
 		private int amount;
 		private LocalDateTime createdAt;
 
@@ -101,7 +101,7 @@ public class HistoryResponseDTO {
 			return PointDetailResponseDTO.builder()
 					.id(history.getId())
 					.userId(history.getUser().getId())
-					.type(history.getType())
+					.pongHistoryType(history.getType())
 					.amount(history.getAmount())
 					.createdAt(history.getCreatedAt())
 					.build();
