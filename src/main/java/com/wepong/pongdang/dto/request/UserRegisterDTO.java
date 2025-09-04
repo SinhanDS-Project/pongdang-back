@@ -18,4 +18,5 @@ public class UserRegisterDTO {
 	private String birthDate;
 	private String phoneNumber;
 	private boolean agreePrivacy;
+    private boolean linkedWithBetting;
 }

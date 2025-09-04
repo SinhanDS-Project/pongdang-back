@@ -54,6 +54,9 @@ public class UserEntity extends BaseEntity {
     @ColumnDefault("0")
     private Boolean assoCheck;
 
+    @ColumnDefault("0")
+    private Boolean linkedWithBetting;
+
     //  AuthToken 관계 (1:1)
     @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private AuthTokenEntity token;

@@ -1,9 +1,12 @@
 package com.wepong.pongdang.controller;
 
 import com.wepong.pongdang.dto.request.LoginRequestDTO;
+import com.wepong.pongdang.dto.request.TransferRequestDTO;
 import com.wepong.pongdang.dto.request.UserRegisterDTO;
+import com.wepong.pongdang.dto.response.BettingUserResponseDTO;
 import com.wepong.pongdang.exception.AuthException;
 import com.wepong.pongdang.service.AuthService;
+import com.wepong.pongdang.service.BettingUserService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -21,6 +24,9 @@ public class AuthRestController {
 
 	@Autowired
 	private AuthService authService;
+
+    @Autowired
+    private BettingUserService bettingUserService;
 
 	// 로그인 API
 	@PostMapping("/login")
@@ -112,7 +118,7 @@ public class AuthRestController {
 	        age--;
 	    }
 
-	    if (age < 19) {
+	    if (age < 15) {
 	        return ResponseEntity.badRequest().contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("만 19세 이상만 가입할 수 있습니다.");
 	    }
 		} catch (Exception e) {
@@ -129,6 +135,20 @@ public class AuthRestController {
 		return ResponseEntity.ok("회원가입이 완료되었습니다.");
 	}
 
+
+    @PostMapping("/find-betting-user")
+    public ResponseEntity<?> findBettingUser(@RequestBody Map<String, String> req) {
+        String name = req.get("name");
+        String phone = req.get("phone");
+
+        BettingUserResponseDTO dto = bettingUserService.findUser(name, phone);
+
+        if (dto == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("해당 회원을 찾을 수 없습니다.");
+        }
+        return ResponseEntity.ok(dto);
+    }
 	// 리프레시 토큰을 통한 액세스 토큰 재발급 API
 	@PostMapping("/reissue")
 	public ResponseEntity<?> reissue(@RequestHeader("Authorization") String authHeader) {
