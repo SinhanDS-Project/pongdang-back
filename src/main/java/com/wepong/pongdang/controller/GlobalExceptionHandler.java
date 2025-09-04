@@ -70,10 +70,15 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(QuizNotGeneratedException.class)
 	public ResponseEntity<?> handleQuizNotGenerated(QuizNotGeneratedException ex) {
 		return ResponseEntity
-				.status(HttpStatus.NOT_FOUND) // 404 Not Found 적절
+				.status(HttpStatus.NOT_FOUND) // 404 Not Found
 				.body(Map.of("error", "QUIZ_NOT_GENERATED", "message", ex.getMessage()));
 	}
 
+	@ExceptionHandler(UserCannotFoundException.class)
+	public ResponseEntity<?> handleUserCannotFound(UserCannotFoundException ex) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+				.body(Map.of("error", "USER_CANNOT_FOUND", "message", ex.getMessage()));
+	}
 
 	// Optional: 모든 예외를 처리하는 fallback
 	@ExceptionHandler(Exception.class)
