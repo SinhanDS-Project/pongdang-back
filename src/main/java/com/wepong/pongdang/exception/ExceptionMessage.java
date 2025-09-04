@@ -1,7 +1,6 @@
 package com.wepong.pongdang.exception;
 
 public class ExceptionMessage {
-
 	public static final String USER_NOT_FOUND = "입력한 이메일이 존재하지 않습니다";
 	public static final String EMAIL_NOT_FOUND = "가입된 이메일이 존재하지 않습니다.";
 	public static final String INVALID_PASSWORD = "입력하신 아이디 또는 비밀번호가 다릅니다.";
