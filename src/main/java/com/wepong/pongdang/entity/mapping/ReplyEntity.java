@@ -8,6 +8,7 @@ import lombok.*;
 
 @Entity(name = "reply")
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor

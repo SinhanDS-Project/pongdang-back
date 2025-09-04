@@ -88,4 +88,29 @@ public class GlobalExceptionHandler {
 		
 		return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
+
+    @ExceptionHandler(BoardNotFoundException.class)
+    public ResponseEntity<?> handleBoardNotFound(BoardNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "BOARD_NOT_FOUND", "message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(BoardUnauthorizedException.class)
+    public ResponseEntity<?> handleBoardUnauthorized(BoardUnauthorizedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("error", "BOARD_UNAUTHORIZED", "message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ReplyNotFoundException.class)
+    public ResponseEntity<?> handleReplyNotFound(ReplyNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "REPLY_NOT_FOUND", "message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ReplyUnauthorizedException.class)
+    public ResponseEntity<?> handleReplyUnauthorized(ReplyUnauthorizedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("error", "REPLY_UNAUTHORIZED", "message", ex.getMessage()));
+    }
+
 }

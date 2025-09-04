@@ -6,6 +6,9 @@ import com.wepong.pongdang.dto.request.BoardRequestDTO.UpdateBoardRequestDTO;
 import com.wepong.pongdang.entity.BoardEntity;
 import com.wepong.pongdang.entity.UserEntity;
 import com.wepong.pongdang.entity.enums.BoardType;
+import com.wepong.pongdang.exception.BoardNotFoundException;
+import com.wepong.pongdang.exception.BoardUnauthorizedException;
+import com.wepong.pongdang.exception.ExceptionMessage;
 import com.wepong.pongdang.exception.UserNotFoundException;
 import com.wepong.pongdang.model.aws.S3FileService;
 import com.wepong.pongdang.repository.BoardRepository;
@@ -69,20 +72,23 @@ public class BoardService {
 	}
 
 	// 게시글 상세 조회
-	public BoardEntity getBoardByUid(Long id) {
-		return boardRepository.findById(id).orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
-	}
+    public BoardEntity getBoardByUid(Long id) {
+        BoardEntity board = boardRepository.findById(id)
+                .orElseThrow(BoardNotFoundException::new);
+
+        return board;
+    }
 
 	// 게시글 수정 - 로그인한 본인만 수정 가능
 	public void updateBoard(Long id, UpdateBoardRequestDTO dto, Long userId) {
 		// 1. 기존 게시글 조회
-		BoardEntity existing = boardRepository.findById(id).orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
+		BoardEntity existing = boardRepository.findById(id).orElseThrow(BoardNotFoundException::new);
 
 		UserEntity userEntity = authService.findById(userId);
 
 		// 2. 작성자 검증
 		if (!existing.getUser().getId().equals(userEntity.getId())) {
-			throw new UserNotFoundException();
+            throw new BoardUnauthorizedException();
 		}
 		// 3. 수정할 내용으로 객체 생성
 		BoardEntity boardEntity = BoardEntity.builder().id(existing.getId()).title(dto.getTitle()).content(dto.getContent())
@@ -95,11 +101,11 @@ public class BoardService {
 	// 게시글 삭제 - 로그인한 본인만 삭제 가능 (s3 연동)
 	public void deleteBoard(Long boardId, Long userId) {
 		// 1. 기존 게시글 조회
-		BoardEntity existing = boardRepository.findById(boardId).orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
+		BoardEntity existing = boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
 		UserEntity userEntity = authService.findById(userId);
 		// 2. 작성자 검증
 		if (!existing.getUser().getId().equals(userEntity.getId())) {
-			throw new UserNotFoundException();
+            throw new BoardUnauthorizedException();
 		}
 		// 3. 본문 HTML에서 이미지 URL 추출 → S3에서 삭제
 		String html = existing.getContent();
@@ -124,13 +130,13 @@ public class BoardService {
 
 	// 조회수
 	public void incrementViewCount(Long boardId) {
-		BoardEntity existing = boardRepository.findById(boardId).orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
+		BoardEntity existing = boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
 		existing.incrementViewCount();
 	}
 
 	// 좋아요 수
 	public void incrementLikeCount(Long boardId) {
-		BoardEntity existing = boardRepository.findById(boardId).orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
+		BoardEntity existing = boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
 		existing.incrementLikeCount();
 	}
 }

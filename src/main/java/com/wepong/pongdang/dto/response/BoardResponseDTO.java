@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
 
+import java.time.LocalDateTime;
+
 public class BoardResponseDTO {
 
     @Builder
@@ -53,6 +55,8 @@ public class BoardResponseDTO {
         private int likeCount;
         private Long userId;
         private String nickname;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
 
         public static BoardDetailDTO from(BoardEntity boardEntity) {
             return BoardDetailDTO.builder()
@@ -64,6 +68,8 @@ public class BoardResponseDTO {
                     .likeCount(boardEntity.getLikeCount())
                     .userId(boardEntity.getUser().getId())
                     .nickname(boardEntity.getUser().getNickname())
+                    .createdAt(boardEntity.getCreatedAt())
+                    .updatedAt(boardEntity.getUpdatedAt())
                     .build();
         }
     }
