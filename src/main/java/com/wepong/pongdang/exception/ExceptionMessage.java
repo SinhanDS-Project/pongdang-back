@@ -14,5 +14,6 @@ public class ExceptionMessage {
 	public static final String BOARD_UNAUTHORIZED = "본인 게시글만 수정/삭제할 수 있습니다.";
 	public static final String REPLY_NOT_FOUND = "댓글이 존재하지 않습니다.";
 	public static final String REPLY_UNAUTHORIZED = "본인 댓글만 수정/삭제할 수 있습니다.";
-	public static final String FINANCE_REPORT_GENERATE_ERROR = "금융 리포트 생성에 실패하였습니다. 잠시 후 다시 이용해 주세요.";
+	public static final String FINANCE_REPORT_NOT_GENERATED = "금융 리포트 생성에 실패하였습니다. 잠시 후 다시 이용해 주세요.";
+	public static final String QUIZ_NOT_GENERATED = "오늘의 퀴즈가 아직 생성되지 않았습니다. 잠시 후 다시 이용해 주세요.";
 }
