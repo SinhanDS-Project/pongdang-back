@@ -9,7 +9,9 @@ import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.Part;
 import com.wepong.pongdang.dto.request.FinanceRequestDTO;
 import com.wepong.pongdang.dto.response.FinanceResponseDTO;
+import com.wepong.pongdang.exception.FinanceReportException;
 import com.wepong.pongdang.genai.FinancePrompt;
+import com.wepong.pongdang.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -26,18 +28,48 @@ public class FinanceService {
     private final Client client;                       // GeminiConfig에서 만든 @Bean
     private final GenerateContentConfig defaultGenConfig;
     private final ObjectMapper objectMapper;
+    private final UserRepository userRepository;
 
     @Value("${gemini.model}")
     private String model;
 
-    private final RestTemplate restTemplate = new RestTemplate();
-    private final String ML_API_URL = "http://localhost:8000/predict"; // FastAPI 서버 주소
+    @Value("${ml.api.url}")
+    private String ML_API_URL;
 
-    public FinanceResponseDTO getPrediction(FinanceRequestDTO request) {
-        ResponseEntity<FinanceResponseDTO> response =
-                restTemplate.postForEntity(ML_API_URL, request, FinanceResponseDTO.class);
+    // 타임아웃 설정된 RestTemplate 사용
+    private final RestTemplate restTemplate = buildRestTemplate();
+    private static RestTemplate buildRestTemplate() {
+        var factory = new org.springframework.http.client.SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(3000);
+        factory.setReadTimeout(5000);
+        return new RestTemplate(factory);
+    }
 
-        return response.getBody();
+    public FinanceResponseDTO getPrediction(FinanceRequestDTO request, Long userId) {
+        String name = userRepository.findById(userId)
+                .map(u -> u.getUserName())
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. id=" + userId));
+        request.setName(name);
+
+        try {
+            ResponseEntity<FinanceResponseDTO> response =
+                    restTemplate.postForEntity(ML_API_URL, request, FinanceResponseDTO.class);
+
+            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+                throw new FinanceReportException();
+            }
+            return response.getBody();
+
+        } catch (org.springframework.web.client.HttpStatusCodeException e) {
+            // ML 서버가 4xx/5xx를 반환한 경우
+            throw new FinanceReportException();
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            // 연결 거부, 타임아웃, 네임해결 실패 등 I/O 계열
+            throw new FinanceReportException();
+        } catch (Exception e) {
+            // 기타 예외
+            throw new FinanceReportException();
+        }
     }
 
     public JsonNode generateFinanceReport(FinanceRequestDTO request, Map<String, Object> mlResult) {
@@ -58,12 +90,17 @@ public class FinanceService {
             );
 
             String json = res.text(); // 모델이 생성한 JSON
+            if (json == null || json.isBlank()) {
+                throw new FinanceReportException();
+            }
 
             // 3) JSON 파싱 (검증은 최소한만)
             return objectMapper.readTree(json);
 
+        } catch (FinanceReportException e) {
+            throw e;
         } catch (Exception e) {
-            throw new IllegalStateException("금융 리포트 생성 실패", e);
+            throw new FinanceReportException();
         }
     }
 
