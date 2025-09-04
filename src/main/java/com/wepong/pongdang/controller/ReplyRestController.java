@@ -36,6 +36,20 @@ public class ReplyRestController {
         return ResponseEntity.ok(replyService.getReplies(boardId));
     }
 
+    // 댓글 수정
+    @PutMapping("/{replyId}")
+    public ResponseEntity<ReplyResponseDTO> updateReply(
+            @PathVariable Long boardId,
+            @PathVariable Long replyId,
+            @RequestBody ReplyRequestDTO dto,
+            @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        Long userId = authService.validateAndGetUserId(authHeader);
+        ReplyResponseDTO updated = replyService.updateReply(replyId, userId, dto);
+        return ResponseEntity.ok(updated);
+    }
+
+
     // 댓글 삭제
     @DeleteMapping("/{replyId}")
     public ResponseEntity<String> deleteReply(
