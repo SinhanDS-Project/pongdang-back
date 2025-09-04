@@ -86,7 +86,7 @@ public class QuizCheckService {
         }
 
         return QuizResponseDTO.QuizSubmitResponse.builder()
-                .message("퀴즈 종료")
+                .message("퀴즈 종료!")
                 .reward(reward)
                 .build();
     }
