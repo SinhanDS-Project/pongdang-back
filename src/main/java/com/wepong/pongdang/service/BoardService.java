@@ -67,7 +67,7 @@ public class BoardService {
 		UserEntity userEntity = authService.findById(userId);
 
 		BoardEntity boardEntity = BoardEntity.builder().title(dto.getTitle()).content(dto.getContent())
-				.category(dto.getCategory()).boardImg(dto.getBoardImg()).user(userEntity).build();
+				.category(dto.getCategory()).user(userEntity).build();
 		boardRepository.save(boardEntity);
 	}
 
