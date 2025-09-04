@@ -9,6 +9,7 @@ import com.wepong.pongdang.entity.UserEntity;
 import com.wepong.pongdang.entity.enums.PongHistoryType;
 import com.wepong.pongdang.entity.enums.WalletType;
 import com.wepong.pongdang.exception.QuizAlreadyTakenException;
+import com.wepong.pongdang.exception.UserCannotFoundException;
 import com.wepong.pongdang.repository.QuizCheckRepository;
 import com.wepong.pongdang.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ public class QuizCheckService {
     @Transactional
     public QuizResponseDTO.QuizCheckResponse markTodayQuizTaken(Long userId) { // check
         UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserCannotFoundException());
 
         LocalDate today = LocalDate.now();
 

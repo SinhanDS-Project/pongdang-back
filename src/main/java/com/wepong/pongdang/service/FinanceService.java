@@ -10,6 +10,7 @@ import com.google.genai.types.Part;
 import com.wepong.pongdang.dto.request.FinanceRequestDTO;
 import com.wepong.pongdang.dto.response.FinanceResponseDTO;
 import com.wepong.pongdang.exception.FinanceReportException;
+import com.wepong.pongdang.exception.UserCannotFoundException;
 import com.wepong.pongdang.genai.FinancePrompt;
 import com.wepong.pongdang.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +49,7 @@ public class FinanceService {
     public FinanceResponseDTO getPrediction(FinanceRequestDTO request, Long userId) {
         String name = userRepository.findById(userId)
                 .map(u -> u.getUserName())
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. id=" + userId));
+                .orElseThrow(() -> new UserCannotFoundException());
         request.setName(name);
 
         try {
