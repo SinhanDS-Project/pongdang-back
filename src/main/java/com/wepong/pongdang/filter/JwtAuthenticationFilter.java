@@ -77,6 +77,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	}
 
 	private boolean isExcludedPath(String uri) {
-		return uri.equals("/") || uri.startsWith("/auth") || uri.startsWith("/resources");
+		return uri.equals("/") || uri.startsWith("/auth") || uri.startsWith("/resources") || uri.startsWith("/ws");
 	}
 }
