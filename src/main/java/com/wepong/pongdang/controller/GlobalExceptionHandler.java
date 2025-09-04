@@ -53,6 +53,14 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", "INVALID_UPDATE_PASSWORD", "message", ex.getMessage()));
     }
 
+	@ExceptionHandler(QuizAlreadyTakenException.class)
+	public ResponseEntity<?> handleQuizAlreadyTaken(QuizAlreadyTakenException ex) {
+		return ResponseEntity
+				.status(HttpStatus.CONFLICT) // 409 Conflict 권장
+				.body(Map.of("error", "ALREADY_TODAY_QUIZ_FINISHED", "message", ex.getMessage()));
+	}
+
+
 	// Optional: 모든 예외를 처리하는 fallback
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<?> handleAll(Exception ex) {

@@ -1,5 +1,6 @@
 package com.wepong.pongdang.entity;
 
+import com.wepong.pongdang.dto.response.QuizResponseDTO;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -43,4 +44,17 @@ public class QuizEntity {
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String explanation;               // 해설
+
+    public QuizResponseDTO.QuizView toDto() {
+        return QuizResponseDTO.QuizView.builder()
+                .position(position)
+                .question(question)
+                .choice1(choice1)
+                .choice2(choice2)
+                .choice3(choice3)
+                .choice4(choice4)
+                .answerIdx(answerIdx)
+                .explanation(explanation)
+                .build();
+    }
 }
