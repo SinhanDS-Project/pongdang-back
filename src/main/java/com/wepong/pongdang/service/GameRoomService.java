@@ -135,7 +135,7 @@ public class GameRoomService {
 				.data(data)
 				.build();
 
-		messagingTemplate.convertAndSend("/topic/game" + roomId, payload);
+		messagingTemplate.convertAndSend("/topic/game/" + roomId, payload);
 	}
 
 	public void sendGame(Long roomId, String type) {
@@ -143,7 +143,7 @@ public class GameRoomService {
 				.type(type)
 				.build();
 
-		messagingTemplate.convertAndSend("/topic/game" + roomId, payload);
+		messagingTemplate.convertAndSend("/topic/game/" + roomId, payload);
 	}
 
 	public void sendTest(String type, ChatResponseDTO chat) {
