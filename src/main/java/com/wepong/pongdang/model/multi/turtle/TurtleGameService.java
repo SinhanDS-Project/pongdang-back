@@ -139,7 +139,7 @@ public class TurtleGameService {
 
             int reward = didWin ? rewardConfig.getReward() : 0;
             int donation = didWin ? rewardConfig.getDonation() : 0;
-            int pongChange = didWin ? reward : -entryFee;
+            int pongChange = didWin ? reward : 0;
 
             saveTurtleRunResult(player.getUserId(), entryFee, reward, donation, rankType, gameName);
 
