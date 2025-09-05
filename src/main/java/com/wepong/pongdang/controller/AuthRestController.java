@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
 import com.wepong.pongdang.entity.mapping.UserInfo;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.Cookie;
+import com.wepong.pongdang.dto.response.LoginResponseDTO;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -48,7 +49,7 @@ public class AuthRestController {
 					.sameSite("Strict") // 또는 "Lax" / "None" (크로스 도메인 필요 시)
 					.build();
 
-			return ResponseEntity.ok().header("Set-Cookie", cookie.toString()).body(new LoginResponse(accessToken, "로그인 성공", UserInfo.from(user)));
+			return ResponseEntity.ok().header("Set-Cookie", cookie.toString()) .body(new LoginResponseDTO(accessToken, "로그인 성공", UserInfo.from(user)));
 		} catch (AuthException error) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body(error.getMessage());
 		}
@@ -177,7 +178,7 @@ public class AuthRestController {
 //		}
 //	}
 
-    // HttpOnly 쿠키에 저장된 Refresh Token을 이용해 Access Token 재발급 API(민성이형님이 해달라고하신거)
+    // HttpOnly 쿠키에 저장된 Refresh Token을 이용해 Access Token 재발급 API
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(HttpServletRequest request) {
         // 1. 쿠키에서 refreshToken 꺼내기
@@ -212,29 +213,6 @@ public class AuthRestController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
-
-
-    // 응답 DTO
-	static class LoginResponse {
-		private String accessToken;
-		private String message;
-        private UserInfo user;
-
-
-        public LoginResponse(String accessToken, String message, UserInfo user) {
-            this.accessToken = accessToken;
-            this.message = message;
-            this.user = user;
-        }
-
-		public String getAccessToken() {
-			return accessToken;
-		}
-        public String getMessage() { return message; }
-        public UserInfo getUser() { return user; }
-	}
-
-
 
 	private boolean isBlank(String str) {
 		return str == null || str.trim().isEmpty();
