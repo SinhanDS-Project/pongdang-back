@@ -16,8 +16,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class BettingUserService {
 
-
-    private final AuthService authService;
     private final SUserRepository sUserRepository;
 
     public BettingUserResponseDTO findUser(String name, String phone) {

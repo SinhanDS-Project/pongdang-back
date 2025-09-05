@@ -108,7 +108,7 @@ public class UserRestController {
 
         // 연동 처리
         user.setLinkedWithBetting(true);
-        authService.saveUser(user); // UserEntity 저장
+        userRepository.save(user);
 
         // 업데이트된 유저 DTO 반환
         return ResponseEntity.ok(UserInfo.from(user));
