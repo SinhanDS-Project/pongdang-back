@@ -8,6 +8,7 @@ import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.Part;
 import com.wepong.pongdang.dto.response.QuizResponseDTO;
 import com.wepong.pongdang.entity.QuizEntity;
+import com.wepong.pongdang.exception.QuizNotGeneratedException;
 import com.wepong.pongdang.genai.QuizPrompts;
 import com.wepong.pongdang.genai.QuizSimilarityUtil;
 import com.wepong.pongdang.repository.QuizRepository;
@@ -38,24 +39,43 @@ public class QuizService {
     private String model;
 
 
+    // 퀴즈 생성 요청
+    public boolean getTodayWithAutoGenerate() {
+        LocalDate today = LocalDate.now(KST);
+        try {
+            if(!quizRepository.existsByQuizDate(today)) {
+                generateTodayAndSave();
+                regenerateDuplicates();
+            }
+        } catch (Exception e) {
+            return false;
+        }
+        // 성공시 true
+        return quizRepository.existsByQuizDate(today);
+    }
+
+    // 오늘자 퀴즈 조회
+    public List<QuizResponseDTO.QuizView> getToday() {
+        LocalDate today = LocalDate.now(KST);
+
+        List<QuizResponseDTO.QuizView> quizzes = quizRepository.findByQuizDateOrderByPosition(today)
+                .stream()
+                .map(QuizEntity::toDto)
+                .toList();
+
+        if (quizzes.isEmpty()) {
+            throw new QuizNotGeneratedException();
+        }
+
+        return quizzes;
+    }
+
+
     @Transactional
-    public void generateTodayAndSave() {
-        // 1) 프롬프트로 퀴즈 생성 요청
-        Content user = Content.builder()
-                .role("user")
-                .parts(List.of(Part.fromText(QuizPrompts.RANDOM_QUIZ_JSON)))
-                .build();
+    public void generateTodayAndSave() { // 퀴즈 생성
+        String json = generateContent(QuizPrompts.RANDOM_QUIZ_JSON).text(); // 모델이 낸 JSON 전체
 
-        // 2) JSON만 받도록
-        GenerateContentResponse res = client.models.generateContent(
-                model,
-                List.of(user),
-                defaultGenConfig
-        );
-
-        String json = res.text(); // 모델이 낸 JSON 전체
-
-        // 3) 파싱 + 검증(필수 필드/개수/인덱스)
+        // 파싱 및 검증(필수 필드/개수/인덱스)
         QuizResponseDTO.GenerateResponse body;
         try {
             if (json.trim().startsWith("[")) {
@@ -80,12 +100,10 @@ public class QuizService {
 
         boolean exists = quizRepository.existsByQuizDate(today);
         if (exists) {
-            // 오늘 퀴즈 이미 있음 → 아무것도 하지 않음
-            System.out.println("아무것도 안 함");
             return;
         }
 
-        // 여기서는 단순히 그대로 저장
+        // 그대로 저장
         for (QuizResponseDTO.GeneratedQuestion gq : body.getQuestions()) {
             QuizEntity entity = QuizEntity.builder()
                     .quizDate(today)
@@ -103,7 +121,7 @@ public class QuizService {
     }
 
     @Transactional
-    public void regenerateDuplicates() {
+    public void regenerateDuplicates() { // 중복 검사 및 중복시 재생성 요청
         LocalDate today = LocalDate.now(KST);
         List<QuizEntity> todayQuizzes = quizRepository.findByQuizDateOrderByPosition(today); // 오늘 퀴즈
         List<QuizEntity> pastQuizzes = quizRepository.findByQuizDateBefore(today);          // 과거 모든 퀴즈
@@ -138,17 +156,8 @@ public class QuizService {
                             quiz.getPosition(), bannedQuestions
                     );
 
-                    Content user = Content.builder()
-                            .role("user")
-                            .parts(List.of(Part.fromText(prompt)))
-                            .build();
-                    GenerateContentResponse res = client.models.generateContent(
-                            model,
-                            List.of(user),
-                            defaultGenConfig
-                    );
+                    String json = generateContent(prompt).text();
 
-                    String json = res.text();
                     QuizResponseDTO.GenerateResponse body;
                     try {
                         if (json.trim().startsWith("[")) {
@@ -184,32 +193,21 @@ public class QuizService {
         }
     }
 
+    // LLM이 quiz 생성 후 content 반환
+    public GenerateContentResponse generateContent(String prompt) {
+        // 1) 프롬프트로 퀴즈 생성 요청
+        Content user = Content.builder()
+                .role("user")
+                .parts(List.of(Part.fromText(prompt)))
+                .build();
 
-    /** 오늘자 퀴즈 조회 */
-    public List<QuizResponseDTO.QuizView> getToday() {
-        LocalDate today = LocalDate.now(KST);
-
-        return quizRepository.findByQuizDateOrderByPosition(today)
-                .stream()
-                .map(QuizEntity::toDto)
-                .toList();
-    }
-
-    public List<QuizResponseDTO.QuizView> getTodayWithAutoGenerate() {
-        LocalDate today = LocalDate.now(KST);
-        List<QuizEntity> list = quizRepository.findByQuizDateOrderByPosition(today);
-
-        // 오늘 퀴즈 없으면 생성 후 재조회
-        if (list.isEmpty()) {
-            generateTodayAndSave();
-            regenerateDuplicates();
-            list = quizRepository.findByQuizDateOrderByPosition(today);
-        }
-
-        // Entity → DTO 변환
-        return list.stream()
-                .map(QuizEntity::toDto)
-                .toList();
+        // 2) JSON만 받도록
+        GenerateContentResponse res = client.models.generateContent(
+                model,
+                List.of(user),
+                defaultGenConfig
+        );
+        return res;
     }
 }
 
