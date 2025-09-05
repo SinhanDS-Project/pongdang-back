@@ -136,6 +136,7 @@ public class AuthService {
 				.agreePrivacy(dto.isAgreePrivacy())
                 .tutorialCheck(false)
                 .linkedWithBetting(dto.isLinkedWithBetting())
+                .profileImage("")
 				.build();
 
 		userRepository.save(userEntity);
