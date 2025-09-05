@@ -1,19 +1,17 @@
-package com.wepong.pongdang.entity.mapping;
+package com.wepong.pongdang.dto.response;
 
 import com.wepong.pongdang.entity.UserEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.joda.time.LocalDate;
 
 import java.sql.Date;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserInfo {
+public class UserInfoResponseDTO {
     private Long id;
     private String userName;
     private String nickname;
@@ -26,8 +24,8 @@ public class UserInfo {
     private LocalDateTime updatedAt;
 
     // 엔티티 → DTO 변환
-    public static UserInfo from(UserEntity entity) {
-        return new UserInfo(
+    public static UserInfoResponseDTO from(UserEntity entity) {
+        return new UserInfoResponseDTO(
                 entity.getId(),
                 entity.getUserName(),
                 entity.getNickname(),

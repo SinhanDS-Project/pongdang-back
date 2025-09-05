@@ -1,21 +1,18 @@
 package com.wepong.pongdang.controller;
 
-import com.wepong.pongdang.dto.response.BettingUserResponseDTO;
 import com.wepong.pongdang.dto.response.UserResponseDTO;
 import com.wepong.pongdang.dto.request.UserUpdateRequestDTO;
 import com.wepong.pongdang.entity.UserEntity;
 import com.wepong.pongdang.entity.WalletEntity;
 import com.wepong.pongdang.entity.enums.WalletType;
-import com.wepong.pongdang.entity.mapping.UserInfo;
+import com.wepong.pongdang.dto.response.UserInfoResponseDTO;
 import com.wepong.pongdang.exception.EmailNotFoundException;
 import com.wepong.pongdang.repository.UserRepository;
 import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.BettingUserService;
 import com.wepong.pongdang.service.WalletService;
 
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -111,7 +108,7 @@ public class UserRestController {
         userRepository.save(user);
 
         // 업데이트된 유저 DTO 반환
-        return ResponseEntity.ok(UserInfo.from(user));
+        return ResponseEntity.ok(UserInfoResponseDTO.from(user));
     }
 
 

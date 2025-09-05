@@ -1,7 +1,6 @@
 package com.wepong.pongdang.controller;
 
 import com.wepong.pongdang.dto.request.LoginRequestDTO;
-import com.wepong.pongdang.dto.request.TransferRequestDTO;
 import com.wepong.pongdang.dto.request.UserRegisterDTO;
 import com.wepong.pongdang.dto.response.BettingUserResponseDTO;
 import com.wepong.pongdang.entity.UserEntity;
@@ -17,7 +16,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 import java.util.regex.Pattern;
-import com.wepong.pongdang.entity.mapping.UserInfo;
+import com.wepong.pongdang.dto.response.UserInfoResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.Cookie;
 import com.wepong.pongdang.dto.response.LoginResponseDTO;
@@ -49,7 +48,7 @@ public class AuthRestController {
 					.sameSite("Strict") // 또는 "Lax" / "None" (크로스 도메인 필요 시)
 					.build();
 
-			return ResponseEntity.ok().header("Set-Cookie", cookie.toString()) .body(new LoginResponseDTO(accessToken, "로그인 성공", UserInfo.from(user)));
+			return ResponseEntity.ok().header("Set-Cookie", cookie.toString()) .body(new LoginResponseDTO(accessToken, "로그인 성공", UserInfoResponseDTO.from(user)));
 		} catch (AuthException error) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body(error.getMessage());
 		}
@@ -207,7 +206,7 @@ public class AuthRestController {
             return ResponseEntity.ok(Map.of(
                     "access_token", newAccessToken,
                     "message", "토큰 재발급 성공",
-                    "user", UserInfo.from(user)
+                    "user", UserInfoResponseDTO.from(user)
             ));
         } catch (AuthException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
