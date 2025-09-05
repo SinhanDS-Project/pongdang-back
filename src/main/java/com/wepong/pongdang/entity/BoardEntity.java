@@ -24,7 +24,7 @@ public class BoardEntity extends BaseEntity {
     @Column(nullable = false, columnDefinition = "VARCHAR(255)")
     private String title;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String content;
 
     @Enumerated(EnumType.STRING)
@@ -37,9 +37,6 @@ public class BoardEntity extends BaseEntity {
     @Column(nullable = false)
     @ColumnDefault("0")
     private int likeCount;
-
-    @Column(columnDefinition = "VARCHAR(255) DEFAULT ''")
-    private String boardImg;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
