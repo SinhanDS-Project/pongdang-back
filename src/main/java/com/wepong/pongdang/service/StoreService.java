@@ -10,6 +10,7 @@ import com.wepong.pongdang.entity.enums.PongHistoryType;
 import com.wepong.pongdang.entity.enums.ProductType;
 import com.wepong.pongdang.entity.enums.WalletType;
 import com.wepong.pongdang.entity.mapping.PurchaseEntity;
+import com.wepong.pongdang.exception.ProductNotFoundException;
 import com.wepong.pongdang.repository.ProductRepository;
 import com.wepong.pongdang.repository.PurchaseRepository;
 import lombok.RequiredArgsConstructor;
@@ -50,13 +51,13 @@ public class StoreService {
 
     // 상품 상세 조회
     public ProductResponseDTO findProductById(Long productId) {
-        ProductEntity entity = productRepository.findById(productId).orElseThrow(() -> new RuntimeException("상품이 존재하지 않습니다."));
+        ProductEntity entity = productRepository.findById(productId).orElseThrow(() -> new ProductNotFoundException());
         return modelMapper.map(entity, ProductResponseDTO.class);
     }
 
     // 상품 구매
     public PurchaseResponseDTO purchase(PurchaseRequestDTO request, Long userId) {
-        ProductEntity product = productRepository.findById(request.getProductId()).orElseThrow(() -> new RuntimeException("상품이 존재하지 않습니다."));
+        ProductEntity product = productRepository.findById(request.getProductId()).orElseThrow(() -> new ProductNotFoundException());
         UserEntity user = authService.findById(userId);
 
         // 일반 퐁 차감

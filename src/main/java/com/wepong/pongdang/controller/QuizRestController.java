@@ -3,18 +3,14 @@ package com.wepong.pongdang.controller;
 
 import com.wepong.pongdang.dto.request.QuizRequestDTO;
 import com.wepong.pongdang.dto.response.QuizResponseDTO;
-import com.wepong.pongdang.entity.PongHistoryEntity;
-import com.wepong.pongdang.entity.QuizEntity;
-import com.wepong.pongdang.entity.enums.PongHistoryType;
-import com.wepong.pongdang.entity.enums.WalletType;
 import com.wepong.pongdang.exception.UnauthorizedAccessException;
-import com.wepong.pongdang.service.*;
+import com.wepong.pongdang.service.AuthService;
+import com.wepong.pongdang.service.QuizCheckService;
+import com.wepong.pongdang.service.QuizService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,8 +20,12 @@ public class QuizRestController {
     private final AuthService authService;
     private final QuizService quizService;
     private final QuizCheckService quizCheckService;
-    private final HistoryService historyService;
-    private final WalletService walletService;
+
+    // 퀴즈 생성 요청
+    @PostMapping("")
+    public boolean generateTodayQuiz(){
+        return quizService.getTodayWithAutoGenerate();
+    }
 
     // 오늘 세트 조회(사용자용)
     @GetMapping("")
@@ -36,7 +36,7 @@ public class QuizRestController {
             throw new UnauthorizedAccessException(); // "로그인 후 이용이 가능한 서비스입니다"
         }
 
-        return quizService.getTodayWithAutoGenerate();
+        return quizService.getToday();
     }
 
     // 오늘 퀴즈 풀이 체크

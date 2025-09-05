@@ -9,6 +9,7 @@ import com.wepong.pongdang.entity.UserEntity;
 import com.wepong.pongdang.entity.enums.PongHistoryType;
 import com.wepong.pongdang.entity.enums.WalletType;
 import com.wepong.pongdang.entity.mapping.DonationEntity;
+import com.wepong.pongdang.exception.DonationNotFoundException;
 import com.wepong.pongdang.repository.DonationInfoRepository;
 import com.wepong.pongdang.repository.DonationRepository;
 import lombok.RequiredArgsConstructor;
@@ -44,14 +45,14 @@ public class DonationService {
 
     // 기부 정보 상세 조회
     public DonationInfoResponseDTO findInfoById(Long infoId) {
-        DonationInfoEntity entity = donationInfoRepository.findById(infoId).orElseThrow(() -> new RuntimeException("기부 정보가 존재하지 않습니다."));
+        DonationInfoEntity entity = donationInfoRepository.findById(infoId).orElseThrow(() -> new DonationNotFoundException());
         return modelMapper.map(entity, DonationInfoResponseDTO.class);
     }
 
     // 기부
     @Transactional
     public DonationResponseDTO pongDonate(DonationRequestDTO request, Long userId) {
-        DonationInfoEntity donationInfo = donationInfoRepository.findById(request.getDonationInfoId()).orElseThrow(() -> new RuntimeException("기부 정보가 존재하지 않습니다."));
+        DonationInfoEntity donationInfo = donationInfoRepository.findById(request.getDonationInfoId()).orElseThrow(() -> new DonationNotFoundException());
         UserEntity user = authService.findById(userId);
         WalletType walletType = request.getWalletType();
         PongHistoryType historyType = null;
