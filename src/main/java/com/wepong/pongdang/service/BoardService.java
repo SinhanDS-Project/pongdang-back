@@ -3,13 +3,12 @@ package com.wepong.pongdang.service;
 import com.wepong.pongdang.config.AmazonS3Config;
 import com.wepong.pongdang.dto.request.BoardRequestDTO.InsertBoardRequestDTO;
 import com.wepong.pongdang.dto.request.BoardRequestDTO.UpdateBoardRequestDTO;
+import com.wepong.pongdang.dto.response.BoardResponseDTO;
 import com.wepong.pongdang.entity.BoardEntity;
 import com.wepong.pongdang.entity.UserEntity;
 import com.wepong.pongdang.entity.enums.BoardType;
 import com.wepong.pongdang.exception.BoardNotFoundException;
 import com.wepong.pongdang.exception.BoardUnauthorizedException;
-import com.wepong.pongdang.exception.ExceptionMessage;
-import com.wepong.pongdang.exception.UserNotFoundException;
 import com.wepong.pongdang.model.aws.S3FileService;
 import com.wepong.pongdang.repository.BoardRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,30 +38,47 @@ public class BoardService {
     @Autowired
 	private AmazonS3Config amazonS3Config;
 
-	// 게시글 리스트 조회, 페이징 (카테고리별)
-	public Page<BoardEntity> getBoards(int offset, int limit, BoardType category, String sort) {
+	// 게시글 리스트 조회, 페이징 (카테고리별), 정렬 포함
+	public BoardResponseDTO.BoardListDTO getBoards(int page, int limit, BoardType category, String sort) {
+		int offset = (page - 1) * limit;
+
 		Pageable pageable = PageRequest.of(offset / limit, limit, Sort.by(sort).descending());
-		return boardRepository.findByCategory(category, pageable);
+		Page<BoardEntity> boards = boardRepository.findByCategory(category, pageable);
+
+		Page<BoardResponseDTO.BoardDetailDTO> details = boards.map(BoardResponseDTO.BoardDetailDTO::from);
+
+		return BoardResponseDTO.BoardListDTO.from(details, category);
 	}
 
+	// 게시글 리스트 조회, 페이징 (정렬 X)
 	public Page<BoardEntity> getBoards(int offset, int limit, BoardType category) {
 		Pageable pageable = PageRequest.of(offset / limit, limit);
 		return boardRepository.findByCategory(category, pageable);
 	}
 
+	// FAQ: 페이징 X, 정렬 X
 	public List<BoardEntity> getBoards(BoardType category) {
 		return boardRepository.findByCategory(category);
 	}
 
-	public int getCountByCategory(BoardType category) {
-		return boardRepository.countByCategory(category);
+	// 게시글 상세 조회(entity반환)
+	public BoardEntity getBoardByUid(Long id) {
+		BoardEntity board = boardRepository.findById(id)
+				.orElseThrow(BoardNotFoundException::new);
+		return board;
+	}
+
+	// 게시글 상세 조회(DTO반환)
+	public BoardResponseDTO.BoardDetailDTO getBoardDetail(Long boardId) {
+		// 조회수 증가
+		incrementViewCount(boardId);
+		// 게시글 데이터 가져오기
+		BoardEntity boardEntity = boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
+		return BoardResponseDTO.BoardDetailDTO.from(boardEntity);
 	}
 
 	// 게시글 등록
 	public void insertBoard(InsertBoardRequestDTO dto, Long userId) {
-		// UUID 생성
-		String uid = UUID.randomUUID().toString().replace("-", "");
-
 		UserEntity userEntity = authService.findById(userId);
 
 		BoardEntity boardEntity = BoardEntity.builder().title(dto.getTitle()).content(dto.getContent())
@@ -71,21 +86,11 @@ public class BoardService {
 		boardRepository.save(boardEntity);
 	}
 
-	// 게시글 상세 조회
-    public BoardEntity getBoardByUid(Long id) {
-        BoardEntity board = boardRepository.findById(id)
-                .orElseThrow(BoardNotFoundException::new);
-
-        return board;
-    }
-
 	// 게시글 수정 - 로그인한 본인만 수정 가능
 	public void updateBoard(Long id, UpdateBoardRequestDTO dto, Long userId) {
 		// 1. 기존 게시글 조회
 		BoardEntity existing = boardRepository.findById(id).orElseThrow(BoardNotFoundException::new);
-
 		UserEntity userEntity = authService.findById(userId);
-
 		// 2. 작성자 검증
 		if (!existing.getUser().getId().equals(userEntity.getId())) {
             throw new BoardUnauthorizedException();
@@ -139,4 +144,5 @@ public class BoardService {
 		BoardEntity existing = boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
 		existing.incrementLikeCount();
 	}
+
 }
