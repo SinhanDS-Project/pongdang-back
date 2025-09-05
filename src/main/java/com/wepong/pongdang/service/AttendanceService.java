@@ -14,7 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.ZoneId;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -57,7 +59,26 @@ public class AttendanceService {
 
     // user별 출석일수 조회
     public AttendanceResponseDTO countAttendance(Long userId) {
-        int countAttendance = attendanceRepository.countByUserId(userId);
-        return AttendanceResponseDTO.builder().count(countAttendance).build();
+        YearMonth currentMonth = YearMonth.now();
+        LocalDate startOfMonth = currentMonth.atDay(1);                  // 이번 달 1일
+        LocalDate endOfMonth = currentMonth.atEndOfMonth();               // 이번 달 말일
+
+        // 이번 달 출석 날짜 list
+        List<LocalDate> attendanceDates = attendanceRepository
+                .findAllByUserIdAndAttendanceDateBetweenOrderByAttendanceDateDesc(
+                        userId, startOfMonth, endOfMonth
+                )
+                .stream()
+                .map(AttendanceEntity::getAttendanceDate)
+                .toList();
+
+        // 이번 달 출석일수
+        int countAttendance = attendanceDates.size();
+
+
+        return AttendanceResponseDTO.builder()
+                        .count(countAttendance)
+                        .attendanceDate(attendanceDates)
+                        .build();
     }
 }
