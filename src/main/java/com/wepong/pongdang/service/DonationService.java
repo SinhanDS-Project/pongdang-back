@@ -89,7 +89,10 @@ public class DonationService {
                 .build();
 
         donationRepository.save(donation);
-        webSocketService.sendMain("donation", user.getNickname() + "님이 기부하셨습니다! \uD83D\uDCA7");
+        webSocketService.sendMain("donation", user.getNickname() + "님이 "
+                + donationInfo.getOrg() + "에 "
+                + donation.getAmount() + "퐁을 "
+                + "기부하셨습니다! \uD83D\uDCA7");
 
         return DonationResponseDTO.from(donation);
     }
