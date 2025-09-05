@@ -6,6 +6,7 @@ import com.wepong.pongdang.dto.request.UserUpdateRequestDTO;
 import com.wepong.pongdang.entity.UserEntity;
 import com.wepong.pongdang.entity.WalletEntity;
 import com.wepong.pongdang.entity.enums.WalletType;
+import com.wepong.pongdang.entity.mapping.UserInfo;
 import com.wepong.pongdang.exception.EmailNotFoundException;
 import com.wepong.pongdang.repository.UserRepository;
 import com.wepong.pongdang.service.AuthService;
@@ -110,7 +111,7 @@ public class UserRestController {
         authService.saveUser(user); // UserEntity 저장
 
         // 업데이트된 유저 DTO 반환
-        return ResponseEntity.ok(AuthRestController.UserInfo.from(user));
+        return ResponseEntity.ok(UserInfo.from(user));
     }
 
 
