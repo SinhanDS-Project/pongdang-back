@@ -12,12 +12,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 import java.util.regex.Pattern;
+import com.wepong.pongdang.entity.mapping.UserInfo;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Cookie;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -152,30 +154,67 @@ public class AuthRestController {
         }
         return ResponseEntity.ok(dto);
     }
-	// 리프레시 토큰을 통한 액세스 토큰 재발급 API
-	@PostMapping("/reissue")
-	public ResponseEntity<?> reissue(@RequestHeader("Authorization") String authHeader) {
+	//  Authorization 헤더에 담긴 Refresh Token을 이용해 Access Token 재발급 API(기존: 혹시몰라서 남겨둠)
+//	@PostMapping("/reissue")
+//	public ResponseEntity<?> reissue(@RequestHeader("Authorization") String authHeader) {
+//
+//		try {
+//			if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+//				ResponseCookie cookie = ResponseCookie.from("refreshToken", "").path("/").httpOnly(true).maxAge(0) // 삭제
+//						.build();
+//
+//				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).header("Set-Cookie", cookie.toString()).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("토큰이 없습니다.");
+//			}
+//
+//			String refreshToken = authHeader.substring(7);
+//			String accessToken = authService.reissue(refreshToken);
+//            Long userId = authService.validateAndGetUserId("Bearer " + refreshToken);
+//            UserEntity user = authService.findById(userId);
+//
+//			return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body(new LoginResponse(accessToken, "토큰 재발급", UserInfo.from(user)));
+//		} catch (AuthException error) {
+//			return ResponseEntity.status(401).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body(error.getMessage());
+//		}
+//	}
 
-		try {
-			if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-				ResponseCookie cookie = ResponseCookie.from("refreshToken", "").path("/").httpOnly(true).maxAge(0) // 삭제
-						.build();
+    // HttpOnly 쿠키에 저장된 Refresh Token을 이용해 Access Token 재발급 API(민성이형님이 해달라고하신거)
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(HttpServletRequest request) {
+        // 1. 쿠키에서 refreshToken 꺼내기
+        String refreshToken = null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("refreshToken".equals(cookie.getName())) {
+                    refreshToken = cookie.getValue();
+                    break;
+                }
+            }
+        }
 
-				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).header("Set-Cookie", cookie.toString()).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("토큰이 없습니다.");
-			}
+        if (refreshToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("리프레시 토큰이 없습니다.");
+        }
 
-			String refreshToken = authHeader.substring(7);
-			String accessToken = authService.reissue(refreshToken);
+        try {
+            // 2. refreshToken 검증 후 새 accessToken 발급
+            String newAccessToken = authService.reissue(refreshToken);
             Long userId = authService.validateAndGetUserId("Bearer " + refreshToken);
             UserEntity user = authService.findById(userId);
 
-			return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body(new LoginResponse(accessToken, "토큰 재발급", UserInfo.from(user)));
-		} catch (AuthException error) {
-			return ResponseEntity.status(401).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body(error.getMessage());
-		}
-	}
+            // 3. 새 accessToken 반환
+            return ResponseEntity.ok(Map.of(
+                    "access_token", newAccessToken,
+                    "message", "토큰 재발급 성공",
+                    "user", UserInfo.from(user)
+            ));
+        } catch (AuthException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
+    }
 
-	// 응답 DTO
+
+    // 응답 DTO
 	static class LoginResponse {
 		private String accessToken;
 		private String message;
@@ -195,56 +234,7 @@ public class AuthRestController {
         public UserInfo getUser() { return user; }
 	}
 
-    static class UserInfo {
-        private Long id;
-        private String userName;
-        private String nickname;
-        private String email;
-        private String phoneNumber;
-        private java.sql.Date birthDate;
-        private String profileImage;
-        private Boolean tutorialCheck;
-        private Boolean linkedWithBetting;
 
-        public UserInfo(Long id, String userName, String nickname, String email,
-                        String phoneNumber, java.sql.Date birthDate, String profileImage,
-                        Boolean tutorialCheck, Boolean linkedWithBetting) {
-            this.id = id;
-            this.userName = userName;
-            this.nickname = nickname;
-            this.email = email;
-            this.phoneNumber = phoneNumber;
-            this.birthDate = birthDate;
-            this.profileImage = profileImage;
-            this.tutorialCheck = tutorialCheck;
-            this.linkedWithBetting = linkedWithBetting;
-        }
-
-        // 엔티티  DTO 변환
-        public static UserInfo from(UserEntity entity) {
-            return new UserInfo(
-                    entity.getId(),
-                    entity.getUserName(),
-                    entity.getNickname(),
-                    entity.getEmail(),
-                    entity.getPhoneNumber(),
-                    entity.getBirthDate(),
-                    entity.getProfileImage(),
-                    entity.getTutorialCheck(),
-                    entity.getLinkedWithBetting()
-            );
-        }
-
-        public Long getId() { return id; }
-        public String getUserName() { return userName; }
-        public String getNickname() { return nickname; }
-        public String getEmail() { return email; }
-        public String getPhoneNumber() { return phoneNumber; }
-        public java.sql.Date getBirthDate() { return birthDate; }
-        public String getProfileImage() { return profileImage; }
-        public Boolean getTutorialCheck() { return tutorialCheck; }
-        public Boolean getLinkedWithBetting() { return linkedWithBetting; }
-    }
 
 	private boolean isBlank(String str) {
 		return str == null || str.trim().isEmpty();
