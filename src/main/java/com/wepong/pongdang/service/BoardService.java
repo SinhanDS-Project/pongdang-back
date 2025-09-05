@@ -42,7 +42,7 @@ public class BoardService {
 
 	// 게시글 리스트 조회, 페이징 (카테고리별)
 	public Page<BoardEntity> getBoards(int offset, int limit, BoardType category, String sort) {
-		Pageable pageable = PageRequest.of(offset / limit, limit, Sort.by(sort));
+		Pageable pageable = PageRequest.of(offset / limit, limit, Sort.by(sort).descending());
 		return boardRepository.findByCategory(category, pageable);
 	}
 
