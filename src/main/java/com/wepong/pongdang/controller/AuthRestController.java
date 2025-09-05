@@ -2,18 +2,24 @@ package com.wepong.pongdang.controller;
 
 import com.wepong.pongdang.dto.request.LoginRequestDTO;
 import com.wepong.pongdang.dto.request.UserRegisterDTO;
+import com.wepong.pongdang.dto.response.BettingUserResponseDTO;
+import com.wepong.pongdang.entity.UserEntity;
 import com.wepong.pongdang.exception.AuthException;
 import com.wepong.pongdang.service.AuthService;
+import com.wepong.pongdang.service.BettingUserService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 import java.util.regex.Pattern;
+import com.wepong.pongdang.dto.response.UserInfoResponseDTO;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Cookie;
+import com.wepong.pongdang.dto.response.LoginResponseDTO;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -21,6 +27,9 @@ public class AuthRestController {
 
 	@Autowired
 	private AuthService authService;
+
+    @Autowired
+    private BettingUserService bettingUserService;
 
 	// 로그인 API
 	@PostMapping("/login")
@@ -30,6 +39,8 @@ public class AuthRestController {
 			String accessToken = responseToken.get("accessToken");
 			String refreshToken = responseToken.get("refreshToken");
 
+            UserEntity user = authService.findByEmail(loginRequest.getEmail());
+
 			// HttpOnly 쿠키 생성
 			ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken).httpOnly(true).secure(false) // HTTPS 사용하는 경우 true
 					.path("/") // 모든 경로에 대해 쿠키 적용
@@ -37,7 +48,7 @@ public class AuthRestController {
 					.sameSite("Strict") // 또는 "Lax" / "None" (크로스 도메인 필요 시)
 					.build();
 
-			return ResponseEntity.ok().header("Set-Cookie", cookie.toString()).body(new LoginResponse(accessToken, "로그인 성공"));
+			return ResponseEntity.ok().header("Set-Cookie", cookie.toString()) .body(new LoginResponseDTO(accessToken, "로그인 성공", UserInfoResponseDTO.from(user)));
 		} catch (AuthException error) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body(error.getMessage());
 		}
@@ -112,8 +123,8 @@ public class AuthRestController {
 	        age--;
 	    }
 
-	    if (age < 19) {
-	        return ResponseEntity.badRequest().contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("만 19세 이상만 가입할 수 있습니다.");
+	    if (age < 15) {
+	        return ResponseEntity.badRequest().contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("만 15세 이상만 가입할 수 있습니다.");
 	    }
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("유효한 생년월일을 입력해주세요.");
@@ -129,44 +140,78 @@ public class AuthRestController {
 		return ResponseEntity.ok("회원가입이 완료되었습니다.");
 	}
 
-	// 리프레시 토큰을 통한 액세스 토큰 재발급 API
-	@PostMapping("/reissue")
-	public ResponseEntity<?> reissue(@RequestHeader("Authorization") String authHeader) {
-		try {
-			if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-				ResponseCookie cookie = ResponseCookie.from("refreshToken", "").path("/").httpOnly(true).maxAge(0) // 삭제
-						.build();
 
-				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).header("Set-Cookie", cookie.toString()).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("토큰이 없습니다.");
-			}
+    @PostMapping("/find-betting-user")
+    public ResponseEntity<?> findBettingUser(@RequestBody Map<String, String> req) {
+        String name = req.get("name");
+        String phone = req.get("phone");
 
-			String refreshToken = authHeader.substring(7);
-			String accessToken = authService.reissue(refreshToken);
+        BettingUserResponseDTO dto = bettingUserService.findUser(name, phone);
 
-			return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body(new LoginResponse(accessToken, "토큰 재발급"));
-		} catch (AuthException error) {
-			return ResponseEntity.status(401).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body(error.getMessage());
-		}
-	}
+        if (dto == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("해당 회원을 찾을 수 없습니다.");
+        }
+        return ResponseEntity.ok(dto);
+    }
+	//  Authorization 헤더에 담긴 Refresh Token을 이용해 Access Token 재발급 API(기존: 혹시몰라서 남겨둠)
+//	@PostMapping("/reissue")
+//	public ResponseEntity<?> reissue(@RequestHeader("Authorization") String authHeader) {
+//
+//		try {
+//			if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+//				ResponseCookie cookie = ResponseCookie.from("refreshToken", "").path("/").httpOnly(true).maxAge(0) // 삭제
+//						.build();
+//
+//				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).header("Set-Cookie", cookie.toString()).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("토큰이 없습니다.");
+//			}
+//
+//			String refreshToken = authHeader.substring(7);
+//			String accessToken = authService.reissue(refreshToken);
+//            Long userId = authService.validateAndGetUserId("Bearer " + refreshToken);
+//            UserEntity user = authService.findById(userId);
+//
+//			return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body(new LoginResponse(accessToken, "토큰 재발급", UserInfo.from(user)));
+//		} catch (AuthException error) {
+//			return ResponseEntity.status(401).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body(error.getMessage());
+//		}
+//	}
 
-	// 응답 DTO
-	static class LoginResponse {
-		private String accessToken;
-		private String message;
+    // HttpOnly 쿠키에 저장된 Refresh Token을 이용해 Access Token 재발급 API
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(HttpServletRequest request) {
+        // 1. 쿠키에서 refreshToken 꺼내기
+        String refreshToken = null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("refreshToken".equals(cookie.getName())) {
+                    refreshToken = cookie.getValue();
+                    break;
+                }
+            }
+        }
 
-		public LoginResponse(String accessToken, String message) {
-			this.accessToken = accessToken;
-			this.message = message;
-		}
+        if (refreshToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("리프레시 토큰이 없습니다.");
+        }
 
-		public String getAccessToken() {
-			return accessToken;
-		}
+        try {
+            // 2. refreshToken 검증 후 새 accessToken 발급
+            String newAccessToken = authService.reissue(refreshToken);
+            Long userId = authService.validateAndGetUserId("Bearer " + refreshToken);
+            UserEntity user = authService.findById(userId);
 
-		public String getMessage() {
-			return message;
-		}
-	}
+            // 3. 새 accessToken 반환
+            return ResponseEntity.ok(Map.of(
+                    "access_token", newAccessToken,
+                    "message", "토큰 재발급 성공",
+                    "user", UserInfoResponseDTO.from(user)
+            ));
+        } catch (AuthException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
+    }
 
 	private boolean isBlank(String str) {
 		return str == null || str.trim().isEmpty();
