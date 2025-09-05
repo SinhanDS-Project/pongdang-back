@@ -91,6 +91,12 @@ public class GlobalExceptionHandler {
 				.body(Map.of("error", "ALREADY_ATTENDANCE_FINISHED", "message", ex.getMessage()));
 	}
 
+	@ExceptionHandler(UserCannotFoundException.class)
+	public ResponseEntity<?> handleUserCannotFound(UserCannotFoundException ex) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+				.body(Map.of("error", "USER_CANNOT_FOUND", "message", ex.getMessage()));
+	}
+
 	// Optional: 모든 예외를 처리하는 fallback
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<?> handleAll(Exception ex) {

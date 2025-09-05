@@ -15,4 +15,5 @@ public class ExceptionMessage {
     public static final String REPLY_NOT_FOUND = "댓글이 존재하지 않습니다.";
     public static final String REPLY_UNAUTHORIZED = "본인 댓글만 수정/삭제할 수 있습니다.";
     public static final String ALREADY_ATTENDANCE_FINISHED = "이미 오늘의 출석이 완료되었습니다.";
+    public static final String USER_CANNOT_FOUND = "회원 정보를 찾을 수 없습니다.";
 }
