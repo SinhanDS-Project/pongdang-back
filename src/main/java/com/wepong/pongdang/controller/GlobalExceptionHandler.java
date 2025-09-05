@@ -56,10 +56,29 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(QuizAlreadyTakenException.class)
 	public ResponseEntity<?> handleQuizAlreadyTaken(QuizAlreadyTakenException ex) {
 		return ResponseEntity
-				.status(HttpStatus.CONFLICT) // 409 Conflict 권장
+				.status(HttpStatus.CONFLICT) // 409 Conflict
 				.body(Map.of("error", "ALREADY_TODAY_QUIZ_FINISHED", "message", ex.getMessage()));
 	}
 
+	@ExceptionHandler(FinanceReportException.class)
+	public ResponseEntity<?> handleFinanceReport(FinanceReportException ex) {
+		return ResponseEntity
+				.status(HttpStatus.INTERNAL_SERVER_ERROR) // 500
+				.body(Map.of("error", "FINANCE_REPORT_NOT_GENERATED", "message", ex.getMessage()));
+	}
+
+	@ExceptionHandler(QuizNotGeneratedException.class)
+	public ResponseEntity<?> handleQuizNotGenerated(QuizNotGeneratedException ex) {
+		return ResponseEntity
+				.status(HttpStatus.NOT_FOUND) // 404 Not Found
+				.body(Map.of("error", "QUIZ_NOT_GENERATED", "message", ex.getMessage()));
+	}
+
+	@ExceptionHandler(UserCannotFoundException.class)
+	public ResponseEntity<?> handleUserCannotFound(UserCannotFoundException ex) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+				.body(Map.of("error", "USER_CANNOT_FOUND", "message", ex.getMessage()));
+	}
 
 	// Optional: 모든 예외를 처리하는 fallback
 	@ExceptionHandler(Exception.class)

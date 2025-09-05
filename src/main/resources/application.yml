@@ -79,3 +79,7 @@ coolsms:
 data-go:
   api-url: ${DATA_URL}
   service-key: ${DATA_KEY}
+
+ml:
+  api:
+    url: ${FASTAPI_URL}
