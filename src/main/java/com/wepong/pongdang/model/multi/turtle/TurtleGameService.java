@@ -21,10 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 
 @Service
@@ -34,23 +31,24 @@ public class TurtleGameService {
 
 	private final PlayerDAO playerDAO;
 
-	private final GameRoomService gameRoomService;
-	private final AuthService authService;
-	private final GameService gameService;
-	private final HistoryService historyService;
+    private final GameRoomService gameRoomService;
+    private final AuthService authService;
+    private final GameService gameService;
+    private final HistoryService historyService;
+    private final WebSocketService webSocketService;
 
-	private final RewardPerResultRepository rewardPerResultRepository;
+    private final RewardPerResultRepository rewardPerResultRepository;
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
     private final Map<Long, TurtleGameState> gameStates = new ConcurrentHashMap<>();
 
-    private final Map<String, ScheduledFuture<?>> broadcastTasks = new ConcurrentHashMap<>();
+    private final Map<Long, ScheduledFuture<?>> broadcastTasks = new ConcurrentHashMap<>();
     private final Map<Long, List<TurtlePlayerDTO>> gameStartPlayersMap = new ConcurrentHashMap<>();
     private final Map<Long, Boolean> gameFinishMap = new ConcurrentHashMap<>();
 
-	private final WalletService walletService;
+    private final WalletService walletService;
 
-	private final GameRoomRepository gameRoomRepository;
+    private final GameRoomRepository gameRoomRepository;
     private final PlayerService playerService;
 
     // 콜백 인터페이스(핸들러에서 정의)
@@ -182,6 +180,14 @@ public class TurtleGameService {
 
                 historyService.insertPointHistory(donaHistory, userId);
             }
+
+            if(gameResult.equals(RankType.FIRST)) {
+                webSocketService.sendMain("First", userEntity.getNickname() + "님이 1등을 차지했습니다! \uD83E\uDD47");
+            } else if(gameResult.equals(RankType.SECOND)) {
+                webSocketService.sendMain("Second", userEntity.getNickname() + "님이 2등을 차지했습니다! \uD83E\uDD48");
+            } else if(gameResult.equals(RankType.THIRD)) {
+                webSocketService.sendMain("Third", userEntity.getNickname() + "님이 3등을 차지했습니다! \uD83E\uDD49");
+            }
         }
     }
 
@@ -240,21 +246,21 @@ public class TurtleGameService {
             gameStartPlayersMap.put(roomId, new ArrayList<>(startPlayers));
         }
 
-        gameRoomService.sendGame(roomId, "game_start");
+        webSocketService.sendGame(roomId, "game_start");
     }
 
     // 방에 위치 정보를 스케쥴러로 보내주는 함수
     public void broadcastRaceUpdate(Long roomId, double[] positions) {
         List<Double> posList = new ArrayList<>();
         for(double p : positions) posList.add(p);
-        gameRoomService.sendGame(roomId, "race_update", posList);
+        webSocketService.sendGame(roomId, "race_update", posList);
     }
 
     public void broadcastRaceFinish(Long roomId, int winner, List<Map<String, Object>> results) {
         Map<String, Object> msg = new HashMap<>();
         msg.put("winner", winner);
         msg.put("results",  results);
-        gameRoomService.sendGame(roomId, "race_finish", msg);
+        webSocketService.sendGame(roomId, "race_finish", msg);
 
         // 게임 종료 상태
         gameFinishMap.put(roomId, true);
