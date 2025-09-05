@@ -5,8 +5,11 @@ import com.wepong.pongdang.dto.request.UserUpdateRequestDTO;
 import com.wepong.pongdang.entity.UserEntity;
 import com.wepong.pongdang.entity.WalletEntity;
 import com.wepong.pongdang.entity.enums.WalletType;
+import com.wepong.pongdang.dto.response.UserInfoResponseDTO;
 import com.wepong.pongdang.exception.EmailNotFoundException;
+import com.wepong.pongdang.repository.UserRepository;
 import com.wepong.pongdang.service.AuthService;
+import com.wepong.pongdang.service.BettingUserService;
 import com.wepong.pongdang.service.WalletService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +26,12 @@ public class UserRestController {
 	private AuthService authService;
 	@Autowired
 	private WalletService walletService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private BettingUserService bettingUserService;
 
 	@GetMapping("/me")
 	public UserResponseDTO getMyInfo(@RequestHeader("Authorization") String authHeader) {
@@ -83,4 +92,25 @@ public class UserRestController {
 			throw new EmailNotFoundException();
 		}
 	}
+
+    //마이페이지에서 연동하기
+    @PutMapping("/link-betting")
+    public ResponseEntity<?> linkBetting(@RequestHeader("Authorization") String authHeader) {
+        Long userId = authService.validateAndGetUserId(authHeader);
+        UserEntity user = authService.findById(userId);
+
+        if (Boolean.TRUE.equals(user.getLinkedWithBetting())) {
+            return ResponseEntity.badRequest().body("이미 연동된 사용자입니다.");
+        }
+
+        // 연동 처리
+        user.setLinkedWithBetting(true);
+        userRepository.save(user);
+
+        // 업데이트된 유저 DTO 반환
+        return ResponseEntity.ok(UserInfoResponseDTO.from(user));
+    }
+
+
+
 }

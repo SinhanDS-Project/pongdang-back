@@ -52,7 +52,7 @@ public class UserEntity extends BaseEntity {
     private Boolean tutorialCheck;
 
     @ColumnDefault("0")
-    private Boolean assoCheck;
+    private Boolean linkedWithBetting;
 
     //  AuthToken 관계 (1:1)
     @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)

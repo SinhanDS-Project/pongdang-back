@@ -11,6 +11,7 @@ import com.wepong.pongdang.model.aws.S3FileServiceReturnKey;
 import com.wepong.pongdang.repository.*;
 import com.wepong.pongdang.util.JWTUtil;
 import lombok.RequiredArgsConstructor;
+import net.wepong.mysql.repository.SUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,7 +37,7 @@ public class AuthService {
 
     private final PhoneVerificationRepository phoneVerificationRepository;
     private final VerificationRepository verificationRepository;
-	@Autowired
+    @Autowired
 	private JWTUtil jwtUtil;
 	
 	@Autowired
@@ -138,14 +139,14 @@ public class AuthService {
 				.phoneNumber(dto.getPhoneNumber().replaceAll("-", ""))
 				.agreePrivacy(dto.isAgreePrivacy())
                 .tutorialCheck(false)
+                .linkedWithBetting(dto.isLinkedWithBetting())
 				.build();
 
 		userRepository.save(userEntity);
 
 		walletService.insertWallet(userEntity);
 
-        // 기본 포인트 10 지급
-        walletService.add(10, userEntity.getId(), WalletType.PONG);
+
 	}
 
 	public void updateUser(UserUpdateRequestDTO userRequest, Long userId) {
