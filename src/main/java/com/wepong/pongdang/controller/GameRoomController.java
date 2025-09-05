@@ -3,7 +3,6 @@ package com.wepong.pongdang.controller;
 import com.wepong.pongdang.dto.response.ChatResponseDTO;
 import com.wepong.pongdang.dto.response.TurtlePlayerDTO;
 import com.wepong.pongdang.model.multi.turtle.PlayerService;
-import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.GameRoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -19,7 +18,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class GameRoomController {
 
-    private final AuthService authService;
     private final PlayerService playerService;
     private final GameRoomService gameRoomService;
 
