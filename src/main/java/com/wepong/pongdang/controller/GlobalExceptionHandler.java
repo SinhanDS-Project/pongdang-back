@@ -89,6 +89,19 @@ public class GlobalExceptionHandler {
 		return ResponseEntity
 				.status(HttpStatus.CONFLICT) // 409 Conflict
 				.body(Map.of("error", "ALREADY_ATTENDANCE_FINISHED", "message", ex.getMessage()));
+    
+	@ExceptionHandler(FinanceReportException.class)
+	public ResponseEntity<?> handleFinanceReport(FinanceReportException ex) {
+		return ResponseEntity
+				.status(HttpStatus.INTERNAL_SERVER_ERROR) // 500
+				.body(Map.of("error", "FINANCE_REPORT_NOT_GENERATED", "message", ex.getMessage()));
+	}
+
+	@ExceptionHandler(QuizNotGeneratedException.class)
+	public ResponseEntity<?> handleQuizNotGenerated(QuizNotGeneratedException ex) {
+		return ResponseEntity
+				.status(HttpStatus.NOT_FOUND) // 404 Not Found
+				.body(Map.of("error", "QUIZ_NOT_GENERATED", "message", ex.getMessage()));
 	}
 
 	@ExceptionHandler(UserCannotFoundException.class)

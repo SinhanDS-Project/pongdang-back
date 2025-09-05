@@ -49,6 +49,7 @@ public class FinancePrompt {
             ---
  
             [사용자 입력 데이터]
+            이름 : %s
             나이: %d세
             월 소득: %,d원
             월 소비: %,d원
@@ -65,12 +66,13 @@ public class FinancePrompt {
             저축률: %.1f%%
             목표 달성률: %.1f%%
             소비전략: %s
-
+        
             ---
 
             위 데이터를 기반으로, 구체적인 수치(%%)와 금액을 활용해 설명하고, 마지막에는 핵심 권장 전략을 한 줄 요약으로 포함하세요.
 
         """.formatted(
+                request.getName(),
                 request.getAge(),
                 request.getIncome(),
                 request.getSpend(),
@@ -82,9 +84,9 @@ public class FinancePrompt {
                 request.getGoal_term(),
                 (int) mlResult.get("cluster"),
                 mlResult.get("cluster_label"),
-                mlResult.get("spend_rate"),
-                mlResult.get("saving_rate"),
-                mlResult.get("goal_achieve"),
+                (double) mlResult.get("spend_rate"),
+                (double) mlResult.get("saving_rate"),
+                (double) mlResult.get("goal_achieve"),
                 mlResult.get("strategy")
         );
     }
