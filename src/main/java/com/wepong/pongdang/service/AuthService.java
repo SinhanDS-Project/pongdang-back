@@ -48,19 +48,15 @@ public class AuthService {
 	// 로그인 요청 검증
 	public Map<String, String> login(LoginRequestDTO request) {
 		Map<String, String> responseToken = new HashMap<>();
-		
-		UserEntity userEntity = userRepository.findByEmail(request.getEmail());
+        UserEntity userEntity = userRepository.findByEmail(request.getEmail());
+
+        if (userEntity == null) {
+            throw new UserNotFoundException();
+        } else if (!passwordEncoder.matches(request.getPassword(), userEntity.getPassword())) {
+            throw new InvalidPasswordException();
+        }
+
 		AuthTokenEntity token = tokenRepository.findByUserId(userEntity.getId());
-
-
-
-		if (userEntity == null) {
-			throw new UserNotFoundException();
-		} else if (!passwordEncoder.matches(request.getPassword(), userEntity.getPassword())) {
-			throw new InvalidPasswordException();
-		}
-
-
 		String accessToken = jwtUtil.generateAccessToken(userEntity.getId());
 		String refreshToken = jwtUtil.generateRefreshToken(userEntity.getId());
 
