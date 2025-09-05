@@ -89,7 +89,9 @@ public class GlobalExceptionHandler {
 		return ResponseEntity
 				.status(HttpStatus.CONFLICT) // 409 Conflict
 				.body(Map.of("error", "ALREADY_ATTENDANCE_FINISHED", "message", ex.getMessage()));
-    
+
+	}
+
 	@ExceptionHandler(FinanceReportException.class)
 	public ResponseEntity<?> handleFinanceReport(FinanceReportException ex) {
 		return ResponseEntity
@@ -108,6 +110,20 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<?> handleUserCannotFound(UserCannotFoundException ex) {
 		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 				.body(Map.of("error", "USER_CANNOT_FOUND", "message", ex.getMessage()));
+	}
+
+	// 기부 정보가 존재하지 않음
+	@ExceptionHandler(DonationNotFoundException.class)
+	public ResponseEntity<?> handleDonationNotFound(DonationNotFoundException ex) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+				.body(Map.of("error", "DONATION_NOT_FOUND", "message", ex.getMessage()));
+	}
+
+	// 상품이 존재하지 않음
+	@ExceptionHandler(ProductNotFoundException.class)
+	public ResponseEntity<?> handleProductNotFound(ProductNotFoundException ex) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+				.body(Map.of("error", "PRODUCT_NOT_FOUND", "message", ex.getMessage()));
 	}
 
 	// Optional: 모든 예외를 처리하는 fallback
