@@ -5,6 +5,7 @@ import com.wepong.pongdang.dto.request.PurchaseRequestDTO;
 import com.wepong.pongdang.dto.response.ProductResponseDTO;
 import com.wepong.pongdang.dto.response.PurchaseResponseDTO;
 import com.wepong.pongdang.entity.enums.ProductType;
+import com.wepong.pongdang.exception.UnauthorizedAccessException;
 import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.BarcodeService;
 import com.wepong.pongdang.service.StoreService;
@@ -55,7 +56,10 @@ public class StoreController {
     // 상품 구매
     @PostMapping("/purchase")
     public PurchaseResponseDTO purchase(@RequestBody PurchaseRequestDTO purchaseRequestDTO,
-                                        @RequestHeader("Authorization") String authHeader) throws MessagingException, IOException, WriterException {
+                                        @RequestHeader(value = "Authorization", required = false) String authHeader) throws MessagingException, IOException, WriterException {
+        if (authHeader == null || authHeader.isBlank()) {
+            throw new UnauthorizedAccessException(); // "로그인 후 이용이 가능한 서비스입니다"
+        }
         Long userId = authService.validateAndGetUserId(authHeader);
         barcodeService.generateBarcode(userId, purchaseRequestDTO.getProductId());
         return storeService.purchase(purchaseRequestDTO, userId);

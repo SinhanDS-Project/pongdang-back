@@ -3,6 +3,7 @@ package com.wepong.pongdang.controller;
 import com.wepong.pongdang.dto.request.GameRoomRequestDTO;
 import com.wepong.pongdang.dto.response.GameRoomResponseDTO;
 import com.wepong.pongdang.entity.enums.GameRoomStatus;
+import com.wepong.pongdang.exception.UnauthorizedAccessException;
 import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.GameRoomService;
 import com.wepong.pongdang.socket.GameRoomListWebSocket;
@@ -39,7 +40,10 @@ public class GameRoomRestController {
 	// 게임방 생성
 	@PostMapping(value = "/insert", produces = "text/plain;charset=utf-8")
 	public ResponseEntity<?> insertRoom(@RequestBody GameRoomRequestDTO.InsertGameRoomRequestDTO roomRequest,
-									 @RequestHeader("Authorization") String authHeader) throws IOException {
+									 @RequestHeader(value = "Authorization", required = false) String authHeader) throws IOException {
+		if (authHeader == null || authHeader.isBlank()) {
+			throw new UnauthorizedAccessException(); // "로그인 후 이용이 가능한 서비스입니다"
+		}
 		Long userId = authService.validateAndGetUserId(authHeader);
 		gameRoomService.insertRoom(roomRequest, userId);
 		gameRoomListWebSocket.broadcastMessage("insert");
