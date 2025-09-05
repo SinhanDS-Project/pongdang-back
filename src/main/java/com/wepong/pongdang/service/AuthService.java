@@ -254,6 +254,10 @@ public class AuthService {
         userRepository.delete(userEntity);
     }
 
+    @jakarta.transaction.Transactional
+    public void saveUser(UserEntity user) {
+        userRepository.save(user);
+    }
     public UserEntity findByEmail(String email) {
 		return userRepository.findByEmail(email);
 	}

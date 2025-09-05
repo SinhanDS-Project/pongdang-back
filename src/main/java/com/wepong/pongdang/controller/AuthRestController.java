@@ -4,6 +4,7 @@ import com.wepong.pongdang.dto.request.LoginRequestDTO;
 import com.wepong.pongdang.dto.request.TransferRequestDTO;
 import com.wepong.pongdang.dto.request.UserRegisterDTO;
 import com.wepong.pongdang.dto.response.BettingUserResponseDTO;
+import com.wepong.pongdang.entity.UserEntity;
 import com.wepong.pongdang.exception.AuthException;
 import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.BettingUserService;
@@ -36,6 +37,8 @@ public class AuthRestController {
 			String accessToken = responseToken.get("accessToken");
 			String refreshToken = responseToken.get("refreshToken");
 
+            UserEntity user = authService.findByEmail(loginRequest.getEmail());
+
 			// HttpOnly 쿠키 생성
 			ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken).httpOnly(true).secure(false) // HTTPS 사용하는 경우 true
 					.path("/") // 모든 경로에 대해 쿠키 적용
@@ -43,7 +46,7 @@ public class AuthRestController {
 					.sameSite("Strict") // 또는 "Lax" / "None" (크로스 도메인 필요 시)
 					.build();
 
-			return ResponseEntity.ok().header("Set-Cookie", cookie.toString()).body(new LoginResponse(accessToken, "로그인 성공"));
+			return ResponseEntity.ok().header("Set-Cookie", cookie.toString()).body(new LoginResponse(accessToken, "로그인 성공", UserInfo.from(user)));
 		} catch (AuthException error) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body(error.getMessage());
 		}
@@ -119,7 +122,7 @@ public class AuthRestController {
 	    }
 
 	    if (age < 15) {
-	        return ResponseEntity.badRequest().contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("만 19세 이상만 가입할 수 있습니다.");
+	        return ResponseEntity.badRequest().contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("만 15세 이상만 가입할 수 있습니다.");
 	    }
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("유효한 생년월일을 입력해주세요.");
@@ -152,6 +155,7 @@ public class AuthRestController {
 	// 리프레시 토큰을 통한 액세스 토큰 재발급 API
 	@PostMapping("/reissue")
 	public ResponseEntity<?> reissue(@RequestHeader("Authorization") String authHeader) {
+
 		try {
 			if (authHeader == null || !authHeader.startsWith("Bearer ")) {
 				ResponseCookie cookie = ResponseCookie.from("refreshToken", "").path("/").httpOnly(true).maxAge(0) // 삭제
@@ -162,8 +166,10 @@ public class AuthRestController {
 
 			String refreshToken = authHeader.substring(7);
 			String accessToken = authService.reissue(refreshToken);
+            Long userId = authService.validateAndGetUserId("Bearer " + refreshToken);
+            UserEntity user = authService.findById(userId);
 
-			return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body(new LoginResponse(accessToken, "토큰 재발급"));
+			return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body(new LoginResponse(accessToken, "토큰 재발급", UserInfo.from(user)));
 		} catch (AuthException error) {
 			return ResponseEntity.status(401).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body(error.getMessage());
 		}
@@ -173,20 +179,72 @@ public class AuthRestController {
 	static class LoginResponse {
 		private String accessToken;
 		private String message;
+        private UserInfo user;
 
-		public LoginResponse(String accessToken, String message) {
-			this.accessToken = accessToken;
-			this.message = message;
-		}
+
+        public LoginResponse(String accessToken, String message, UserInfo user) {
+            this.accessToken = accessToken;
+            this.message = message;
+            this.user = user;
+        }
 
 		public String getAccessToken() {
 			return accessToken;
 		}
-
-		public String getMessage() {
-			return message;
-		}
+        public String getMessage() { return message; }
+        public UserInfo getUser() { return user; }
 	}
+
+    static class UserInfo {
+        private Long id;
+        private String userName;
+        private String nickname;
+        private String email;
+        private String phoneNumber;
+        private java.sql.Date birthDate;
+        private String profileImage;
+        private Boolean tutorialCheck;
+        private Boolean linkedWithBetting;
+
+        public UserInfo(Long id, String userName, String nickname, String email,
+                        String phoneNumber, java.sql.Date birthDate, String profileImage,
+                        Boolean tutorialCheck, Boolean linkedWithBetting) {
+            this.id = id;
+            this.userName = userName;
+            this.nickname = nickname;
+            this.email = email;
+            this.phoneNumber = phoneNumber;
+            this.birthDate = birthDate;
+            this.profileImage = profileImage;
+            this.tutorialCheck = tutorialCheck;
+            this.linkedWithBetting = linkedWithBetting;
+        }
+
+        // 엔티티  DTO 변환
+        public static UserInfo from(UserEntity entity) {
+            return new UserInfo(
+                    entity.getId(),
+                    entity.getUserName(),
+                    entity.getNickname(),
+                    entity.getEmail(),
+                    entity.getPhoneNumber(),
+                    entity.getBirthDate(),
+                    entity.getProfileImage(),
+                    entity.getTutorialCheck(),
+                    entity.getLinkedWithBetting()
+            );
+        }
+
+        public Long getId() { return id; }
+        public String getUserName() { return userName; }
+        public String getNickname() { return nickname; }
+        public String getEmail() { return email; }
+        public String getPhoneNumber() { return phoneNumber; }
+        public java.sql.Date getBirthDate() { return birthDate; }
+        public String getProfileImage() { return profileImage; }
+        public Boolean getTutorialCheck() { return tutorialCheck; }
+        public Boolean getLinkedWithBetting() { return linkedWithBetting; }
+    }
 
 	private boolean isBlank(String str) {
 		return str == null || str.trim().isEmpty();
