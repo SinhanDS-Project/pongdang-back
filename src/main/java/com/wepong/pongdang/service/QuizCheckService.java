@@ -3,6 +3,7 @@ package com.wepong.pongdang.service;
 
 import com.wepong.pongdang.dto.request.QuizRequestDTO;
 import com.wepong.pongdang.dto.response.QuizResponseDTO;
+import com.wepong.pongdang.dto.response.WebSocketResponseDTO;
 import com.wepong.pongdang.entity.PongHistoryEntity;
 import com.wepong.pongdang.entity.QuizCheckEntity;
 import com.wepong.pongdang.entity.UserEntity;
@@ -27,6 +28,8 @@ public class QuizCheckService {
     private final QuizCheckRepository quizCheckRepository;
     private final HistoryService historyService;
     private final WalletService walletService;
+    private final AuthService authService;
+    private final WebSocketService webSocketService;
 
     @Transactional
     public QuizResponseDTO.QuizCheckResponse markTodayQuizTaken(Long userId) { // check
@@ -70,6 +73,7 @@ public class QuizCheckService {
     public QuizResponseDTO.QuizSubmitResponse submitQuiz(
             Long userId, QuizRequestDTO request
     ) {
+
         int reward = Math.min(
                 request.getCorrectCount() != null ? request.getCorrectCount() : 0,
                 3
@@ -83,6 +87,11 @@ public class QuizCheckService {
 
             historyService.insertPointHistory(history, userId);
             walletService.add(reward, userId, WalletType.PONG);
+        }
+
+        UserEntity user = authService.findById(userId);
+        if(request.getCorrectCount() == 3) {
+            webSocketService.sendMain("golden_bell", user.getNickname() + "님이 골든벨을 울리셨습니다! \uD83D\uDD14");
         }
 
         return QuizResponseDTO.QuizSubmitResponse.builder()
