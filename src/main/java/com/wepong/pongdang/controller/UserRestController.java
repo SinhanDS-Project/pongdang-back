@@ -11,6 +11,9 @@ import com.wepong.pongdang.repository.UserRepository;
 import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.BettingUserService;
 import com.wepong.pongdang.service.WalletService;
+import com.wepong.pongdang.dto.request.ConvertRequestDTO;
+import com.wepong.pongdang.dto.response.BettingUserResponseDTO;
+import com.wepong.pongdang.service.PointConvertService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +35,9 @@ public class UserRestController {
 
     @Autowired
     private BettingUserService bettingUserService;
+
+    @Autowired
+    private PointConvertService pointConvertService;
 
 	@GetMapping("/me")
 	public UserResponseDTO getMyInfo(@RequestHeader("Authorization") String authHeader) {
@@ -111,6 +117,33 @@ public class UserRestController {
         return ResponseEntity.ok(UserInfoResponseDTO.from(user));
     }
 
+    @PostMapping("/betting/convert")
+    public ResponseEntity<?> convertBettingPoint(
+            @RequestBody ConvertRequestDTO req,
+            @RequestHeader("Authorization") String authHeader) {
+
+        Long pongUserId = authService.validateAndGetUserId(authHeader);
+
+        // 1️⃣ 이름+전화번호로 betting 유저 찾기
+        var bettingUser = bettingUserService.findUser(req.getName(), req.getPhone());
+        if (bettingUser == null) {
+            return ResponseEntity.status(404).body("해당 회원을 찾을 수 없습니다.");
+        }
+
+        // 2️⃣ uid로 convert 실행
+        int converted = pointConvertService.convert(bettingUser.getUid(), req.getAmount(), pongUserId);
+
+        // 3️⃣ 전환 후 최신 잔액 내려주기
+        var bettingAfter = bettingUserService.findUser(req.getName(), req.getPhone());
+        var pongWallet = walletService.findByIdAndType(pongUserId, WalletType.PONG);
+
+        return ResponseEntity.ok(Map.of(
+                "message", "포인트 전환 완료",
+                "converted", converted,
+                "bettingPointAfter", bettingAfter != null ? bettingAfter.getPointBalance() : null,
+                "pongBalanceAfter", pongWallet != null ? pongWallet.getPongBalance() : null
+        ));
+    }
 
 
 }
