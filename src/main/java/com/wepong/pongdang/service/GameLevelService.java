@@ -15,7 +15,7 @@ public class GameLevelService {
 
 	private final GameLevelRepository gameLevelRepository;
 	
-	public List<GameLevelEntity> selectByGameUid(Long gameId){
+	public List<GameLevelEntity> selectByGameId(Long gameId){
 		return gameLevelRepository.findByGameId(gameId);
 	}
 
