@@ -30,4 +30,6 @@ public class ExceptionMessage {
 
 	// Donation
 	public static final String DONATION_NOT_FOUND = "기부 정보가 존재하지 않습니다.";
+    public static final String INSUFFICIENT_POINT = "사용자의 Betting 포인트가 부족합니다";
+    public static final String BETTINGUSER_NOT_FOUND = "BettingPoint 회원이 아닙니다 ";
 }
