@@ -7,6 +7,7 @@ import com.wepong.pongdang.entity.WalletEntity;
 import com.wepong.pongdang.entity.enums.WalletType;
 import com.wepong.pongdang.dto.response.UserInfoResponseDTO;
 import com.wepong.pongdang.exception.EmailNotFoundException;
+import com.wepong.pongdang.exception.UnauthorizedAccessException;
 import com.wepong.pongdang.repository.UserRepository;
 import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.BettingUserService;
@@ -16,6 +17,7 @@ import com.wepong.pongdang.dto.response.BettingUserResponseDTO;
 import com.wepong.pongdang.service.PointConvertService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,7 +42,11 @@ public class UserRestController {
     private PointConvertService pointConvertService;
 
 	@GetMapping("/me")
-	public UserResponseDTO getMyInfo(@RequestHeader("Authorization") String authHeader) {
+	public UserResponseDTO getMyInfo(@RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+            if (authHeader == null || authHeader.isBlank()) {
+                throw new UnauthorizedAccessException(); // "로그인 후 이용이 가능한 서비스입니다"
+            }
 		Long userId = authService.validateAndGetUserId(authHeader);
 		UserEntity userEntity = authService.findById(userId); // 또는 getUserByUid(userId)
 
@@ -117,24 +123,51 @@ public class UserRestController {
         return ResponseEntity.ok(UserInfoResponseDTO.from(user));
     }
 
+    //  마이페이지 연동, 전환하기 버튼 눌렀을때 데이터 전송
+    @GetMapping("/find-betting")
+    public ResponseEntity<BettingUserResponseDTO> getMyBettingUser(
+            @RequestHeader("Authorization") String authHeader) {
+
+        Long pongUserId = authService.validateAndGetUserId(authHeader);
+        UserEntity user = authService.findById(pongUserId);
+
+        // Pongdang(010xxxxxxxx) → Betting(010-xxxx-xxxx) 포맷 맞추기
+        String rawPhone = user.getPhoneNumber(); // 010xxxxxxxx
+        String formattedPhone = rawPhone.replaceAll("(\\d{3})(\\d{4})(\\d{4})", "$1-$2-$3"); // 010-4738-7321
+
+        BettingUserResponseDTO dto = bettingUserService.findUser(user.getUserName(), formattedPhone);
+
+        if (dto == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(null);
+        }
+        return ResponseEntity.ok(dto);
+    }
+
+
     @PostMapping("/betting/convert")
     public ResponseEntity<?> convertBettingPoint(
             @RequestBody ConvertRequestDTO req,
             @RequestHeader("Authorization") String authHeader) {
 
         Long pongUserId = authService.validateAndGetUserId(authHeader);
+        UserEntity user = authService.findById(pongUserId); // 로그인 사용자 정보
 
-        // 1️⃣ 이름+전화번호로 betting 유저 찾기
-        var bettingUser = bettingUserService.findUser(req.getName(), req.getPhone());
+        //  Pongdang(010xxxxxxxx) → Betting(010-xxxx-xxxx) 포맷 맞추기
+        String rawPhone = user.getPhoneNumber(); // 010xxxxxxxx
+        String formattedPhone = rawPhone.replaceAll("(\\d{3})(\\d{4})(\\d{4})", "$1-$2-$3"); // 010-4738-7321
+
+        // 이름+전화번호로 betting 유저 찾기
+        var bettingUser = bettingUserService.findUser(user.getUserName(), formattedPhone);
         if (bettingUser == null) {
             return ResponseEntity.status(404).body("해당 회원을 찾을 수 없습니다.");
         }
 
-        // 2️⃣ uid로 convert 실행
+        // uid로 convert 실행
         int converted = pointConvertService.convert(bettingUser.getUid(), req.getAmount(), pongUserId);
 
-        // 3️⃣ 전환 후 최신 잔액 내려주기
-        var bettingAfter = bettingUserService.findUser(req.getName(), req.getPhone());
+        // 전환 후 최신 잔액 내려주기
+        var bettingAfter = bettingUserService.findUser(user.getUserName(), formattedPhone);
         var pongWallet = walletService.findByIdAndType(pongUserId, WalletType.PONG);
 
         return ResponseEntity.ok(Map.of(
@@ -144,6 +177,8 @@ public class UserRestController {
                 "pongBalanceAfter", pongWallet != null ? pongWallet.getPongBalance() : null
         ));
     }
+
+
 
 
 }
