@@ -182,11 +182,11 @@ public class TurtleGameService {
             }
 
             if(gameResult.equals(RankType.FIRST)) {
-                webSocketService.sendMain("first", userEntity.getNickname() + "님이 " + gameName + "에서 1등을 차지했습니다! \uD83E\uDD47");
+                webSocketService.sendMain("first", userEntity.getNickname() + "님이 1등을 차지했습니다! \uD83E\uDD47");
             } else if(gameResult.equals(RankType.SECOND)) {
-                webSocketService.sendMain("second", userEntity.getNickname() + "님이 " + gameName + "에서 2등을 차지했습니다! \uD83E\uDD48");
+                webSocketService.sendMain("second", userEntity.getNickname() + "님이 2등을 차지했습니다! \uD83E\uDD48");
             } else if(gameResult.equals(RankType.THIRD)) {
-                webSocketService.sendMain("third", userEntity.getNickname() + "님이 " + gameName + "에서 3등을 차지했습니다! \uD83E\uDD49");
+                webSocketService.sendMain("third", userEntity.getNickname() + "님이 3등을 차지했습니다! \uD83E\uDD49");
             }
         }
     }
