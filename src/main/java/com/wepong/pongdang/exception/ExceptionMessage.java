@@ -30,4 +30,8 @@ public class ExceptionMessage {
 
 	// Donation
 	public static final String DONATION_NOT_FOUND = "기부 정보가 존재하지 않습니다.";
+
+    // Game
+    public static final String GAME_NOT_FOUND = "게임이 존재하지 않습니다.";
+    public static final String ROOM_NOT_FOUND = "게임방이 존재하지 않습니다.";
 }

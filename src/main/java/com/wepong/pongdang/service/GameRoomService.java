@@ -7,6 +7,7 @@ import com.wepong.pongdang.entity.GameLevelEntity;
 import com.wepong.pongdang.entity.GameRoomEntity;
 import com.wepong.pongdang.entity.UserEntity;
 import com.wepong.pongdang.entity.enums.GameRoomStatus;
+import com.wepong.pongdang.exception.RoomNotFoundException;
 import com.wepong.pongdang.model.multi.turtle.PlayerDAO;
 import com.wepong.pongdang.repository.GameRoomRepository;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +52,7 @@ public class GameRoomService {
 	}
 
 	public GameRoomResponseDTO.GameRoomDetailDTO selectById(Long roomId) {
-		GameRoomEntity room = gameRoomRepository.findById(roomId).orElseThrow(() -> new IllegalArgumentException("해당 게임방이 존재하지 않습니다"));
+		GameRoomEntity room = gameRoomRepository.findById(roomId).orElseThrow(() -> new RoomNotFoundException());
 
 		if (room != null) {
 			GameLevelEntity level = gameLevelService.selectByLevelUid(room.getGameLevel().getId());
@@ -84,7 +85,7 @@ public class GameRoomService {
 	}
 
 	public void deleteRoom(Long roomId) {
-		GameRoomEntity room = gameRoomRepository.findById(roomId).orElseThrow(() -> new IllegalArgumentException("해당 게임방이 존재하지 않습니다"));
+		GameRoomEntity room = gameRoomRepository.findById(roomId).orElseThrow(() -> new RoomNotFoundException());
 		// 게임방 존재 여부
 		if (room != null) {
 			gameRoomRepository.delete(room);
@@ -92,14 +93,14 @@ public class GameRoomService {
 	}
 
 	public void updateStatus(Long roomId, GameRoomStatus status) {
-		GameRoomEntity room = gameRoomRepository.findById(roomId).orElseThrow(() -> new IllegalArgumentException("해당 게임방이 존재하지 않습니다"));
+		GameRoomEntity room = gameRoomRepository.findById(roomId).orElseThrow(() -> new RoomNotFoundException());
 		room.updateStatus(status);
 
 		gameRoomRepository.save(room);
 	}
 
 	public void updateHost(Long roomId, Long hostId) {
-		GameRoomEntity room = gameRoomRepository.findById(roomId).orElseThrow(() -> new IllegalArgumentException("해당 게임방이 존재하지 않습니다"));
+		GameRoomEntity room = gameRoomRepository.findById(roomId).orElseThrow(() -> new RoomNotFoundException());
 		UserEntity userEntity = authService.findById(hostId);
 
 		room.updateHost(userEntity);
