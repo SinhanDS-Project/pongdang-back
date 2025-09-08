@@ -7,6 +7,7 @@ import com.wepong.pongdang.entity.UserEntity;
 import com.wepong.pongdang.entity.WalletEntity;
 import com.wepong.pongdang.entity.enums.WalletType;
 import com.wepong.pongdang.dto.response.UserInfoResponseDTO;
+import com.wepong.pongdang.exception.BettingUserNotFoundException;
 import com.wepong.pongdang.exception.EmailNotFoundException;
 import com.wepong.pongdang.exception.UnauthorizedAccessException;
 import com.wepong.pongdang.repository.UserRepository;
@@ -139,8 +140,7 @@ public class UserRestController {
         BettingUserResponseDTO dto = bettingUserService.findUser(user.getUserName(), formattedPhone);
 
         if (dto == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", "BettingPoint 회원정보를 찾을 수 없습니다."));
+            throw new BettingUserNotFoundException();
         }
         return ResponseEntity.ok(dto);
     }
@@ -159,17 +159,17 @@ public class UserRestController {
         String formattedPhone = rawPhone.replaceAll("(\\d{3})(\\d{4})(\\d{4})", "$1-$2-$3"); // 010-4738-7321
 
         // 이름+전화번호로 betting 유저 찾기
-        var bettingUser = bettingUserService.findUser(user.getUserName(), formattedPhone);
+        BettingUserResponseDTO bettingUser = bettingUserService.findUser(user.getUserName(), formattedPhone);
         if (bettingUser == null) {
-            return ResponseEntity.status(404).body("해당 회원을 찾을 수 없습니다.");
+            throw new BettingUserNotFoundException();
         }
 
         // uid로 convert 실행
         int converted = pointConvertService.convert(bettingUser.getUid(), req.getAmount(), pongUserId);
 
         // 전환 후 최신 잔액 내려주기
-        var bettingAfter = bettingUserService.findUser(user.getUserName(), formattedPhone);
-        var pongWallet = walletService.findByIdAndType(pongUserId, WalletType.PONG);
+        BettingUserResponseDTO bettingAfter = bettingUserService.findUser(user.getUserName(), formattedPhone);
+        WalletEntity pongWallet = walletService.findByIdAndType(pongUserId, WalletType.PONG);
 
         ConvertResponseDTO response = ConvertResponseDTO.builder()
                 .message("포인트 전환 완료")
