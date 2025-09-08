@@ -126,6 +126,20 @@ public class GlobalExceptionHandler {
 				.body(Map.of("error", "PRODUCT_NOT_FOUND", "message", ex.getMessage()));
 	}
 
+    // BettingUser 관련 예외 처리
+    @ExceptionHandler(BettingUserNotFoundException.class)
+    public ResponseEntity<?> handleBettingUserNotFound(BettingUserNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "BETTINGUSER_NOT_FOUND", "message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InsufficientPointException.class)
+    public ResponseEntity<?> handleInsufficientPoint(InsufficientPointException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", "INSUFFICIENT_POINT", "message", ex.getMessage()));
+    }
+
+
 	// Optional: 모든 예외를 처리하는 fallback
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<?> handleAll(Exception ex) {

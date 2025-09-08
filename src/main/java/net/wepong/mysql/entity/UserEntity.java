@@ -12,8 +12,8 @@ import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
-@Entity(name = "`user`") // 테이블 이름
+@Entity(name = "BettingUser")   // JPQL에서 사용할 엔티티 이름
+@Table(name = "`user`")         // 테이블 이름
 @Getter
 @Setter
 @Builder
