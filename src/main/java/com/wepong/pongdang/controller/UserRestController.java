@@ -125,7 +125,7 @@ public class UserRestController {
 
     //  마이페이지 연동, 전환하기 버튼 눌렀을때 데이터 전송
     @GetMapping("/find-betting")
-    public ResponseEntity<BettingUserResponseDTO> getMyBettingUser(
+    public ResponseEntity<?> getMyBettingUser(
             @RequestHeader("Authorization") String authHeader) {
 
         Long pongUserId = authService.validateAndGetUserId(authHeader);
@@ -139,7 +139,7 @@ public class UserRestController {
 
         if (dto == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(null);
+                    .body(Map.of("message", "BettingPoint 회원정보를 찾을 수 없습니다."));
         }
         return ResponseEntity.ok(dto);
     }
