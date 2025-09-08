@@ -8,6 +8,7 @@ import com.wepong.pongdang.service.WebSocketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
@@ -26,7 +27,7 @@ public class GameRoomController {
 
     // 채팅
     @MessageMapping("/gameroom/chat/{roomId}")
-    public void handleGameAction(@DestinationVariable Long roomId, @RequestBody Map<String, String> payload, StompHeaderAccessor accessor) {
+    public void handleGameAction(@DestinationVariable Long roomId, @Payload Map<String, String> payload, StompHeaderAccessor accessor) {
         String nickname = (String) accessor.getSessionAttributes().get("nickname");
         String msg = payload.get("msg");
 
@@ -40,7 +41,7 @@ public class GameRoomController {
 
     // 거북이 선택
     @MessageMapping("/gameroom/choice/{roomId}")
-    public void handleChoice(@DestinationVariable Long roomId, @RequestBody Map<String, String> payload, SimpMessageHeaderAccessor accessor) {
+    public void handleChoice(@DestinationVariable Long roomId, @Payload Map<String, String> payload, SimpMessageHeaderAccessor accessor) {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         TurtlePlayerDTO player = playerService.getPlayer(roomId, userId);
         player.setTurtleId(payload.get("turtle_id"));
@@ -51,7 +52,7 @@ public class GameRoomController {
 
     // 준비 완료/취소
     @MessageMapping("/gameroom/ready/{roomId}")
-    public void handleReady(@DestinationVariable Long roomId, @RequestBody Map<String, Boolean> payload, SimpMessageHeaderAccessor accessor) {
+    public void handleReady(@DestinationVariable Long roomId, @Payload Map<String, Boolean> payload, SimpMessageHeaderAccessor accessor) {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         TurtlePlayerDTO player = playerService.getPlayer(roomId, userId);
         player.setReady(payload.get("isReady"));
