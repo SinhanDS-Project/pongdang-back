@@ -5,7 +5,6 @@ import com.wepong.pongdang.dto.response.TurtlePlayerDTO;
 import com.wepong.pongdang.model.multi.turtle.PlayerService;
 import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.GameRoomService;
-import com.wepong.pongdang.service.WebSocketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -23,7 +22,6 @@ public class GameRoomController {
     private final AuthService authService;
     private final PlayerService playerService;
     private final GameRoomService gameRoomService;
-    private final WebSocketService webSocketService;
 
     // 채팅
     @MessageMapping("/gameroom/chat/{roomId}")
@@ -35,7 +33,7 @@ public class GameRoomController {
                 .sender(nickname)
                 .build();
 
-        webSocketService.sendRoom(roomId, "chat", chat);
+        gameRoomService.sendRoom(roomId, "chat", chat);
     }
 
     // 거북이 선택
@@ -46,10 +44,10 @@ public class GameRoomController {
         player.setTurtleId(payload.get("turtle_id"));
 
         List<TurtlePlayerDTO> players = playerService.getPlayers(roomId);
-        webSocketService.sendRoom(roomId, "choice", players);
+        gameRoomService.sendRoom(roomId, "choice", players);
     }
 
-    // 준비 완료/취소
+    // 준비 완료
     @MessageMapping("/gameroom/ready/{roomId}")
     public void handleReady(@DestinationVariable Long roomId, Map<String, Boolean> payload, SimpMessageHeaderAccessor accessor) {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
@@ -57,13 +55,13 @@ public class GameRoomController {
         player.setReady(payload.get("isReady"));
 
         List<TurtlePlayerDTO> players = playerService.getPlayers(roomId);
-        webSocketService.sendRoom(roomId, "ready", players);
+        gameRoomService.sendRoom(roomId, "ready", players);
     }
 
     // 게임 시작
     @MessageMapping("/gameroom/start/{roomId}")
     public void handleStart(@DestinationVariable Long roomId) {
-        webSocketService.sendRoom(roomId, "start", "/multi/" + roomId + "/turtlerun");
-        webSocketService.sendList(gameRoomService.selectAll());
+        gameRoomService.sendRoom(roomId, "start", "/multi/" + roomId + "/turtlerun");
+        gameRoomService.sendList("list", gameRoomService.selectAll());
     }
 }

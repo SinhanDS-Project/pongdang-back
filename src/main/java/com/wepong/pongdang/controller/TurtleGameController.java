@@ -3,7 +3,6 @@ package com.wepong.pongdang.controller;
 import com.wepong.pongdang.dto.response.GameRoomResponseDTO;
 import com.wepong.pongdang.model.multi.turtle.TurtleGameService;
 import com.wepong.pongdang.service.GameRoomService;
-import com.wepong.pongdang.service.WebSocketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -19,7 +18,6 @@ public class TurtleGameController {
 
     private final GameRoomService gameRoomService;
     private final TurtleGameService turtleGameService;
-    private final WebSocketService webSocketService;
 
     // 게임 진행
     @MessageMapping("/game/start/{roomId}")
@@ -53,6 +51,6 @@ public class TurtleGameController {
 
     @MessageMapping("/game/end/{roomId}")
     public void endGame(@DestinationVariable Long roomId) {
-        webSocketService.sendGame(roomId, "end", "/gameroom/detail/" + roomId);
+        gameRoomService.sendGame(roomId, "end", "/gameroom/detail/" + roomId);
     }
 }
