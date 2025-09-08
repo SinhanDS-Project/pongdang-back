@@ -1,5 +1,6 @@
 package com.wepong.pongdang.controller;
 
+import com.wepong.pongdang.dto.response.ConvertResponseDTO;
 import com.wepong.pongdang.dto.response.UserResponseDTO;
 import com.wepong.pongdang.dto.request.UserUpdateRequestDTO;
 import com.wepong.pongdang.entity.UserEntity;
@@ -170,12 +171,14 @@ public class UserRestController {
         var bettingAfter = bettingUserService.findUser(user.getUserName(), formattedPhone);
         var pongWallet = walletService.findByIdAndType(pongUserId, WalletType.PONG);
 
-        return ResponseEntity.ok(Map.of(
-                "message", "포인트 전환 완료",
-                "converted", converted,
-                "bettingPointAfter", bettingAfter != null ? bettingAfter.getPointBalance() : null,
-                "pongBalanceAfter", pongWallet != null ? pongWallet.getPongBalance() : null
-        ));
+        ConvertResponseDTO response = ConvertResponseDTO.builder()
+                .message("포인트 전환 완료")
+                .converted(converted)
+                .bettingPointAfter(bettingAfter != null ? bettingAfter.getPointBalance() : null)
+                .pongBalanceAfter(pongWallet != null ? pongWallet.getPongBalance() : null)
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 
 
