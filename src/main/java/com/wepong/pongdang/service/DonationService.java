@@ -31,6 +31,7 @@ public class DonationService {
     private final AuthService authService;
     private final WalletService walletService;
     private final HistoryService historyService;
+    private final WebSocketService webSocketService;
     ModelMapper modelMapper = new ModelMapper();
 
     // 기부 정보 리스트 조회(페이징)
@@ -88,6 +89,10 @@ public class DonationService {
                 .build();
 
         donationRepository.save(donation);
+        webSocketService.sendMain("donation", user.getNickname() + "님이 "
+                + donationInfo.getOrg() + "에 "
+                + donation.getAmount() + "퐁을 "
+                + "기부하셨습니다! \uD83D\uDCA7");
 
         return DonationResponseDTO.from(donation);
     }
