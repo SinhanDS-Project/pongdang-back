@@ -2,6 +2,7 @@ package com.wepong.pongdang.service;
 
 import com.wepong.pongdang.entity.GameEntity;
 import com.wepong.pongdang.entity.enums.GameType;
+import com.wepong.pongdang.exception.GameNotFoundException;
 import com.wepong.pongdang.repository.GameRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,7 @@ public class GameService {
 
     // uid로 조회
     public GameEntity selectById(Long gameId) {
-        return gameRepository.findById(gameId).orElseThrow(() -> new RuntimeException("게임이 존재하지 않습니다."));
+        return gameRepository.findById(gameId).orElseThrow(() -> new GameNotFoundException());
     }
     
     // 이름으로 조회
@@ -40,7 +41,7 @@ public class GameService {
     @Transactional
     public void deleteGame(Long gameId) {
         GameEntity game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new IllegalArgumentException("게임을 찾을 수 없습니다. ID=" + gameId));
+                .orElseThrow(() -> new GameNotFoundException());
         gameRepository.delete(game);
     }
 }
