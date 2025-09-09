@@ -26,6 +26,7 @@ public class SecurityConfig {
                             .requestMatchers("/api/game/**").permitAll()
             .requestMatchers("/api/email/**").permitAll()
             .requestMatchers("/api/**").permitAll() // API 테스트용
+            .requestMatchers("/admin/**").hasRole("ADMIN")
             .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
