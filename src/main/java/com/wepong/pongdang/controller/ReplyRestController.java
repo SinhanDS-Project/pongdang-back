@@ -2,6 +2,7 @@ package com.wepong.pongdang.controller;
 
 import com.wepong.pongdang.dto.request.ReplyRequestDTO;
 import com.wepong.pongdang.dto.response.ReplyResponseDTO;
+import com.wepong.pongdang.exception.UnauthorizedAccessException;
 import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.ReplyService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,11 @@ public class ReplyRestController {
             @RequestBody ReplyRequestDTO dto,
             @RequestHeader(value = "Authorization", required = false) String authHeader
     ) {
+
+        if (authHeader == null || authHeader.isBlank()) {
+            throw new UnauthorizedAccessException(); // "로그인 후 이용이 가능한 서비스입니다."
+        }
+
         Long userId = authService.validateAndGetUserId(authHeader);
         ReplyResponseDTO reply = replyService.addReply(boardId, userId, dto);
         return ResponseEntity.ok(reply);
@@ -42,7 +48,7 @@ public class ReplyRestController {
             @PathVariable Long boardId,
             @PathVariable Long replyId,
             @RequestBody ReplyRequestDTO dto,
-            @RequestHeader(value = "Authorization", required = false) String authHeader
+            @RequestHeader("Authorization") String authHeader
     ) {
         Long userId = authService.validateAndGetUserId(authHeader);
         ReplyResponseDTO updated = replyService.updateReply(replyId, userId, dto);
@@ -55,7 +61,7 @@ public class ReplyRestController {
     public ResponseEntity<String> deleteReply(
             @PathVariable Long boardId,
             @PathVariable Long replyId,
-            @RequestHeader(value = "Authorization", required = false) String authHeader
+            @RequestHeader("Authorization") String authHeader
     ) {
         Long userId = authService.validateAndGetUserId(authHeader);
         replyService.deleteReply(replyId, userId);

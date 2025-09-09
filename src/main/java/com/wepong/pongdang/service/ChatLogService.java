@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -40,12 +41,14 @@ public class ChatLogService {
 		return chatLogRepository.findById(id).orElseThrow(() -> new RuntimeException("채팅이 존재하지 않습니다."));
 	}
 	
-	public ChatLogsEntity insertChatLog(ChatLogRequestDTO requestChatlog, Long userId) {
+	public ChatLogsEntity insertChatLog(ChatLogRequestDTO.ChatLogQuestionDTO requestChatlog, Long userId) {
 		UserEntity userEntity = authService.findById(userId);
+		LocalDateTime today = LocalDateTime.now();
 
 		ChatLogsEntity chatLog = ChatLogsEntity.builder()
 				.title(requestChatlog.getTitle())
 				.question(requestChatlog.getQuestion())
+				.chatDate(today)
 				.user(userEntity)
 				.build();
 

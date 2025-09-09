@@ -20,7 +20,7 @@ public class ChatLogsEntity {
     @Column(nullable = false, columnDefinition = "VARCHAR(255)")
     private String title;
 
-    @Column(nullable = false, columnDefinition = "VARCHAR(255)")
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String question;
 
     @Column(columnDefinition = "VARCHAR(255)")

@@ -12,6 +12,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Date;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -29,6 +30,9 @@ public class UserResponseDTO {
     private String profileImg;
     private Long pongBalance;
     private Long donaBalance;
+    private Boolean linkedWithBetting;
+    private Boolean tutorialCheck;
+    private LocalDateTime updatedAt;
 
     public static UserResponseDTO from(UserEntity userEntity, String profileImg, WalletEntity pong, WalletEntity dona) {
         return UserResponseDTO.builder()
@@ -41,6 +45,9 @@ public class UserResponseDTO {
                 .phoneNumber(userEntity.getPhoneNumber())
                 .pongBalance(pong.getPongBalance())
                 .donaBalance(dona.getPongBalance())
+                .linkedWithBetting(userEntity.getLinkedWithBetting())
+                .tutorialCheck(userEntity.getTutorialCheck())
+                .updatedAt(userEntity.getUpdatedAt())
                 .build();
     }
 }

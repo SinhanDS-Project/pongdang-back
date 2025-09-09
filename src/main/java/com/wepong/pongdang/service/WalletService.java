@@ -1,5 +1,6 @@
 package com.wepong.pongdang.service;
 
+import com.wepong.pongdang.exception.InsufficientBalanceException;
 import org.springframework.stereotype.Service;
 
 import com.wepong.pongdang.entity.UserEntity;
@@ -41,6 +42,11 @@ public class WalletService {
 	// 퐁 차감
 	public void lose(int point, Long userId, WalletType type) {
 		WalletEntity pongWallet = walletRepository.findByUserIdAndWalletType(userId, type);
+
+		if(pongWallet.getPongBalance() < point) {
+			throw new InsufficientBalanceException();
+		}
+
 		pongWallet.setPongBalance(pongWallet.getPongBalance() - point);
 		walletRepository.save(pongWallet);
 	}

@@ -23,21 +23,21 @@ public class GameRoomRestController {
 	private final AuthService authService;
 
 	// 게임방 리스트 조회
-	@GetMapping("/list")
+	@GetMapping("")
 	public GameRoomResponseDTO.GameRoomListDTO selectAll(@RequestParam(defaultValue = "1") int page) {
 		return gameRoomService.selectAll(page);
 	}
 
 	// 게임방 상세 조회
-	@GetMapping("/detail/{roomId}")
+	@GetMapping("/{roomId}")
 	public GameRoomResponseDTO.GameRoomDetailDTO selectById(@PathVariable Long roomId) {
 		return gameRoomService.selectById(roomId);
 	}
 
 	// 게임방 생성
-	@PostMapping(value = "/insert", produces = "text/plain;charset=utf-8")
+	@PostMapping(value = "")
 	public ResponseEntity<?> insertRoom(@RequestBody GameRoomRequestDTO.InsertGameRoomRequestDTO roomRequest,
-									 @RequestHeader(value = "Authorization", required = false) String authHeader) throws IOException {
+									 @RequestHeader(value = "Authorization", required = false) String authHeader) {
 		if (authHeader == null || authHeader.isBlank()) {
 			throw new UnauthorizedAccessException(); // "로그인 후 이용이 가능한 서비스입니다"
 		}
@@ -50,7 +50,7 @@ public class GameRoomRestController {
 
 	// 게임 시작
 	@PostMapping("/start/{roomId}")
-	public ResponseEntity<?> startGame(@PathVariable Long roomId, @RequestBody Map<String, String> request) throws IOException {
+	public ResponseEntity<?> startGame(@PathVariable Long roomId, @RequestBody Map<String, String> request) {
 		GameRoomStatus newStatus = GameRoomStatus.valueOf(request.get("status"));
 		GameRoomResponseDTO.GameRoomDetailDTO room = gameRoomService.selectById(roomId);
 		if(!room.getStatus().equals(newStatus)) {

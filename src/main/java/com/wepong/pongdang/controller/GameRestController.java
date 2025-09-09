@@ -4,7 +4,6 @@ import com.wepong.pongdang.dto.response.GameLevelResponseDTO;
 import com.wepong.pongdang.dto.response.GameResponseDTO;
 import com.wepong.pongdang.entity.*;
 import com.wepong.pongdang.entity.enums.PongHistoryType;
-import com.wepong.pongdang.entity.enums.RankType;
 import com.wepong.pongdang.entity.enums.GameType;
 import com.wepong.pongdang.entity.enums.WalletType;
 import com.wepong.pongdang.service.AuthService;
@@ -14,7 +13,6 @@ import com.wepong.pongdang.service.HistoryService;
 import com.wepong.pongdang.service.WalletService;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,7 +39,7 @@ public class GameRestController {
 	private WalletService walletService;
 
 	// 게임 리스트 조회
-	@GetMapping("/list")
+	@GetMapping("")
 	public GameResponseDTO.GameListDTO selectAll() {
 		List<GameEntity> gameEntityList = gameService.selectAll();
 		List<GameResponseDTO.GameDetailDTO> details = gameEntityList.stream()
@@ -50,14 +48,14 @@ public class GameRestController {
 	}
 
 	// 게임 상세 조회
-	@GetMapping("/detail/{gameId}")
+	@GetMapping("/{gameId}")
 	public GameResponseDTO.GameDetailDTO selectById(@PathVariable Long gameId) {
 		GameEntity gameEntity = gameService.selectById(gameId);
 		return GameResponseDTO.GameDetailDTO.from(gameEntity);
 	}
 
 	// 타입별 게임 조회
-	@GetMapping("/list/type")
+	@GetMapping("/type")
 	public GameResponseDTO.GameListDTO selectByType(@RequestParam GameType type) {
 		List<GameEntity> gameEntityList = gameService.selectByType(type);
 		List<GameResponseDTO.GameDetailDTO> details = gameEntityList.stream()
@@ -74,9 +72,9 @@ public class GameRestController {
 		return GameResponseDTO.GameListDTO.from(details);
 	}
 	
-	@GetMapping("/levels/by-game/{uid}")
-	public GameLevelResponseDTO.LevelListDTO selectLevelsByGame(@PathVariable Long uid) {
-	    List<GameLevelEntity> levelList = gameLevelService.selectByGameUid(uid);
+	@GetMapping("/level/{gameId}")
+	public GameLevelResponseDTO.LevelListDTO selectLevelsByGame(@PathVariable Long gameId) {
+	    List<GameLevelEntity> levelList = gameLevelService.selectByGameId(gameId);
 		List<GameLevelResponseDTO.LevelDetailDTO> details = levelList.stream()
 				.map(GameLevelResponseDTO.LevelDetailDTO::from).collect(Collectors.toList());
 		return GameLevelResponseDTO.LevelListDTO.from(details);
@@ -104,8 +102,6 @@ public class GameRestController {
                 "reward", 1
         ));
     }
-
-
 
     // 게임 난이도 상세 조회
 	@GetMapping("/level/{levelId}")
