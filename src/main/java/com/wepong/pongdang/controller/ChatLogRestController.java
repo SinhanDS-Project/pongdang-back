@@ -53,7 +53,7 @@ public class ChatLogRestController {
     // ✅ 채팅 로그 등록
     @PostMapping("")
     public ResponseEntity<?> insertChatLog(
-			@RequestBody ChatLogRequestDTO chatlog,
+			@RequestBody ChatLogRequestDTO.ChatLogQuestionDTO chatlog,
 			@RequestHeader(value = "Authorization", required = false) String authHeader) throws IOException {
 		if (authHeader == null || authHeader.isBlank()) {
 			throw new UnauthorizedAccessException(); // "로그인 후 이용이 가능한 서비스입니다"
