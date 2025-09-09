@@ -1,6 +1,7 @@
 package com.wepong.pongdang.entity;
 
 import com.wepong.pongdang.entity.common.BaseEntity;
+import com.wepong.pongdang.entity.enums.Role;
 import com.wepong.pongdang.entity.mapping.DonationEntity;
 import com.wepong.pongdang.entity.mapping.PurchaseEntity;
 import com.wepong.pongdang.entity.mapping.ReplyEntity;
@@ -54,6 +55,10 @@ public class UserEntity extends BaseEntity {
     @ColumnDefault("0")
     private Boolean linkedWithBetting;
 
+    @ColumnDefault("USER")
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
     //  AuthToken 관계 (1:1)
     @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private AuthTokenEntity token;
@@ -74,7 +79,6 @@ public class UserEntity extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<PurchaseEntity> purchases = new ArrayList<>();
 
-
     // 기부 (1:N)
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<DonationEntity> donations = new ArrayList<>();
@@ -94,7 +98,6 @@ public class UserEntity extends BaseEntity {
     // 챗봇 로그 (1:N)
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<ChatLogsEntity> chatLogs = new ArrayList<>();
-
 
     public void updatePassword(String password) {
         this.password = password;
