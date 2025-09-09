@@ -83,12 +83,13 @@ public class AdminService {
     public void saveProduct(ProductRequestDTO request) {
         List<String> keys = s3FileService.uploadFiles(request.getFiles());
 
+        String description = keys.size() > 1 ? keys.get(1) : request.getDescription();
         ProductEntity product = ProductEntity.builder()
                 .name(request.getName())
                 .type(request.getType())
                 .price(request.getPrice())
                 .img(keys.get(0))
-                .description(keys.get(1))
+                .description(description)
                 .build();
 
         productRepository.save(product);
