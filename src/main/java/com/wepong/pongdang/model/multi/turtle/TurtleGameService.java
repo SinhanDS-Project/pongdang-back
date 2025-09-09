@@ -4,8 +4,6 @@ import com.wepong.pongdang.dto.response.GameRoomResponseDTO;
 import com.wepong.pongdang.dto.response.TurtlePlayerDTO;
 import com.wepong.pongdang.entity.GameEntity;
 import com.wepong.pongdang.entity.GameHistoryEntity;
-import com.wepong.pongdang.entity.GameLevelEntity;
-import com.wepong.pongdang.entity.GameRoomEntity;
 import com.wepong.pongdang.entity.PongHistoryEntity;
 import com.wepong.pongdang.entity.RewardPerResultEntity;
 import com.wepong.pongdang.entity.UserEntity;
@@ -13,7 +11,7 @@ import com.wepong.pongdang.entity.WalletEntity;
 import com.wepong.pongdang.entity.enums.PongHistoryType;
 import com.wepong.pongdang.entity.enums.RankType;
 import com.wepong.pongdang.entity.enums.WalletType;
-import com.wepong.pongdang.repository.GameRoomRepository;
+import com.wepong.pongdang.exception.GameNotFoundException;
 import com.wepong.pongdang.repository.RewardPerResultRepository;
 
 import com.wepong.pongdang.service.*;
@@ -26,7 +24,6 @@ import java.util.concurrent.*;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class TurtleGameService {
 
     private final PlayerDAO playerDAO;
@@ -46,8 +43,6 @@ public class TurtleGameService {
     private final Map<Long, Boolean> gameFinishMap = new ConcurrentHashMap<>();
 
     private final WalletService walletService;
-
-    private final GameRoomRepository gameRoomRepository;
     private final PlayerService playerService;
 
     // 콜백 인터페이스(핸들러에서 정의)
@@ -67,29 +62,47 @@ public class TurtleGameService {
             gameStartPlayersMap.put(roomId, new ArrayList<>(startPlayers));
         }
 
-        scheduler.schedule(() -> runRaceLoop(roomId, state, callback), 0, TimeUnit.SECONDS);
+        runRaceLoop(roomId, state, callback);
     }
 
     // 실제 레이스 루프(30ms마다)
     private void runRaceLoop(Long roomId, TurtleGameState state, RaceUpdateCallback callback) {
         int interval = 30;
+        if (broadcastTasks.containsKey(roomId)) return; // 이미 실행 중이면 무시
+
         Runnable task = new Runnable() {
             @Override
             public void run() {
-                if (state.isFinished()) return;
-                state.updateRace();
-                callback.onRaceUpdate(roomId, state.getPositions());
-                if (state.isFinished()) {
-                    // ✅ Top3 뽑아서 결과 생성
-                    int[] top3 = state.getTop3TurtleIds(); // [1등,2등,3등] turtleId
-                    List<Map<String, Object>> results = gameResultAndPointCalc(roomId, state, top3);
-                    callback.onRaceFinish(roomId, state.getWinner(), results);
-                } else {
-                    scheduler.schedule(this, interval, TimeUnit.MILLISECONDS);
+                try {
+                    // 1) 레이스 상태 갱신
+                    state.updateRace();
+                    callback.onRaceUpdate(roomId, state.getPositions());
+
+                    // 2) 종료 체크
+                    if (state.isFinished()) {
+                        int[] top3 = state.getTop3TurtleIds();
+                        List<Map<String, Object>> results = gameResultAndPointCalc(roomId, top3);
+
+                        callback.onRaceFinish(roomId, state.getWinner(), results);
+                        broadcastTasks.remove(roomId);
+
+                        return;
+                    }
+
+                    // 3) 아직 종료되지 않았다면 다음 실행 예약
+                    ScheduledFuture<?> future = scheduler.schedule(this, interval, TimeUnit.MILLISECONDS);
+                    broadcastTasks.put(roomId, future);
+
+                } catch (Exception e) {
+                    System.out.println("[ERROR] runRaceLoop exception for room " + roomId + ": " + e.getMessage());
+                    e.printStackTrace();
+                    broadcastTasks.remove(roomId);
                 }
             }
         };
-        scheduler.schedule(task, 0, TimeUnit.MILLISECONDS);
+
+        ScheduledFuture<?> future = scheduler.schedule(task, 0, TimeUnit.MILLISECONDS);
+        broadcastTasks.put(roomId, future);
     }
 
     // 선택 거북이의 순위 판단
@@ -102,16 +115,23 @@ public class TurtleGameService {
     }
 
     // 결과에 따른 포인트, 승패 계산
-    private List<Map<String, Object>> gameResultAndPointCalc(Long roomId, TurtleGameState state, int[] top3) {
+    @Transactional
+    public List<Map<String, Object>> gameResultAndPointCalc(Long roomId, int[] top3) {
         List<TurtlePlayerDTO> players = playerDAO.getAll(roomId);
+
+        // 테스트 데이터
+        if (players == null || players.isEmpty()) {
+            players = List.of(
+                new TurtlePlayerDTO(1L, "째린", 1L, true, "1", 10),
+                new TurtlePlayerDTO(2L, "상으니", 1L, true, "3", 10),
+                new TurtlePlayerDTO(3L, "예리니", 1L, true, "5", 10)
+            );
+        }
 
         GameRoomResponseDTO.GameRoomDetailDTO gameroom = gameRoomService.selectById(roomId);
         String gameName = gameroom.getGameName();
-
-        GameRoomEntity gameRoomEntity = gameRoomRepository.findById(roomId).orElseThrow(() -> new IllegalArgumentException("게임방이 존재하지 않습니다."));
-        GameLevelEntity gameLevel = gameRoomEntity.getGameLevel();
-        Long gameLevelId = gameRoomEntity.getGameLevel().getId();
-        int entryFee = gameLevel.getEntryFee();
+        int entryFee = gameroom.getEntryFee();
+        Long gameLevelId = gameroom.getGameLevelId();
 
         int firstTid = top3.length > 0 ? top3[0] : -1;
         int secondTid = top3.length > 1 ? top3[1] : -1;
@@ -132,14 +152,11 @@ public class TurtleGameService {
                 default -> rankType = RankType.LOSE;
             }
 
-            // ✅ RankType 기준으로 didWin 정의
-            boolean didWin = (rankType != RankType.LOSE);
-
             RewardPerResultEntity rewardConfig = rewardPerResultRepository.findByGameLevelIdAndRank(gameLevelId, rankType);
 
-            int reward = didWin ? rewardConfig.getReward() : 0;
-            int donation = didWin ? rewardConfig.getDonation() : 0;
-            int pongChange = didWin ? reward : 0;
+            int reward = rewardConfig.getReward();
+            int donation = rewardConfig.getDonation();
+            int pongChange = reward;
 
             saveTurtleRunResult(player.getUserId(), entryFee, reward, donation, rankType, gameName);
 
@@ -157,7 +174,8 @@ public class TurtleGameService {
     }
 
     // DB 저장
-    private void saveTurtleRunResult(Long userId, int entryFee, int reward, int donation, RankType rankType, String gameName) {
+    @Transactional
+    public void saveTurtleRunResult(Long userId, int entryFee, int reward, int donation, RankType rankType, String gameName) {
         UserEntity userEntity = authService.findById(userId);
 
         WalletEntity pongWallet = walletService.findByIdAndType(userId, WalletType.PONG);
@@ -168,41 +186,40 @@ public class TurtleGameService {
                 pongWallet.setPongBalance(pongWallet.getPongBalance() - entryFee + reward);
                 donaWallet.setPongBalance(donaWallet.getPongBalance() + donation);
             } else {
-                // 이미 차감된 상태면 생략, 아니면 아래 라인 활성화
                 pongWallet.setPongBalance(pongWallet.getPongBalance() - entryFee);
             }
 
             // 히스토리/포인트 히스토리 등도 기록
             Long gameId = gameService.selectByName(gameName)
                     .stream().findFirst()
-                    .orElseThrow(() -> new IllegalStateException("'" + gameName + "' 게임을 찾을 수 없습니다."))
+                    .orElseThrow(() -> new GameNotFoundException())
                     .getId();
 
             GameEntity gameEntity = gameService.selectById(gameId);
 
             // 게임 히스토리 저장
             GameHistoryEntity gameHistoryEntity = GameHistoryEntity.builder()
-                    .game(gameEntity)
-                    .entryFee(entryFee)
-                    .pongValue(reward)
-                    .rank(rankType)
-                    .build();
+                .game(gameEntity)
+                .entryFee(entryFee)
+                .pongValue(reward)
+                .rank(rankType)
+                .build();
 
             historyService.insertGameHistory(gameHistoryEntity, userId);
 
             // 포인트 히스토리 저장
             PongHistoryEntity pongHistory = PongHistoryEntity.builder()
-                    .type(PongHistoryType.GAME_P)
-                    .amount(Math.abs(reward - entryFee))
-                    .build();
+                .type(PongHistoryType.GAME_P)
+                .amount(Math.abs(reward - entryFee))
+                .build();
 
             historyService.insertPointHistory(pongHistory, userId);
 
-            if(donation > 0) {
+            if (donation > 0) {
                 PongHistoryEntity donaHistory = PongHistoryEntity.builder()
-                        .type(PongHistoryType.GAME_D)
-                        .amount(donation)
-                        .build();
+                    .type(PongHistoryType.GAME_D)
+                    .amount(donation)
+                    .build();
 
                 historyService.insertPointHistory(donaHistory, userId);
             }
@@ -225,7 +242,7 @@ public class TurtleGameService {
                     if (userEntity != null) {
                         walletService.lose(betAmount, userEntity.getId(), WalletType.PONG);
                         Long gameId = gameService.selectByName(gameName).stream().findFirst()
-                                .orElseThrow(() -> new IllegalStateException("'" + gameName + "' 게임을 찾을 수 없습니다."))
+                                .orElseThrow(() -> new GameNotFoundException())
                                 .getId();
 
                         GameEntity gameEntity = gameService.selectById(gameId);
