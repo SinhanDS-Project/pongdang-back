@@ -14,7 +14,9 @@ import org.springframework.web.multipart.MultipartFile;
 public class ProductRequestDTO {
     private String name;
     private int price;
-    // 첫번째 칼럼이 img
+    // 첫 번째 파일: img, 두 번째 파일: 설명 이미지(선택)
     private MultipartFile[] files;
+    // 설명 이미지 없는 경우
+    private String description;
     private ProductType type;
 }
