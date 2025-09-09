@@ -43,6 +43,7 @@ public class GameRoomResponseDTO {
 		private LocalDateTime createdAt;
 		private LocalDateTime startAt;
 		private Long hostId;
+		private Long gameLevelId;
 		private Level level;
 		private String gameName;
 		private int count;
@@ -51,6 +52,7 @@ public class GameRoomResponseDTO {
 			return GameRoomDetailDTO.builder()
 					.id(room.getId())
 					.title(room.getTitle())
+					.gameLevelId(room.getGameLevel().getId())
 					.level(room.getGameLevel().getLevel())
 					.gameName(room.getGameLevel().getGame().getName())
 					.count(count)
