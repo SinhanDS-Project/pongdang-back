@@ -45,7 +45,7 @@ public class GameRoomRestController {
 		gameRoomService.insertRoom(roomRequest, userId);
 		gameRoomService.sendList("list", gameRoomService.selectAll());
 
-		return ResponseEntity.ok("게임방이 생성되었습니다.");
+		return ResponseEntity.ok(Map.of("message", "게임방이 생성되었습니다."));
 	}
 
 	// 게임 시작
@@ -57,6 +57,6 @@ public class GameRoomRestController {
 			gameRoomService.updateStatus(roomId, newStatus);
 			gameRoomService.sendList("list", gameRoomService.selectAll());
 		}
-		return ResponseEntity.ok("게임이 시작되었습니다.");
+		return ResponseEntity.ok(Map.of("message", "게임이 시작되었습니다."));
 	}
 }

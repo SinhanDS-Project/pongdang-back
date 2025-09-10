@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/board/{boardId}/replies")
@@ -58,13 +59,12 @@ public class ReplyRestController {
 
     // 댓글 삭제
     @DeleteMapping("/{replyId}")
-    public ResponseEntity<String> deleteReply(
-            @PathVariable Long boardId,
+    public ResponseEntity<?> deleteReply(
             @PathVariable Long replyId,
             @RequestHeader("Authorization") String authHeader
     ) {
         Long userId = authService.validateAndGetUserId(authHeader);
         replyService.deleteReply(replyId, userId);
-        return ResponseEntity.ok("댓글 삭제 완료");
+        return ResponseEntity.ok(Map.of("message", "댓글이 삭제되었습니다."));
     }
 }
