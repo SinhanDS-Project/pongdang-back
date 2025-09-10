@@ -10,8 +10,6 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Component
 @RequiredArgsConstructor
 public class StompAuthChannelInterceptor implements ChannelInterceptor {
@@ -21,6 +19,10 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+
+        if (accessor.getCommand() == null) {
+            return message;
+        }
 
         // STOMP 연결 요청 시
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
@@ -33,17 +35,20 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
 
             Long userId = authService.validateAndGetUserId(authHeader);
             accessor.getSessionAttributes().put("userId", userId);
+
         } else if(StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
             String destination = accessor.getDestination();
 
             // 구독 경로 추출
             if(destination != null) {
-                if(destination.startsWith("/topic/gameroom")) {
-                    Long roomId = Long.parseLong(destination.substring("/topic/gameroom".length()));
+                if(destination.startsWith("/topic/gameroom/")) {
+                    Long roomId = Long.parseLong(destination.substring("/topic/gameroom/".length()));
                     accessor.getSessionAttributes().put("roomId", roomId);
                     accessor.getSessionAttributes().put("type", "room");
                 }
-                else if(destination.startsWith("/topic/game")) {
+                else if(destination.startsWith("/topic/game/")) {
+                    Long roomId = Long.parseLong(destination.substring("/topic/game/".length()));
+                    accessor.getSessionAttributes().put("roomId", roomId);
                     accessor.getSessionAttributes().put("type", "game");
                 }
                 else if(destination.equals("/topic/gameroom")) {

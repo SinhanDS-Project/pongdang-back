@@ -36,7 +36,7 @@ public class PlayerService {
     public Map<Long, Integer> getAllPlayers() {
         Map<Long, Integer> roomPlayers = new HashMap<>();
         List<Long> roomIds = gameRoomService.selectAll().stream()
-                .map(GameRoomEntity::getId)
+                .map(GameRoomResponseDTO.GameRoomDetailDTO::getId)
                 .collect(Collectors.toList());
         for (Long roomId : roomIds) {
             List<TurtlePlayerDTO> players = playerDAO.getAll(roomId);

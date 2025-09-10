@@ -1,7 +1,6 @@
 package com.wepong.pongdang.service;
 
 import com.wepong.pongdang.dto.request.GameRoomRequestDTO;
-import com.wepong.pongdang.dto.response.ChatResponseDTO;
 import com.wepong.pongdang.dto.response.GameRoomResponseDTO;
 import com.wepong.pongdang.dto.response.WebSocketResponseDTO;
 import com.wepong.pongdang.entity.GameEntity;
@@ -21,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -51,8 +51,17 @@ public class GameRoomService {
 		return GameRoomResponseDTO.GameRoomListDTO.from(details);
 	}
 
-	public List<GameRoomEntity> selectAll() {
-		return gameRoomRepository.findAll();
+	public List<GameRoomResponseDTO.GameRoomDetailDTO> selectAll() {
+		List<GameRoomEntity> roomlist = gameRoomRepository.findAll();
+		List<GameRoomResponseDTO.GameRoomDetailDTO> details = roomlist.stream().map(
+				room -> {
+					GameLevelEntity level = gameLevelService.selectByLevelUid(room.getGameLevel().getId());
+					GameEntity gameEntity = level != null ? gameService.selectById(level.getGame().getId()) : null;
+					int count = playerDAO.getAll(room.getId()) != null ? playerDAO.getAll(room.getId()).size() : 0;
+					return GameRoomResponseDTO.GameRoomDetailDTO.from(room, count);
+				}).collect(Collectors.toList());
+
+		return details;
 	}
 
 	public GameRoomResponseDTO.GameRoomDetailDTO selectById(Long roomId) {
@@ -136,7 +145,7 @@ public class GameRoomService {
 				.data(data)
 				.build();
 
-		messagingTemplate.convertAndSend("/topic/game" + roomId, payload);
+		messagingTemplate.convertAndSend("/topic/game/" + roomId, payload);
 	}
 
 	public void sendGame(Long roomId, String type) {
@@ -144,15 +153,6 @@ public class GameRoomService {
 				.type(type)
 				.build();
 
-		messagingTemplate.convertAndSend("/topic/game" + roomId, payload);
-	}
-
-	public void sendTest(String type, ChatResponseDTO chat) {
-		WebSocketResponseDTO payload = WebSocketResponseDTO.builder()
-				.type(type)
-				.data(chat)
-				.build();
-
-		messagingTemplate.convertAndSend("/topic/test", payload);
+		messagingTemplate.convertAndSend("/topic/game/" + roomId, payload);
 	}
 }
