@@ -25,6 +25,7 @@ public class BettingUserPointService {
         }
 
         user.setPointBalance(user.getPointBalance() - amount);
+        sUserRepository.save(user);
     }
 
     @Transactional
