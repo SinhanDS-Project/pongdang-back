@@ -6,8 +6,8 @@ import com.wepong.pongdang.entity.enums.GameRoomStatus;
 import com.wepong.pongdang.exception.UnauthorizedAccessException;
 import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.GameRoomService;
+import com.wepong.pongdang.service.WebSocketService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +21,7 @@ public class GameRoomRestController {
 
 	private final GameRoomService gameRoomService;
 	private final AuthService authService;
+	private final WebSocketService webSocketService;
 
 	// 게임방 리스트 조회
 	@GetMapping("")
@@ -43,7 +44,7 @@ public class GameRoomRestController {
 		}
 		Long userId = authService.validateAndGetUserId(authHeader);
 		gameRoomService.insertRoom(roomRequest, userId);
-		gameRoomService.sendList("list", gameRoomService.selectAll());
+		webSocketService.sendList(gameRoomService.selectAll());
 
 		return ResponseEntity.ok(Map.of("message", "게임방이 생성되었습니다."));
 	}
@@ -55,7 +56,7 @@ public class GameRoomRestController {
 		GameRoomResponseDTO.GameRoomDetailDTO room = gameRoomService.selectById(roomId);
 		if(!room.getStatus().equals(newStatus)) {
 			gameRoomService.updateStatus(roomId, newStatus);
-			gameRoomService.sendList("list", gameRoomService.selectAll());
+			webSocketService.sendList("list", gameRoomService.selectAll());
 		}
 		return ResponseEntity.ok(Map.of("message", "게임이 시작되었습니다."));
 	}

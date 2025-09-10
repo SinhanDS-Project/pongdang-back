@@ -6,6 +6,7 @@ import com.wepong.pongdang.entity.enums.GameRoomStatus;
 import com.wepong.pongdang.model.multi.turtle.PlayerService;
 import com.wepong.pongdang.model.multi.turtle.TurtleGameService;
 import com.wepong.pongdang.service.GameRoomService;
+import com.wepong.pongdang.service.WebSocketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -28,15 +29,23 @@ public class StompEventListener {
     private final TurtleGameService turtleGameService;
 
     private final Map<Long, List<TurtlePlayerDTO>> gameStartPlayersMap = new ConcurrentHashMap<>();
+    private final WebSocketService webSocketService;
 
     @EventListener
     public void handleConnect(SessionSubscribeEvent event) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
+        String type = (String) accessor.getSessionAttributes().get("type");
+
+        // 게임 대기방 리스트 연결 시
+        if(type.equals("list")) {
+            webSocketService.sendList(gameRoomService.selectAll());
+            return;
+        }
 
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         Long roomId = (Long) accessor.getSessionAttributes().get("roomId");
 
-        if(accessor.getSessionAttributes().get("type").equals("room")) {
+        if(type.equals("room")) {
             // 중복 입장 처리
             if (playerService.exists(roomId, userId)) {
                 playerService.exitPlayer(roomId, userId);
@@ -44,14 +53,11 @@ public class StompEventListener {
 
             playerService.enterPlayer(userId, roomId);
 
-            TurtlePlayerDTO player = playerService.getPlayer(roomId, userId);
-            accessor.getSessionAttributes().put("nickname", player.getNickname());
-
             List<TurtlePlayerDTO> players = playerService.getPlayers(roomId);
-            gameRoomService.sendRoom(roomId, "enter", players);
-            gameRoomService.sendList("list", gameRoomService.selectAll());
+            webSocketService.sendRoom(roomId, "enter", players);
+            webSocketService.sendList(gameRoomService.selectAll());
 
-        } else if(accessor.getSessionAttributes().get("type").equals("game")) {
+        } else if(type.equals("game")) {
             // (1) 게임 시작 전이면 검증 건너뛰고, 그냥 세션 등록
             List<TurtlePlayerDTO> startPlayers = gameStartPlayersMap.get(roomId);
             if (startPlayers == null) {
@@ -71,23 +77,24 @@ public class StompEventListener {
                 Map<String, Object> msg = new HashMap<>();
                 msg.put("reason", "no_player_info");
                 msg.put("targetUrl", "/gameroom");
-                gameRoomService.sendGame(roomId, "force_exit", msg);
+                webSocketService.sendGame(roomId, "force_exit", msg);
                 try { Thread.sleep(50); } catch (InterruptedException ignored) {}
             }
-        } else if(accessor.getSessionAttributes().get("type").equals("list")) {
-            gameRoomService.sendList("list", gameRoomService.selectAll());
         }
     }
 
     @EventListener
     public void handleDisconnect(SessionDisconnectEvent event) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
-
         String type = (String) accessor.getSessionAttributes().get("type");
+
+        // 게임 대기방 리스트 연결 종료 시
+        if(type.equals("list")) {
+            return;
+        }
+
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         Long roomId = (Long) accessor.getSessionAttributes().get("roomId");
-
-        if(roomId == null || userId == null) return;
 
         GameRoomResponseDTO.GameRoomDetailDTO gameroom = gameRoomService.selectById(roomId);
         GameRoomStatus status = gameroom.getStatus();
@@ -106,11 +113,11 @@ public class StompEventListener {
 
                     } else {
                         gameRoomService.deleteRoom(roomId);
-                        gameRoomService.sendList("delete", gameRoomService.selectAll());
+                        webSocketService.sendList(gameRoomService.selectAll());
                     }
                 }
 
-                gameRoomService.sendRoom(roomId, "exit", players);
+                webSocketService.sendRoom(roomId, "exit", players);
             }
         } else if("game".equals(type)) {
             if(!status.equals(GameRoomStatus.WAITING)) {
@@ -126,7 +133,7 @@ public class StompEventListener {
 
                     } else {
                         turtleGameService.removeGame(roomId);
-                        gameRoomService.sendList("delete", gameRoomService.selectAll());
+                        webSocketService.sendList(gameRoomService.selectAll());
                     }
                 }
 
@@ -134,10 +141,10 @@ public class StompEventListener {
                     Map<String, Object> msg = new HashMap<>();
                     msg.put("reason", "connection_error");
                     msg.put("targetUrl", "/gameroom");
-                    gameRoomService.sendGame(roomId, "force_exit", msg);
+                    webSocketService.sendGame(roomId, "force_exit", msg);
                 }
             }
         }
-        gameRoomService.sendList("list", gameRoomService.selectAll());
+        webSocketService.sendList(gameRoomService.selectAll());
     }
 }

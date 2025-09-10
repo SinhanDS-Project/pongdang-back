@@ -29,12 +29,11 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
             // 헤더에서 토큰 추출 후 검증
             String authHeader = accessor.getFirstNativeHeader("Authorization");
 
-            if (authHeader == null || authHeader.isEmpty()) {
-                throw new InvalidTokenException();
+            // 토큰이 있을 때만 검증
+            if (authHeader != null && !authHeader.isEmpty()) {
+                Long userId = authService.validateAndGetUserId(authHeader);
+                accessor.getSessionAttributes().put("userId", userId);
             }
-
-            Long userId = authService.validateAndGetUserId(authHeader);
-            accessor.getSessionAttributes().put("userId", userId);
 
         } else if(StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
             String destination = accessor.getDestination();
@@ -42,6 +41,14 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
             // 구독 경로 추출
             if(destination != null) {
                 if(destination.startsWith("/topic/gameroom/")) {
+                    Long userId = (Long) accessor.getSessionAttributes().get("userId");
+                    if (userId == null) {
+                        throw new InvalidTokenException();
+                    }
+
+                    String nickname = authService.findById(userId).getNickname();
+                    accessor.getSessionAttributes().put("nickname", nickname);
+
                     Long roomId = Long.parseLong(destination.substring("/topic/gameroom/".length()));
                     accessor.getSessionAttributes().put("roomId", roomId);
                     accessor.getSessionAttributes().put("type", "room");

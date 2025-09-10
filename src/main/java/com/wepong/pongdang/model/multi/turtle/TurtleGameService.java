@@ -32,6 +32,7 @@ public class TurtleGameService {
     private final AuthService authService;
     private final GameService gameService;
     private final HistoryService historyService;
+    private final WebSocketService webSocketService;
 
     private final RewardPerResultRepository rewardPerResultRepository;
 
@@ -214,6 +215,14 @@ public class TurtleGameService {
 
                 historyService.insertPointHistory(donaHistory, userId);
             }
+
+            if(rankType.equals(RankType.FIRST)) {
+                webSocketService.sendMain("first", userEntity.getNickname() + "님이 " + gameName + "에서 1등을 차지했습니다! \uD83E\uDD47");
+            } else if(rankType.equals(RankType.SECOND)) {
+                webSocketService.sendMain("second", userEntity.getNickname() + "님이 " + gameName + "에서 2등을 차지했습니다! \uD83E\uDD48");
+            } else if(rankType.equals(RankType.THIRD)) {
+                webSocketService.sendMain("third", userEntity.getNickname() + "님이 " + gameName + "에서 3등을 차지했습니다! \uD83E\uDD49");
+            }
         }
     }
 
@@ -272,21 +281,21 @@ public class TurtleGameService {
             gameStartPlayersMap.put(roomId, new ArrayList<>(startPlayers));
         }
 
-        gameRoomService.sendGame(roomId, "game_start");
+        webSocketService.sendGame(roomId, "game_start");
     }
 
     // 방에 위치 정보를 스케쥴러로 보내주는 함수
     public void broadcastRaceUpdate(Long roomId, double[] positions) {
         List<Double> posList = new ArrayList<>();
         for(double p : positions) posList.add(p);
-        gameRoomService.sendGame(roomId, "race_update", posList);
+        webSocketService.sendGame(roomId, "race_update", posList);
     }
 
     public void broadcastRaceFinish(Long roomId, int winner, List<Map<String, Object>> results) {
         Map<String, Object> msg = new HashMap<>();
         msg.put("winner", winner);
         msg.put("results",  results);
-        gameRoomService.sendGame(roomId, "race_finish", msg);
+        webSocketService.sendGame(roomId, "race_finish", msg);
 
         // 게임 종료 상태
         gameFinishMap.put(roomId, true);

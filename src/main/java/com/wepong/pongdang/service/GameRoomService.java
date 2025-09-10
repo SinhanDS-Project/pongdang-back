@@ -36,7 +36,7 @@ public class GameRoomService {
 
 	public GameRoomResponseDTO.GameRoomListDTO selectAll(int page) {
 		int size = 6;
-		PageRequest pageRequest = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
+		PageRequest pageRequest = PageRequest.of(page-1, size, Sort.Direction.DESC, "createdAt");
 		Page<GameRoomEntity> roomlist = gameRoomRepository.findAll(pageRequest);
 
 		Page<GameRoomResponseDTO.GameRoomDetailDTO> details = roomlist
@@ -119,40 +119,5 @@ public class GameRoomService {
 		room.updateHost(userEntity);
 
 		gameRoomRepository.save(room);
-	}
-
-	public void sendRoom(Long roomId, String type, Object data) {
-		WebSocketResponseDTO payload = WebSocketResponseDTO.builder()
-				.type(type)
-				.data(data)
-				.build();
-
-		messagingTemplate.convertAndSend("/topic/gameroom/" + roomId, payload);
-	}
-
-	public void sendList(String type, Object data) {
-		WebSocketResponseDTO payload = WebSocketResponseDTO.builder()
-				.type(type)
-				.data(data)
-				.build();
-
-		messagingTemplate.convertAndSend("/topic/gameroom", payload);
-	}
-
-	public void sendGame(Long roomId, String type, Object data) {
-		WebSocketResponseDTO payload = WebSocketResponseDTO.builder()
-				.type(type)
-				.data(data)
-				.build();
-
-		messagingTemplate.convertAndSend("/topic/game/" + roomId, payload);
-	}
-
-	public void sendGame(Long roomId, String type) {
-		WebSocketResponseDTO payload = WebSocketResponseDTO.builder()
-				.type(type)
-				.build();
-
-		messagingTemplate.convertAndSend("/topic/game/" + roomId, payload);
 	}
 }
