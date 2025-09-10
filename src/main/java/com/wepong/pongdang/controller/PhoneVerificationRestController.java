@@ -4,6 +4,7 @@ import com.wepong.pongdang.dto.request.PhoneVerificationSendRequestDTO;
 import com.wepong.pongdang.dto.request.PhoneVerificationVerifyRequestDTO;
 import com.wepong.pongdang.dto.response.PhoneVerificationSendResponseDTO;
 import com.wepong.pongdang.dto.response.PhoneVerificationVerifyResponseDTO;
+import com.wepong.pongdang.exception.UserAlreadyRegisteredException;
 import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.PhoneVerificationService;
 import jakarta.validation.Valid;
@@ -27,9 +28,7 @@ public class PhoneVerificationRestController {
 
         // 핸드폰번호 중복체크
         if (authService.isPhoneNumberExists(requestDTO.getPhone())) {
-            return ResponseEntity
-                    .badRequest()
-                    .body("이미 가입된 사용자입니다.");
+            throw new UserAlreadyRegisteredException();
         }
 
         // 인증번호 발송(중복아닐때만)

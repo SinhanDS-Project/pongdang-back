@@ -230,6 +230,13 @@ public class GlobalExceptionHandler {
 				.body(Map.of("error", "REFRESH_TOKEN_NOT_FOUND", "message", ex.getMessage()));
 	}
 
+	// 이미 존재하는 회원
+	@ExceptionHandler(UserAlreadyRegisteredException.class)
+	public ResponseEntity<?> handleUserAlreadyRegistered(UserAlreadyRegisteredException ex) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body(Map.of("error", "USER_ALREADY_REGISTERED", "message", ex.getMessage()));
+	}
+
 	// Optional: 모든 예외를 처리하는 fallback
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<?> handleAll(Exception ex) {
