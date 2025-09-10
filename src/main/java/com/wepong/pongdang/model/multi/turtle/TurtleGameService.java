@@ -119,15 +119,6 @@ public class TurtleGameService {
     public List<Map<String, Object>> gameResultAndPointCalc(Long roomId, int[] top3) {
         List<TurtlePlayerDTO> players = playerDAO.getAll(roomId);
 
-        // 테스트 데이터
-        if (players == null || players.isEmpty()) {
-            players = List.of(
-                new TurtlePlayerDTO(1L, "째린", 1L, true, "1", 10),
-                new TurtlePlayerDTO(2L, "상으니", 1L, true, "3", 10),
-                new TurtlePlayerDTO(3L, "예리니", 1L, true, "5", 10)
-            );
-        }
-
         GameRoomResponseDTO.GameRoomDetailDTO gameroom = gameRoomService.selectById(roomId);
         String gameName = gameroom.getGameName();
         int entryFee = gameroom.getEntryFee();
