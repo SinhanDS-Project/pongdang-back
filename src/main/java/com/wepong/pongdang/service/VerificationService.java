@@ -62,13 +62,35 @@ public class VerificationService {
 
 	// 임시 비밀번호 생성
 	private String generateTempPassword() {
-		String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
-		StringBuilder sb = new StringBuilder();
+		String upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		String lower = "abcdefghijklmnopqrstuvwxyz";
+		String digits = "0123456789";
+		String special = "!@#$%^&*";
+		String all = upper + lower + digits + special;
 		Random rnd = new Random();
-		for (int i = 0; i < 8; i++) {
-			sb.append(chars.charAt(rnd.nextInt(chars.length())));
+		StringBuilder sb = new StringBuilder();
+
+		// 각 문자군에서 1개씩 무조건 포함
+		sb.append(upper.charAt(rnd.nextInt(upper.length())));
+		sb.append(lower.charAt(rnd.nextInt(lower.length())));
+		sb.append(digits.charAt(rnd.nextInt(digits.length())));
+		sb.append(special.charAt(rnd.nextInt(special.length())));
+
+		// 나머지 4자리는 전체에서 랜덤
+		for (int i = 0; i < 4; i++) {
+			sb.append(all.charAt(rnd.nextInt(all.length())));
 		}
-		return sb.toString();
+
+		// 문자 섞기
+		char[] password = sb.toString().toCharArray();
+		for (int i = password.length - 1; i > 0; i--) {
+			int j = rnd.nextInt(i + 1);
+			char tmp = password[i];
+			password[i] = password[j];
+			password[j] = tmp;
+		}
+
+		return new String(password);
 	}
 
 	// 인증번호 확인
