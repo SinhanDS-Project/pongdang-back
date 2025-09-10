@@ -160,6 +160,76 @@ public class GlobalExceptionHandler {
 				.body(Map.of("error", "INSUFFICIENT_BALANCE", "message", ex.getMessage()));
 	}
 
+	// 닉네임 중복
+	@ExceptionHandler(NicknameAlreadyExist.class)
+	public ResponseEntity<?> handleNicknameAlready(NicknameAlreadyExist ex) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body(Map.of("error", "NICKNAME_ALREADY_EXIST", "message", ex.getMessage()));
+	}
+
+	// 필수 항목 누락
+	@ExceptionHandler(MissingRequiredFieldsException.class)
+	public ResponseEntity<?> handleMissingRequiredFields(MissingRequiredFieldsException ex) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body(Map.of("error", "MISSING_REQUIRED_FIELDS", "message", ex.getMessage()));
+	}
+
+	// 이메일 중복
+	@ExceptionHandler(EmailAlreadyExistsException.class)
+	public ResponseEntity<?> handleEmailAlreadyExists(EmailAlreadyExistsException ex) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body(Map.of("error", "EMAIL_ALREADY_EXISTS", "message", ex.getMessage()));
+	}
+
+	// 비밀번호 불일치
+	@ExceptionHandler(PasswordMismatchException.class)
+	public ResponseEntity<?> handlePasswordMismatch(PasswordMismatchException ex) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body(Map.of("error", "PASSWORD_MISMATCH", "message", ex.getMessage()));
+	}
+
+	// 비밀번호 형식 오류
+	@ExceptionHandler(InvalidPasswordFormatException.class)
+	public ResponseEntity<?> handleInvalidPasswordFormat(InvalidPasswordFormatException ex) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body(Map.of("error", "INVALID_PASSWORD_FORMAT", "message", ex.getMessage()));
+	}
+
+	// 전화번호 형식 오류
+	@ExceptionHandler(InvalidPhoneNumberFormatException.class)
+	public ResponseEntity<?> handleInvalidPhoneNumberFormat(InvalidPhoneNumberFormatException ex) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body(Map.of("error", "INVALID_PHONE_NUMBER_FORMAT", "message", ex.getMessage()));
+	}
+
+	// 만 15세 미만
+	@ExceptionHandler(UnderAgeException.class)
+	public ResponseEntity<?> handleUnderAge(UnderAgeException ex) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body(Map.of("error", "UNDER_AGE", "message", ex.getMessage()));
+	}
+
+	// 생년월일 파싱 실패
+	@ExceptionHandler(InvalidBirthDateException.class)
+	public ResponseEntity<?> handleInvalidBirthDate(InvalidBirthDateException ex) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body(Map.of("error", "INVALID_BIRTH_DATE", "message", ex.getMessage()));
+	}
+
+	// 개인정보 수집 미동의
+	@ExceptionHandler(PrivacyAgreementRequiredException.class)
+	public ResponseEntity<?> handlePrivacyAgreementRequired(PrivacyAgreementRequiredException ex) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body(Map.of("error", "PRIVACY_AGREEMENT_REQUIRED", "message", ex.getMessage()));
+	}
+
+	// 리프레시 토큰 없음
+	@ExceptionHandler(RefreshTokenNotFoundException.class)
+	public ResponseEntity<?> handleRefreshTokenNotFound(RefreshTokenNotFoundException ex) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+				.body(Map.of("error", "REFRESH_TOKEN_NOT_FOUND", "message", ex.getMessage()));
+	}
+
 	// Optional: 모든 예외를 처리하는 fallback
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<?> handleAll(Exception ex) {

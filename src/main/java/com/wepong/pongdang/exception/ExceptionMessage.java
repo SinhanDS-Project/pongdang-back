@@ -11,6 +11,18 @@ public class ExceptionMessage {
     public static final String UNAUTHORIZED_ACCESS = "로그인 후 이용이 가능한 서비스입니다.";
     public static final String INVALID_TOKEN = "잘못된 토큰입니다.";
     public static final String INVALID_UPDATE_PASSWORD = "현재 비밀번호가 올바르지 않습니다.";
+    public static final String REFRESH_TOKEN_NOT_FOUND = "리프레시 토큰이 없습니다.";
+
+    // Validation
+    public static final String MISSING_REQUIRED_FIELDS = "모든 필수 항목을 입력해주세요.";
+    public static final String EMAIL_ALREADY_EXISTS = "이미 사용 중인 이메일입니다.";
+    public static final String NICKNAME_ALREADY_EXIST = "이미 사용 중인 닉네임입니다.";
+    public static final String PASSWORD_MISMATCH = "비밀번호가 일치하지 않습니다.";
+    public static final String INVALID_PASSWORD_FORMAT = "비밀번호는 6~8자의 대소문자, 숫자, 특수문자를 포함해야 합니다.";
+    public static final String INVALID_PHONE_NUMBER_FORMAT = "전화번호 형식이 올바르지 않습니다. (예: 010-0000-0000)";
+    public static final String UNDER_AGE = "만 15세 이상만 가입할 수 있습니다.";
+    public static final String INVALID_BIRTH_DATE = "유효한 생년월일을 입력해주세요.";
+    public static final String PRIVACY_AGREEMENT_REQUIRED = "개인정보 수집 및 이용에 동의해야 가입할 수 있습니다.";
 
 	// Board
     public static final String BOARD_NOT_FOUND = "게시글이 존재하지 않습니다.";
@@ -32,8 +44,8 @@ public class ExceptionMessage {
 	public static final String DONATION_NOT_FOUND = "기부 정보가 존재하지 않습니다.";
 
     //BettingUser
-    public static final String INSUFFICIENT_POINT = "사용자의 Betting 포인트가 부족합니다";
-    public static final String BETTINGUSER_NOT_FOUND = "BettingPoint 회원이 아닙니다 ";
+    public static final String INSUFFICIENT_POINT = "사용자의 신한 마이 포인트가 부족합니다";
+    public static final String BETTINGUSER_NOT_FOUND = "신한 회원이 아닙니다 ";
 
     // Game
     public static final String GAME_NOT_FOUND = "게임이 존재하지 않습니다.";
