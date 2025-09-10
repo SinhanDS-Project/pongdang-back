@@ -4,13 +4,15 @@ import com.wepong.pongdang.dto.request.LoginRequestDTO;
 import com.wepong.pongdang.dto.request.UserRegisterDTO;
 import com.wepong.pongdang.dto.response.BettingUserResponseDTO;
 import com.wepong.pongdang.entity.UserEntity;
-import com.wepong.pongdang.exception.AuthException;
+import com.wepong.pongdang.exception.*;
 import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.BettingUserService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -48,9 +50,10 @@ public class AuthRestController {
 					.sameSite("Strict") // 또는 "Lax" / "None" (크로스 도메인 필요 시)
 					.build();
 
-			return ResponseEntity.ok().header("Set-Cookie", cookie.toString()) .body(new LoginResponseDTO(accessToken, "로그인 성공", UserInfoResponseDTO.from(user)));
+			return ResponseEntity.ok().header("Set-Cookie", cookie.toString())
+					.body(new LoginResponseDTO(accessToken, "로그인 성공", UserInfoResponseDTO.from(user)));
 		} catch (AuthException error) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body(error.getMessage());
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error.getMessage());
 		}
 	}
 
@@ -62,7 +65,7 @@ public class AuthRestController {
 	}
 
 	@PostMapping("/register")
-	public ResponseEntity<?> registerUser(@RequestBody UserRegisterDTO dto) {
+	public ResponseEntity<?> registerUser(@RequestBody UserRegisterDTO dto) throws ParseException {
 		// 필수 항목 공백 검사
 		if (isBlank(dto.getEmail())
 				|| isBlank(dto.getPassword())
@@ -70,41 +73,39 @@ public class AuthRestController {
 				|| isBlank(dto.getNickname())
 				|| isBlank(dto.getBirthDate())
 				|| isBlank(dto.getPhoneNumber())) {
-			return ResponseEntity.badRequest().contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("모든 필수 항목을 입력해주세요.");
+			throw new MissingRequiredFieldsException();
 		}
 
 		// 이메일 중복 검사
 		if (authService.isEmailExists(dto.getEmail())) {
-			return ResponseEntity.badRequest().contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("이미 사용 중인 이메일입니다.");
+			throw new EmailAlreadyExistsException();
 		}
 
 		// 닉네임 중복 검사
 		if (authService.isNicknameExists(dto.getNickname())) {
-			return ResponseEntity.badRequest().contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("이미 사용 중인 닉네임입니다.");
+			throw new NicknameAlreadyExist();
 		}
 
 		// 비밀번호 일치 검사
 		if (!dto.getPassword().equals(dto.getPasswordCheck())) {
-			return ResponseEntity.badRequest().contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("비밀번호가 일치하지 않습니다.");
+			throw new PasswordMismatchException();
 		}
 
 		// 비밀번호 정규식 검사 (6~8자, 대문자, 소문자, 숫자, 특수문자)
 		String passwordPattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])[A-Za-z\\d!@#$%^&*]{6,}$";
 		
 		if (!Pattern.matches(passwordPattern, dto.getPassword())) {
-			return ResponseEntity.badRequest().contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("비밀번호는 6~8자의 대소문자, 숫자, 특수문자를 포함해야 합니다.");
+			throw new InvalidPasswordFormatException();
 		}
 
 		// 전화번호 형식 검사
 		String phonePattern = "^010-\\d{4}-\\d{4}$";
 		
 		if (!Pattern.matches(phonePattern, dto.getPhoneNumber())) {
-			return ResponseEntity.badRequest().contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("전화번호 형식이 올바르지 않습니다. (예: 010-0000-0000)");
+			throw new InvalidPhoneNumberFormatException();
 		}
 
-
 		// 생년월일로 만 19세 이상인지 검사
-		try {
 		// 생년월일 문자열을 Date로 파싱
 	    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 	    Date birthDate = sdf.parse(dto.getBirthDate());
@@ -124,20 +125,17 @@ public class AuthRestController {
 	    }
 
 	    if (age < 15) {
-	        return ResponseEntity.badRequest().contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("만 15세 이상만 가입할 수 있습니다.");
+	        throw new UnderAgeException();
 	    }
-		} catch (Exception e) {
-			return ResponseEntity.badRequest().contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("유효한 생년월일을 입력해주세요.");
-		}
 
 		// 개인정보 수집 동의
 		if (!dto.isAgreePrivacy()) {
-			return ResponseEntity.badRequest().contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("개인정보 수집 및 이용에 동의해야 가입할 수 있습니다.");
+			throw new PrivacyAgreementRequiredException();
 		}
 
 		authService.register(dto);
 
-		return ResponseEntity.ok("회원가입이 완료되었습니다.");
+		return ResponseEntity.ok(Map.of("message", "회원가입이 완료되었습니다."));
 	}
 
 
@@ -149,33 +147,11 @@ public class AuthRestController {
         BettingUserResponseDTO dto = bettingUserService.findUser(name, phone);
 
         if (dto == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("해당 회원을 찾을 수 없습니다.");
+            throw new BettingUserNotFoundException();
         }
+
         return ResponseEntity.ok(dto);
     }
-	//  Authorization 헤더에 담긴 Refresh Token을 이용해 Access Token 재발급 API(기존: 혹시몰라서 남겨둠)
-//	@PostMapping("/reissue")
-//	public ResponseEntity<?> reissue(@RequestHeader("Authorization") String authHeader) {
-//
-//		try {
-//			if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-//				ResponseCookie cookie = ResponseCookie.from("refreshToken", "").path("/").httpOnly(true).maxAge(0) // 삭제
-//						.build();
-//
-//				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).header("Set-Cookie", cookie.toString()).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body("토큰이 없습니다.");
-//			}
-//
-//			String refreshToken = authHeader.substring(7);
-//			String accessToken = authService.reissue(refreshToken);
-//            Long userId = authService.validateAndGetUserId("Bearer " + refreshToken);
-//            UserEntity user = authService.findById(userId);
-//
-//			return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body(new LoginResponse(accessToken, "토큰 재발급", UserInfo.from(user)));
-//		} catch (AuthException error) {
-//			return ResponseEntity.status(401).contentType(MediaType.valueOf("text/plain;charset=UTF-8")).body(error.getMessage());
-//		}
-//	}
 
     // HttpOnly 쿠키에 저장된 Refresh Token을 이용해 Access Token 재발급 API
     @PostMapping("/refresh")
@@ -192,8 +168,7 @@ public class AuthRestController {
         }
 
         if (refreshToken == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("리프레시 토큰이 없습니다.");
+            throw new RefreshTokenNotFoundException();
         }
 
         try {
@@ -238,7 +213,7 @@ public class AuthRestController {
         Long userId = authService.validateAndGetUserId(authHeader);
         authService.completeTutorial(userId);
 
-        return ResponseEntity.ok("튜토리얼 완료 처리되었습니다.");
+		return ResponseEntity.ok(Map.of("message", "튜토리얼이 완료되었습니다."));
     }
 
     // 회원탈퇴
@@ -257,8 +232,6 @@ public class AuthRestController {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body("회원 탈퇴가 완료되었습니다.");
+                .body(Map.of("message", "회원 탈퇴가 완료되었습니다."));
     }
-
-
 }

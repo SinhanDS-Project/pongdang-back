@@ -52,7 +52,7 @@ public class AdminController {
     @PostMapping("/product")
     public ResponseEntity<?> saveProduct(ProductRequestDTO request) {
         adminService.saveProduct(request);
-        return ResponseEntity.ok("상품 등록이 완료되었습니다.");
+        return ResponseEntity.ok(Map.of("message", "상품이 등록되었습니다."));
     }
 
     // 기부 전체 조회
@@ -65,6 +65,6 @@ public class AdminController {
     @PutMapping("/donation/{infoId}")
     public ResponseEntity<?> updateDonationInfo(@PathVariable Long infoId, MultipartFile file) {
         adminService.updateDonationInfo(infoId, file);
-        return ResponseEntity.ok("기부 정보 수정이 완료되었습니다.");
+        return ResponseEntity.ok(Map.of("message", "기부 정보가 수정되었습니다."));
     }
 }

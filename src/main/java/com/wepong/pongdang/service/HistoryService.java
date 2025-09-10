@@ -8,7 +8,6 @@ import com.wepong.pongdang.entity.enums.PongHistoryType;
 import com.wepong.pongdang.repository.GameHistoryRepository;
 import com.wepong.pongdang.repository.PongHistoryRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,8 +22,7 @@ public class HistoryService {
     private final GameHistoryRepository gameHistoryRepository;
     private final PongHistoryRepository pongHistoryRepository;
 
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
 
     public HistoryResponseDTO.GameResponseDTO gameHistoryList(Long userId) {
         return gameHistoryRepository.findByUserId(userId);

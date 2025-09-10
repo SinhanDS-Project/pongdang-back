@@ -3,15 +3,12 @@ package com.wepong.pongdang.controller;
 import com.wepong.pongdang.dto.response.DonationResponseDTO;
 import com.wepong.pongdang.dto.response.HistoryResponseDTO;
 import com.wepong.pongdang.dto.response.PurchaseResponseDTO;
-import com.wepong.pongdang.entity.GameHistoryEntity;
-import com.wepong.pongdang.entity.PongHistoryEntity;
 import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.DonationService;
 import com.wepong.pongdang.service.HistoryService;
 import com.wepong.pongdang.service.StoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -30,24 +27,6 @@ public class HistoryRestController {
                                                 @RequestParam(defaultValue = "1") int page) {
         Long userId = authService.validateAndGetUserId(authHeader);
         return historyService.gameHistoryList(userId, page);
-    }
-
-    @PostMapping("/game/insert")
-    public ResponseEntity<?> insertGameHistory(@RequestBody GameHistoryEntity gameRequest,
-                                            @RequestHeader("Authorization") String authHeader) {
-        Long userId = authService.validateAndGetUserId(authHeader);
-        historyService.insertGameHistory(gameRequest, userId);
-
-        return ResponseEntity.ok("게임 히스토리 저장이 완료되었습니다.");
-    }
-
-    @PostMapping("/point/insert")
-    public ResponseEntity<?> insertPointHistory(@RequestBody PongHistoryEntity pointRequest,
-                                    @RequestHeader("Authorization") String authHeader) {
-        Long userId = authService.validateAndGetUserId(authHeader);
-        historyService.insertPointHistory(pointRequest, userId);
-
-        return ResponseEntity.ok("포인트 히스토리 저장이 완료되었습니다.");
     }
 
     // 사용자 구매 내역 조회

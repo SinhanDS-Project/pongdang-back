@@ -5,16 +5,14 @@ import com.wepong.pongdang.dto.request.ChatLogRequestDTO;
 import com.wepong.pongdang.dto.response.ChatLogResponseDTO;
 import com.wepong.pongdang.entity.BannerEntity;
 import com.wepong.pongdang.entity.ChatLogsEntity;
+import com.wepong.pongdang.exception.DonationNotFoundException;
 import com.wepong.pongdang.model.aws.S3FileService;
-import com.wepong.pongdang.repository.BannerRepository;
-import com.wepong.pongdang.repository.ChatLogRepository;
+import com.wepong.pongdang.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import com.wepong.pongdang.dto.request.ProductRequestDTO;
 import com.wepong.pongdang.dto.response.DonationInfoResponseDTO;
 import com.wepong.pongdang.entity.DonationInfoEntity;
 import com.wepong.pongdang.entity.ProductEntity;
-import com.wepong.pongdang.repository.DonationInfoRepository;
-import com.wepong.pongdang.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.modelmapper.ModelMapper;
@@ -34,7 +32,6 @@ public class AdminService {
     private final ChatLogRepository chatLogRepository;
     private final S3FileService s3FileService;
     private final ProductRepository productRepository;
-    private final DonationService donationService;
     private final DonationInfoRepository donationInfoRepository;
     ModelMapper modelMapper = new ModelMapper();
 
@@ -110,20 +107,8 @@ public class AdminService {
     public void updateDonationInfo(Long infoId, MultipartFile file) {
         String key = s3FileService.uploadFile(file);
 
-        DonationInfoResponseDTO dto = donationService.findInfoById(infoId);
-        DonationInfoEntity info = DonationInfoEntity.builder()
-                .id(dto.getId())
-                .title(dto.getTitle())
-                .content(dto.getContent())
-                .current(dto.getCurrent())
-                .startDate(dto.getStartDate())
-                .endDate(dto.getEndDate())
-                .goal(dto.getGoal())
-                .img(key)
-                .org(dto.getOrg())
-                .purpose(dto.getPurpose())
-                .type(dto.getType())
-                .build();
+        DonationInfoEntity info = donationInfoRepository.findById(infoId).orElseThrow(() -> new DonationNotFoundException());
+        info.setImg(key);
 
         donationInfoRepository.save(info);
     }

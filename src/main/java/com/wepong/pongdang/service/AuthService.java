@@ -5,14 +5,11 @@ import com.wepong.pongdang.dto.request.UserRegisterDTO;
 import com.wepong.pongdang.dto.request.UserUpdateRequestDTO;
 import com.wepong.pongdang.entity.AuthTokenEntity;
 import com.wepong.pongdang.entity.UserEntity;
-import com.wepong.pongdang.entity.enums.WalletType;
 import com.wepong.pongdang.exception.*;
 import com.wepong.pongdang.model.aws.S3FileServiceReturnKey;
 import com.wepong.pongdang.repository.*;
 import com.wepong.pongdang.util.JWTUtil;
 import lombok.RequiredArgsConstructor;
-import net.wepong.mysql.repository.SUserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,17 +28,13 @@ public class AuthService {
 
 	private final UserRepository userRepository;
 	private final TokenRepository tokenRepository;
-	private final WalletRepository walletRepository;
 	private final WalletService walletService;
-
 
     private final PhoneVerificationRepository phoneVerificationRepository;
     private final VerificationRepository verificationRepository;
-    @Autowired
-	private JWTUtil jwtUtil;
-	
-	@Autowired
-	private S3FileServiceReturnKey s3FileService;
+
+	private final JWTUtil jwtUtil;
+	private final S3FileServiceReturnKey s3FileService;
 
 	private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 	
@@ -166,6 +159,10 @@ public class AuthService {
 
 		// 새 닉네임 저장
 		if (userRequest.getNewNickname() != null && !userRequest.getNewNickname().isBlank()) {
+			// 닉네임 중복 검사
+			if (isNicknameExists(userRequest.getNewNickname())) {
+				throw new NicknameAlreadyExist();
+			}
 			existingUserEntity.setNickname(userRequest.getNewNickname());
 		} else {
 			existingUserEntity.setNickname(existingUserEntity.getNickname());

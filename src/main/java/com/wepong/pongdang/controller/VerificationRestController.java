@@ -27,10 +27,10 @@ public class VerificationRestController {
 		
 		if(!authService.isEmailExists(email)) {
 			verificationService.requestVerification(email);
-			return ResponseEntity.ok("인증번호가 이메일로 발송되었습니다.");
+			return ResponseEntity.ok(Map.of("message", "인증번호가 이메일로 발송되었습니다."));
 		}
-		
-		return ResponseEntity.ok("이미 가입된 이메일입니다.");
+
+		return ResponseEntity.ok(Map.of("message", "이미 가입된 이메일입니다."));
 	}
 
 	@PostMapping(value = "/find/request", produces = "text/plain;charset=utf-8")
@@ -41,7 +41,7 @@ public class VerificationRestController {
 			throw new UserNotFoundException();
 		} else {
 			verificationService.requestVerification(email);
-			return ResponseEntity.ok("인증번호가 이메일로 발송되었습니다.");
+			return ResponseEntity.ok(Map.of("message", "인증번호가 이메일로 발송되었습니다."));
 		}
 	}
 
@@ -50,7 +50,7 @@ public class VerificationRestController {
 		String email = request.get("email");
 		String code = request.get("code");
 		verificationService.verifyCode(email, code);
-		return ResponseEntity.ok("이메일 인증이 완료되었습니다.");
+		return ResponseEntity.ok(Map.of("message", "이메일 인증이 완료되었습니다."));
 	}
 
 	@PostMapping(value = "/password", produces = "text/plain;charset=utf-8")
@@ -58,6 +58,6 @@ public class VerificationRestController {
 		String email = request.get("email");
 		Long userId = authService.findByEmail(email).getId();
 		verificationService.updatePassword(email, userId);
-		return ResponseEntity.ok("임시 비밀번호가 이메일로 발송되었습니다.");
+		return ResponseEntity.ok(Map.of("message", "임시 비밀번호가 이메일로 발송되었습니다."));
 	}
 }

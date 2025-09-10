@@ -65,7 +65,7 @@ public class BoardRestController {
 		}
 		Long userId = authService.validateAndGetUserId(authHeader);
 		boardService.insertBoard(dto, userId);
-		return ResponseEntity.ok("게시글 등록이 완료되었습니다.");
+		return ResponseEntity.ok(Map.of("message", "게시글 등록이 완료되었습니다."));
 	}
 
 	// 게시글 수정 (로그인 && 본인 글만 가능)
@@ -76,7 +76,7 @@ public class BoardRestController {
 			@RequestHeader("Authorization") String authHeader) {
 		Long userId = authService.validateAndGetUserId(authHeader);
 		boardService.updateBoard(boardId, dto, userId);
-		return ResponseEntity.ok("게시글 수정이 완료되었습니다.");
+		return ResponseEntity.ok(Map.of("message", "게시글 수정이 완료되었습니다."));
 	}
 
 	// 게시글 삭제 (로그인 && 본인 글만 가능)
@@ -86,7 +86,7 @@ public class BoardRestController {
 			@RequestHeader("Authorization") String authHeader) {
 		Long userId = authService.validateAndGetUserId(authHeader);
 		boardService.deleteBoard(boardId, userId);
-		return ResponseEntity.ok("게시글 삭제가 완료되었습니다.");
+		return ResponseEntity.ok(Map.of("message", "게시글 삭제가 완료되었습니다."));
 	}
 
 	// 좋아요 버튼 누를 시 호출
