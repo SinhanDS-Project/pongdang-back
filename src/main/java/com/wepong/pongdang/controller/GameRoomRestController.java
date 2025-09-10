@@ -56,7 +56,7 @@ public class GameRoomRestController {
 		GameRoomResponseDTO.GameRoomDetailDTO room = gameRoomService.selectById(roomId);
 		if(!room.getStatus().equals(newStatus)) {
 			gameRoomService.updateStatus(roomId, newStatus);
-			webSocketService.sendList("list", gameRoomService.selectAll());
+			webSocketService.sendList(gameRoomService.selectAll());
 		}
 		return ResponseEntity.ok(Map.of("message", "게임이 시작되었습니다."));
 	}
