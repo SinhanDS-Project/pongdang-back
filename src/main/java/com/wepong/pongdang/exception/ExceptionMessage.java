@@ -12,6 +12,7 @@ public class ExceptionMessage {
     public static final String INVALID_TOKEN = "잘못된 토큰입니다.";
     public static final String INVALID_UPDATE_PASSWORD = "현재 비밀번호가 올바르지 않습니다.";
     public static final String REFRESH_TOKEN_NOT_FOUND = "리프레시 토큰이 없습니다.";
+    public static final String USER_ALREADY_REGISTERED = "이미 가입된 사용자입니다.";
 
     // Validation
     public static final String MISSING_REQUIRED_FIELDS = "모든 필수 항목을 입력해주세요.";
@@ -46,6 +47,7 @@ public class ExceptionMessage {
     //BettingUser
     public static final String INSUFFICIENT_POINT = "사용자의 신한 마이 포인트가 부족합니다";
     public static final String BETTINGUSER_NOT_FOUND = "신한 회원이 아닙니다 ";
+    public static final String USER_ALREADY_LINKED = "이미 연동된 사용자입니다.";
 
     // Game
     public static final String GAME_NOT_FOUND = "게임이 존재하지 않습니다.";

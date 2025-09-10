@@ -10,6 +10,7 @@ import com.wepong.pongdang.dto.response.UserInfoResponseDTO;
 import com.wepong.pongdang.exception.BettingUserNotFoundException;
 import com.wepong.pongdang.exception.EmailNotFoundException;
 import com.wepong.pongdang.exception.UnauthorizedAccessException;
+import com.wepong.pongdang.exception.UserAlreadyLinkedException;
 import com.wepong.pongdang.repository.UserRepository;
 import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.BettingUserService;
@@ -19,7 +20,6 @@ import com.wepong.pongdang.dto.response.BettingUserResponseDTO;
 import com.wepong.pongdang.service.PointConvertService;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -69,39 +69,18 @@ public class UserRestController {
 							 			  @RequestHeader("Authorization") String authHeader) {
 		Long userId = authService.validateAndGetUserId(authHeader);
 		authService.updateUser(userRequest, userId);
-	    return ResponseEntity.ok("회원 정보 수정이 완료되었습니다.");
-	}
-
-	// 포인트 충전
-	@PutMapping("/get")
-	public ResponseEntity<?> addPoint(@RequestHeader("Authorization") String authHeader,
-							@RequestBody Map<String, Integer> request) {
-		int point = request.get("point");
-		Long userId = authService.validateAndGetUserId(authHeader);
-		walletService.add(point, userId, WalletType.PONG);
-
-		return ResponseEntity.ok("퐁이 충전되었습니다.");
-	}
-
-	// 포인트 차감
-	@PutMapping("/lose")
-	public ResponseEntity<?> losePoint(@RequestHeader("Authorization") String authHeader,
-								@RequestBody Map<String, Integer> request) {
-		int point = request.get("point");
-		Long userId = authService.validateAndGetUserId(authHeader);
-		walletService.lose(point, userId, WalletType.PONG);
-
-		return ResponseEntity.ok("퐁이 차감되었습니다.");
+		return ResponseEntity.ok(Map.of("message", "회원 정보가 수정되었습니다."));
 	}
 
 	// 이메일 찾기
 	@GetMapping("/findEmail")
-	public String findEmail(@RequestParam("user_name") String userName,
+	public ResponseEntity<?> findEmail(@RequestParam("user_name") String userName,
 		@RequestParam("phone_number") String phoneNumber) {
 		String email = authService.getUserEmail(userName, phoneNumber);
 
 		if(email != null) {
-			return email;
+			Map<String, String> response = Map.of("email", email);
+			return ResponseEntity.ok(response);
 		} else {
 			throw new EmailNotFoundException();
 		}
@@ -114,7 +93,7 @@ public class UserRestController {
         UserEntity user = authService.findById(userId);
 
         if (Boolean.TRUE.equals(user.getLinkedWithBetting())) {
-            return ResponseEntity.badRequest().body("이미 연동된 사용자입니다.");
+            throw new UserAlreadyLinkedException();
         }
 
         // 연동 처리
@@ -145,7 +124,6 @@ public class UserRestController {
         return ResponseEntity.ok(dto);
     }
 
-
     @PostMapping("/betting/convert")
     public ResponseEntity<?> convertBettingPoint(
             @RequestBody ConvertRequestDTO req,
@@ -172,7 +150,7 @@ public class UserRestController {
         WalletEntity pongWallet = walletService.findByIdAndType(pongUserId, WalletType.PONG);
 
         ConvertResponseDTO response = ConvertResponseDTO.builder()
-                .message("포인트 전환 완료")
+                .message("포인트가 전환 되었습니다.")
                 .converted(converted)
                 .bettingPointAfter(bettingAfter != null ? bettingAfter.getPointBalance() : null)
                 .pongBalanceAfter(pongWallet != null ? pongWallet.getPongBalance() : null)
@@ -180,8 +158,5 @@ public class UserRestController {
 
         return ResponseEntity.ok(response);
     }
-
-
-
 
 }

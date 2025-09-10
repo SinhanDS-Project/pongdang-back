@@ -237,6 +237,13 @@ public class GlobalExceptionHandler {
 				.body(Map.of("error", "USER_ALREADY_REGISTERED", "message", ex.getMessage()));
 	}
 
+	// 이미 연동된 사용자
+	@ExceptionHandler(UserAlreadyLinkedException.class)
+	public ResponseEntity<?> handleUserAlreadyLinked(UserAlreadyLinkedException ex) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body(Map.of("error", "USER_ALREADY_LINKED", "message", ex.getMessage()));
+	}
+
 	// Optional: 모든 예외를 처리하는 fallback
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<?> handleAll(Exception ex) {
