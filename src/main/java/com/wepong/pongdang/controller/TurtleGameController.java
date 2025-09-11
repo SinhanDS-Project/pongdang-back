@@ -53,6 +53,6 @@ public class TurtleGameController {
 
     @MessageMapping("/game/end/{roomId}")
     public void endGame(@DestinationVariable Long roomId) {
-        webSocketService.sendGame(roomId, "end", "/gameroom/detail/" + roomId);
+        webSocketService.sendGame(roomId, "end", "/play/rooms/" + roomId);
     }
 }

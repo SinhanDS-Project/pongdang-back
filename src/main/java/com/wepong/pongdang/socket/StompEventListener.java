@@ -38,26 +38,13 @@ public class StompEventListener {
 
         // 게임 대기방 리스트 연결 시
         if(type.equals("list")) {
-            webSocketService.sendList(gameRoomService.selectAll());
             return;
         }
 
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         Long roomId = (Long) accessor.getSessionAttributes().get("roomId");
 
-        if(type.equals("room")) {
-            // 중복 입장 처리
-            if (playerService.exists(roomId, userId)) {
-                playerService.exitPlayer(roomId, userId);
-            }
-
-            playerService.enterPlayer(userId, roomId);
-
-            List<TurtlePlayerDTO> players = playerService.getPlayers(roomId);
-            webSocketService.sendRoom(roomId, "enter", players);
-            webSocketService.sendList(gameRoomService.selectAll());
-
-        } else if(type.equals("game")) {
+        if(type.equals("game")) {
             // (1) 게임 시작 전이면 검증 건너뛰고, 그냥 세션 등록
             List<TurtlePlayerDTO> startPlayers = gameStartPlayersMap.get(roomId);
             if (startPlayers == null) {
@@ -76,7 +63,7 @@ public class StompEventListener {
             if (!inGame) {
                 Map<String, Object> msg = new HashMap<>();
                 msg.put("reason", "no_player_info");
-                msg.put("targetUrl", "/gameroom");
+                msg.put("targetUrl", "/game/rooms");
                 webSocketService.sendGame(roomId, "force_exit", msg);
                 try { Thread.sleep(50); } catch (InterruptedException ignored) {}
             }
@@ -140,7 +127,7 @@ public class StompEventListener {
                 if(!event.getCloseStatus().equals(CloseStatus.NORMAL)) {
                     Map<String, Object> msg = new HashMap<>();
                     msg.put("reason", "connection_error");
-                    msg.put("targetUrl", "/gameroom");
+                    msg.put("targetUrl", "/game/rooms");
                     webSocketService.sendGame(roomId, "force_exit", msg);
                 }
             }
