@@ -21,12 +21,29 @@ import java.util.Map;
 public class GameRoomController {
 
     private final PlayerService playerService;
-    private final GameRoomService gameRoomService;
     private final WebSocketService webSocketService;
+    private final GameRoomService gameRoomService;
+
+    // 입장
+    @MessageMapping("/gameroom/enter/{roomId}")
+        public void handleEnter(@DestinationVariable Long roomId, StompHeaderAccessor accessor) {
+        Long userId = (Long) accessor.getSessionAttributes().get("userId");
+
+        // 중복 입장 처리
+        if (playerService.exists(roomId, userId)) {
+            playerService.exitPlayer(roomId, userId);
+        }
+
+        playerService.enterPlayer(roomId, userId);
+
+        List<TurtlePlayerDTO> players = playerService.getPlayers(roomId);
+        webSocketService.sendRoom(roomId, "enter", players);
+        webSocketService.sendList(gameRoomService.selectAll());
+    }
 
     // 채팅
     @MessageMapping("/gameroom/chat/{roomId}")
-    public void handleGameAction(@DestinationVariable Long roomId, @Payload Map<String, String> payload, StompHeaderAccessor accessor) {
+    public void handleChat(@DestinationVariable Long roomId, @Payload Map<String, String> payload, StompHeaderAccessor accessor) {
         String nickname = (String) accessor.getSessionAttributes().get("nickname");
         String msg = payload.get("msg");
 
@@ -63,7 +80,6 @@ public class GameRoomController {
     // 게임 시작
     @MessageMapping("/gameroom/start/{roomId}")
     public void handleStart(@DestinationVariable Long roomId) {
-        webSocketService.sendRoom(roomId, "start", "/multi/" + roomId + "/turtlerun");
-        webSocketService.sendList(gameRoomService.selectAll());
+        webSocketService.sendRoom(roomId, "start", "/play/" + roomId);
     }
 }
