@@ -1,5 +1,6 @@
 package com.wepong.pongdang.filter;
 
+import com.wepong.pongdang.entity.enums.Role;
 import com.wepong.pongdang.util.JWTUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -7,11 +8,13 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collections;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -43,15 +46,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		if (token != null) {
 			if (jwtUtil.validateToken(token)) {
 				Long userId = jwtUtil.getUserIdFromToken(token);
-				setAuthentication(userId);
+				Role role = null;
+				try {
+					role = jwtUtil.getRoleFromToken(token);
+				} catch (Exception e) {
+					role = Role.USER; // 기본값
+				}
+				setAuthentication(userId, role);
 			} else if (jwtUtil.isTokenExpired(token)) {
 				String refreshToken = getRefreshTokenFromCookie(httpReq);
 
 				if (refreshToken != null && jwtUtil.validateToken(refreshToken)) {
 					Long userId = jwtUtil.getUserIdFromToken(refreshToken);
-					String newAccessToken = jwtUtil.generateAccessToken(userId);
+					Role role = jwtUtil.getRoleFromToken(refreshToken);
+					String newAccessToken = jwtUtil.generateAccessToken(userId, role);
 					httpRes.setHeader("New-Access-Token", "Bearer " + newAccessToken);
-					setAuthentication(userId);
+					setAuthentication(userId, role);
 				}
 			}
 		}
@@ -59,9 +69,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		chain.doFilter(httpReq, httpRes);
 	}
 
-	private void setAuthentication(Long userId) {
+	private void setAuthentication(Long userId, Role role) {
+		SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role.name());
 		UsernamePasswordAuthenticationToken authentication =
-				new UsernamePasswordAuthenticationToken(userId, null, null);
+				new UsernamePasswordAuthenticationToken(userId, null, Collections.singletonList(authority));
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 	}
 

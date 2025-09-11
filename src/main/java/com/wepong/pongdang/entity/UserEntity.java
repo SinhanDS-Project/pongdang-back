@@ -55,7 +55,6 @@ public class UserEntity extends BaseEntity {
     @ColumnDefault("0")
     private Boolean linkedWithBetting;
 
-    @ColumnDefault("'USER'")
     @Enumerated(EnumType.STRING)
     private Role role;
 

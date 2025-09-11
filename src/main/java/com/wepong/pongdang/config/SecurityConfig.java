@@ -21,12 +21,11 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/auth/register", "/api/auth/login", "/ws/**", "/api/quizzes/**").permitAll()
+            .requestMatchers("/api/auth/register", "/api/auth/login", "/ws/**").permitAll()
             .requestMatchers("/api/auth/phone/**").permitAll()
-                            .requestMatchers("/api/game/**").permitAll()
             .requestMatchers("/api/email/**").permitAll()
             .requestMatchers("/api/**").permitAll() // API 테스트용
-            .requestMatchers("/admin/**").hasRole("ADMIN")
+            .requestMatchers("/api/admin/**").hasRole("ADMIN")
             .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
