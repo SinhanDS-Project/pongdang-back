@@ -2,7 +2,6 @@ package com.wepong.pongdang.model.multi.turtle;
 
 import com.wepong.pongdang.dto.response.GameRoomResponseDTO;
 import com.wepong.pongdang.dto.response.TurtlePlayerDTO;
-import com.wepong.pongdang.entity.GameRoomEntity;
 import com.wepong.pongdang.entity.UserEntity;
 import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.GameRoomService;
