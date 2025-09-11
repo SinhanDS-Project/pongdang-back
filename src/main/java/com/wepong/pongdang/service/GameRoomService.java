@@ -2,7 +2,6 @@ package com.wepong.pongdang.service;
 
 import com.wepong.pongdang.dto.request.GameRoomRequestDTO;
 import com.wepong.pongdang.dto.response.GameRoomResponseDTO;
-import com.wepong.pongdang.dto.response.WebSocketResponseDTO;
 import com.wepong.pongdang.entity.GameEntity;
 import com.wepong.pongdang.entity.GameLevelEntity;
 import com.wepong.pongdang.entity.GameRoomEntity;
@@ -15,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +27,6 @@ public class GameRoomService {
 
 	private final PlayerDAO playerDAO;
 	private final GameRoomRepository gameRoomRepository;
-	private final SimpMessagingTemplate messagingTemplate;
 	private final AuthService authService;
 	private final GameService gameService;
 	private final GameLevelService gameLevelService;
@@ -52,7 +49,7 @@ public class GameRoomService {
 	}
 
 	public List<GameRoomResponseDTO.GameRoomDetailDTO> selectAll() {
-		List<GameRoomEntity> roomlist = gameRoomRepository.findAll();
+		List<GameRoomEntity> roomlist = gameRoomRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
 		List<GameRoomResponseDTO.GameRoomDetailDTO> details = roomlist.stream().map(
 				room -> {
 					GameLevelEntity level = gameLevelService.selectByLevelUid(room.getGameLevel().getId());
@@ -83,7 +80,7 @@ public class GameRoomService {
 		return null;
 	}
 
-	public void insertRoom(GameRoomRequestDTO.InsertGameRoomRequestDTO roomRequest, Long userId) {
+	public void insertRoom(GameRoomRequestDTO roomRequest, Long userId) {
 		UserEntity userEntity = authService.findById(userId);
 		GameLevelEntity level = gameLevelService.selectByLevelUid(roomRequest.getGameLevelId());
 

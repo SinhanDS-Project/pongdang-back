@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.Map;
 
 @RestController
@@ -37,7 +36,7 @@ public class GameRoomRestController {
 
 	// 게임방 생성
 	@PostMapping(value = "")
-	public ResponseEntity<?> insertRoom(@RequestBody GameRoomRequestDTO.InsertGameRoomRequestDTO roomRequest,
+	public ResponseEntity<?> insertRoom(@RequestBody GameRoomRequestDTO roomRequest,
 									 @RequestHeader(value = "Authorization", required = false) String authHeader) {
 		if (authHeader == null || authHeader.isBlank()) {
 			throw new UnauthorizedAccessException(); // "로그인 후 이용이 가능한 서비스입니다"
