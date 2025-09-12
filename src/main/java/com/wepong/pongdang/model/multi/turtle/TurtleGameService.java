@@ -1,7 +1,6 @@
 package com.wepong.pongdang.model.multi.turtle;
 
 import com.wepong.pongdang.dto.response.GameRoomResponseDTO;
-import com.wepong.pongdang.dto.response.TurtlePlayerDTO;
 import com.wepong.pongdang.entity.GameEntity;
 import com.wepong.pongdang.entity.GameHistoryEntity;
 import com.wepong.pongdang.entity.PongHistoryEntity;
@@ -26,7 +25,7 @@ import java.util.concurrent.*;
 @RequiredArgsConstructor
 public class TurtleGameService {
 
-    private final PlayerDAO playerDAO;
+    private final TurtlePlayerDAO turtlePlayerDAO;
 
     private final GameRoomService gameRoomService;
     private final AuthService authService;
@@ -44,7 +43,7 @@ public class TurtleGameService {
     private final Map<Long, Boolean> gameFinishMap = new ConcurrentHashMap<>();
 
     private final WalletService walletService;
-    private final PlayerService playerService;
+    private final TurtlePlayerService turtlePlayerService;
 
     // 콜백 인터페이스(핸들러에서 정의)
     public interface RaceUpdateCallback {
@@ -57,7 +56,7 @@ public class TurtleGameService {
         TurtleGameState state = new TurtleGameState(turtleCount);
         gameStates.put(roomId, state);
 
-        List<TurtlePlayerDTO> startPlayers = playerDAO.getAll(roomId);
+        List<TurtlePlayerDTO> startPlayers = turtlePlayerDAO.getAll(roomId);
         // null 방지
         if (startPlayers != null) {
             gameStartPlayersMap.put(roomId, new ArrayList<>(startPlayers));
@@ -118,7 +117,7 @@ public class TurtleGameService {
     // 결과에 따른 포인트, 승패 계산
     @Transactional
     public List<Map<String, Object>> gameResultAndPointCalc(Long roomId, int[] top3) {
-        List<TurtlePlayerDTO> players = playerDAO.getAll(roomId);
+        List<TurtlePlayerDTO> players = turtlePlayerDAO.getAll(roomId);
 
         GameRoomResponseDTO.GameRoomDetailDTO gameroom = gameRoomService.selectById(roomId);
         String gameName = gameroom.getGameName();
@@ -233,14 +232,14 @@ public class TurtleGameService {
         if (startPlayers != null) {
             for (TurtlePlayerDTO player : startPlayers) {
                 if (player.getUserId().equals(userId)) {
-                    int betAmount = player.getEntryFee();
+                    int entryFee = gameroom.getEntryFee();
                     String gameName = gameroom.getGameName();
                     RankType gameResult = RankType.LOSE;
                     int winAmount = 0;
                     // 1) 유저 정보 조회
                     UserEntity userEntity = authService.findById(userId);
                     if (userEntity != null) {
-                        walletService.lose(betAmount, userEntity.getId(), WalletType.PONG);
+                        walletService.lose(entryFee, userEntity.getId(), WalletType.PONG);
                         Long gameId = gameService.selectByName(gameName).stream().findFirst()
                                 .orElseThrow(() -> new GameNotFoundException())
                                 .getId();
@@ -250,8 +249,8 @@ public class TurtleGameService {
                         // 게임 히스토리 저장 (gameName도 같이)
                         GameHistoryEntity gameHistoryEntity = GameHistoryEntity.builder()
                                 .game(gameEntity)
-                                .entryFee(betAmount)
-                                .pongValue(Math.abs(winAmount - betAmount))
+                                .entryFee(entryFee)
+                                .pongValue(Math.abs(winAmount - entryFee))
                                 .rank(gameResult)
                                 .build();
 
@@ -260,7 +259,7 @@ public class TurtleGameService {
                         // 포인트 히스토리 저장
                         PongHistoryEntity pongHistoryEntity = PongHistoryEntity.builder()
                                 .type(PongHistoryType.GAME_P)
-                                .amount(Math.abs(winAmount - betAmount))
+                                .amount(Math.abs(winAmount - entryFee))
                                 .build();
 
                         historyService.insertPointHistory(pongHistoryEntity, userId);
@@ -275,7 +274,7 @@ public class TurtleGameService {
 
     public void onGameStart(Long roomId) {
         // 게임 시작 시점의 참가자 전체 정보 저장
-        List<TurtlePlayerDTO> startPlayers = playerService.getPlayers(roomId);
+        List<TurtlePlayerDTO> startPlayers = turtlePlayerService.getPlayers(roomId);
         // null 방지
         if (startPlayers != null) {
             gameStartPlayersMap.put(roomId, new ArrayList<>(startPlayers));
