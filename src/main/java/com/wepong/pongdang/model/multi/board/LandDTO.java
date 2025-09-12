@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class LandDTO {
-    private Long landId; // (1~25) or (0~24)
+    private Integer landId; // (1~24)
     private String name;
     private int price; // 가격
     private int toll; // 통행료
