@@ -64,14 +64,16 @@ public class GameRoomController {
 
     // 채팅
     @MessageMapping("/gameroom/chat/{roomId}")
-    public void handleChat(@DestinationVariable Long roomId, @Payload Map<String, String> payload, StompHeaderAccessor accessor) {
+    public void handleChat(@DestinationVariable Long roomId, @Payload Map<String, Object> payload, StompHeaderAccessor accessor) {
         String nickname = (String) accessor.getSessionAttributes().get("nickname");
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
-        String msg = payload.get("msg");
+        String msg = (String) payload.get("msg");
+        boolean system = (boolean) payload.get("system");
 
         ChatResponseDTO chat = ChatResponseDTO.builder()
                 .message(msg)
                 .sender(nickname)
+                .system(system)
                 .build();
 
         webSocketService.sendRoom(roomId, "chat", gameType, chat);
@@ -130,6 +132,6 @@ public class GameRoomController {
     @MessageMapping("/gameroom/start/{roomId}")
     public void handleStart(@DestinationVariable Long roomId, SimpMessageHeaderAccessor accessor) {
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
-        webSocketService.sendRoom(roomId, "start", gameType, "/play/" + roomId);
+        webSocketService.sendRoom(roomId, "start", gameType, "/game/" + roomId);
     }
 }
