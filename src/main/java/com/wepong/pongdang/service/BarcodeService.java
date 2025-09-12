@@ -8,7 +8,7 @@ import com.google.zxing.common.BitMatrix;
 import com.wepong.pongdang.config.AmazonS3Config;
 import com.wepong.pongdang.dto.response.ProductResponseDTO;
 import com.wepong.pongdang.entity.UserEntity;
-import com.wepong.pongdang.model.product.EmailTemplate;
+import com.wepong.pongdang.model.email.ProductTemplate;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -74,7 +74,7 @@ public class BarcodeService {
         helper.setTo(email);
         helper.setSubject("[퐁당퐁당] 주문하신 상품이 도착했습니다!💝");
 
-        String htmlContent = EmailTemplate.render(product.getName(), barcodeValue);
+        String htmlContent = ProductTemplate.render(product.getName(), barcodeValue);
 
         helper.setText(htmlContent, true);
 
