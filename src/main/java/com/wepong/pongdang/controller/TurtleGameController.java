@@ -2,6 +2,7 @@ package com.wepong.pongdang.controller;
 
 import com.wepong.pongdang.dto.response.GameRoomResponseDTO;
 import com.wepong.pongdang.model.multi.turtle.TurtleGameService;
+import com.wepong.pongdang.model.multi.turtle.TurtlePlayerService;
 import com.wepong.pongdang.service.GameRoomService;
 import com.wepong.pongdang.service.WebSocketService;
 import lombok.RequiredArgsConstructor;
@@ -20,11 +21,16 @@ public class TurtleGameController {
     private final GameRoomService gameRoomService;
     private final TurtleGameService turtleGameService;
     private final WebSocketService webSocketService;
+    private final TurtlePlayerService turtlePlayerService;
 
     // 게임 진행
     @MessageMapping("/turtle/start/{roomId}")
     public void startGame(@DestinationVariable Long roomId, SimpMessageHeaderAccessor accessor) {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
+        String gameType = (String) accessor.getSessionAttributes().get("gameType");
+
+        // 랜덤 거북이 세팅
+        turtlePlayerService.setRandomTurtle(userId, roomId);
 
         GameRoomResponseDTO.GameRoomDetailDTO gameroom = gameRoomService.selectById(roomId);
         int turtleCount = switch (gameroom.getLevel()) {
@@ -36,23 +42,24 @@ public class TurtleGameController {
         turtleGameService.startGame(roomId, turtleCount, new TurtleGameService.RaceUpdateCallback() {
             @Override
             public void onRaceUpdate(Long roomId, double[] positions) {
-                turtleGameService.broadcastRaceUpdate(roomId, positions);
+                turtleGameService.broadcastRaceUpdate(roomId, positions, gameType);
             }
 
             @Override
             public void onRaceFinish(Long roomId, int winner, List<Map<String, Object>> results) {
-                turtleGameService.broadcastRaceFinish(roomId, winner, results);
+                turtleGameService.broadcastRaceFinish(roomId, winner, results, gameType);
             }
         });
 
         Long hostId = gameroom.getHostId();
         if (userId.equals(hostId)) {
-            turtleGameService.onGameStart(roomId); // 참가자 freeze
+            turtleGameService.onGameStart(roomId, gameType); // 참가자 freeze
         }
     }
 
     @MessageMapping("/game/end/{roomId}")
-    public void endGame(@DestinationVariable Long roomId) {
-        webSocketService.sendGame(roomId, "end", "/play/rooms/" + roomId);
+    public void endGame(@DestinationVariable Long roomId, SimpMessageHeaderAccessor accessor) {
+        String gameType = (String) accessor.getSessionAttributes().get("gameType");
+        webSocketService.sendGame(roomId,"end", gameType, "/play/rooms/" + roomId);
     }
 }

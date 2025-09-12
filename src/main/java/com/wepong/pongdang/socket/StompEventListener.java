@@ -48,6 +48,7 @@ public class StompEventListener {
 
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         Long roomId = (Long) accessor.getSessionAttributes().get("roomId");
+        String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
         if(type.equals("turtlegame")) {
             // (1) 게임 시작 전이면 검증 건너뛰고, 그냥 세션 등록
@@ -69,7 +70,7 @@ public class StompEventListener {
                 Map<String, Object> msg = new HashMap<>();
                 msg.put("reason", "no_player_info");
                 msg.put("targetUrl", "/game/rooms");
-                webSocketService.sendGame(roomId, "force_exit", msg);
+                webSocketService.sendGame(roomId, "force_exit", gameType, msg);
                 try { Thread.sleep(50); } catch (InterruptedException ignored) {}
             }
         }
@@ -79,6 +80,7 @@ public class StompEventListener {
     public void handleDisconnect(SessionDisconnectEvent event) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
         String type = (String) accessor.getSessionAttributes().get("type");
+        String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
         // 게임 대기방 리스트 연결 종료 시
         if(type.equals("list")) {
@@ -108,7 +110,7 @@ public class StompEventListener {
                     }
                 }
 
-                webSocketService.sendRoom(roomId, "exit", players);
+                webSocketService.sendRoom(roomId, "exit", gameType, players);
             }
         } else if("turtlegame".equals(type)) {
             List<TurtlePlayerDTO> players;
@@ -133,7 +135,7 @@ public class StompEventListener {
                     Map<String, Object> msg = new HashMap<>();
                     msg.put("reason", "connection_error");
                     msg.put("targetUrl", "/game/rooms");
-                    webSocketService.sendGame(roomId, "force_exit", msg);
+                    webSocketService.sendGame(roomId, "force_exit", gameType, msg);
                 }
             }
         } else if("boardroom".equals(type)) {
@@ -153,7 +155,7 @@ public class StompEventListener {
                     }
                 }
 
-                webSocketService.sendRoom(roomId, "exit", players);
+                webSocketService.sendRoom(roomId, "exit", gameType, players);
             }
         } else if("boardgame".equals(type)) {
             List<BoardPlayerDTO> players;
@@ -178,7 +180,7 @@ public class StompEventListener {
                     Map<String, Object> msg = new HashMap<>();
                     msg.put("reason", "connection_error");
                     msg.put("targetUrl", "/game/rooms");
-                    webSocketService.sendGame(roomId, "force_exit", msg);
+                    webSocketService.sendGame(roomId, "force_exit", gameType, msg);
                 }
             }
         }

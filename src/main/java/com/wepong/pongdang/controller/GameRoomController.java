@@ -32,6 +32,7 @@ public class GameRoomController {
         public void handleEnter(@DestinationVariable Long roomId, StompHeaderAccessor accessor) {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         String type = (String) accessor.getSessionAttributes().get("type");
+        String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
         List<?> players = null;
 
@@ -45,7 +46,6 @@ public class GameRoomController {
             turtlePlayerService.enterPlayer(roomId, userId);
 
             players = turtlePlayerService.getPlayers(roomId);
-            webSocketService.sendRoom(roomId, "enter", players);
         }
         // 보드
         else if(type.equals("boardroom")) {
@@ -56,9 +56,9 @@ public class GameRoomController {
             boardPlayerService.enterPlayer(roomId, userId);
 
             players = boardPlayerService.getPlayers(roomId);
-            webSocketService.sendRoom(roomId, "enter", players);
         }
 
+        webSocketService.sendRoom(roomId, "enter", gameType, players);
         webSocketService.sendList(gameRoomService.selectAll());
     }
 
@@ -66,6 +66,7 @@ public class GameRoomController {
     @MessageMapping("/gameroom/chat/{roomId}")
     public void handleChat(@DestinationVariable Long roomId, @Payload Map<String, String> payload, StompHeaderAccessor accessor) {
         String nickname = (String) accessor.getSessionAttributes().get("nickname");
+        String gameType = (String) accessor.getSessionAttributes().get("gameType");
         String msg = payload.get("msg");
 
         ChatResponseDTO chat = ChatResponseDTO.builder()
@@ -73,7 +74,7 @@ public class GameRoomController {
                 .sender(nickname)
                 .build();
 
-        webSocketService.sendRoom(roomId, "chat", chat);
+        webSocketService.sendRoom(roomId, "chat", gameType, chat);
     }
 
     // 거북이 선택
@@ -81,6 +82,7 @@ public class GameRoomController {
     public void handleChoice(@DestinationVariable Long roomId, @Payload Map<String, String> payload, SimpMessageHeaderAccessor accessor) {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         String type = (String) accessor.getSessionAttributes().get("type");
+        String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
         List<?> players = null;
 
@@ -97,7 +99,7 @@ public class GameRoomController {
             players = boardPlayerService.getPlayers(roomId);
         }
 
-        webSocketService.sendRoom(roomId, "choice", players);
+        webSocketService.sendRoom(roomId, "choice", gameType, players);
     }
 
     // 준비 완료/취소
@@ -105,6 +107,7 @@ public class GameRoomController {
     public void handleReady(@DestinationVariable Long roomId, @Payload Map<String, Boolean> payload, SimpMessageHeaderAccessor accessor) {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         String type = (String) accessor.getSessionAttributes().get("type");
+        String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
         List<?> players = null;
 
@@ -120,12 +123,13 @@ public class GameRoomController {
             players = boardPlayerService.getPlayers(roomId);
         }
 
-        webSocketService.sendRoom(roomId, "ready", players);
+        webSocketService.sendRoom(roomId, "ready", gameType, players);
     }
 
     // 게임 시작
     @MessageMapping("/gameroom/start/{roomId}")
-    public void handleStart(@DestinationVariable Long roomId) {
-        webSocketService.sendRoom(roomId, "start", "/play/" + roomId);
+    public void handleStart(@DestinationVariable Long roomId, SimpMessageHeaderAccessor accessor) {
+        String gameType = (String) accessor.getSessionAttributes().get("gameType");
+        webSocketService.sendRoom(roomId, "start", gameType, "/play/" + roomId);
     }
 }

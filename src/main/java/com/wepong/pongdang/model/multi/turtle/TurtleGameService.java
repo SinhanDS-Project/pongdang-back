@@ -25,8 +25,6 @@ import java.util.concurrent.*;
 @RequiredArgsConstructor
 public class TurtleGameService {
 
-    private final TurtlePlayerDAO turtlePlayerDAO;
-
     private final GameRoomService gameRoomService;
     private final AuthService authService;
     private final GameService gameService;
@@ -56,7 +54,7 @@ public class TurtleGameService {
         TurtleGameState state = new TurtleGameState(turtleCount);
         gameStates.put(roomId, state);
 
-        List<TurtlePlayerDTO> startPlayers = turtlePlayerDAO.getAll(roomId);
+        List<TurtlePlayerDTO> startPlayers = turtlePlayerService.getPlayers(roomId);
         // null 방지
         if (startPlayers != null) {
             gameStartPlayersMap.put(roomId, new ArrayList<>(startPlayers));
@@ -117,7 +115,7 @@ public class TurtleGameService {
     // 결과에 따른 포인트, 승패 계산
     @Transactional
     public List<Map<String, Object>> gameResultAndPointCalc(Long roomId, int[] top3) {
-        List<TurtlePlayerDTO> players = turtlePlayerDAO.getAll(roomId);
+        List<TurtlePlayerDTO> players = turtlePlayerService.getPlayers(roomId);
 
         GameRoomResponseDTO.GameRoomDetailDTO gameroom = gameRoomService.selectById(roomId);
         String gameName = gameroom.getGameName();
@@ -272,7 +270,7 @@ public class TurtleGameService {
         }
     }
 
-    public void onGameStart(Long roomId) {
+    public void onGameStart(Long roomId, String gameType) {
         // 게임 시작 시점의 참가자 전체 정보 저장
         List<TurtlePlayerDTO> startPlayers = turtlePlayerService.getPlayers(roomId);
         // null 방지
@@ -280,21 +278,21 @@ public class TurtleGameService {
             gameStartPlayersMap.put(roomId, new ArrayList<>(startPlayers));
         }
 
-        webSocketService.sendGame(roomId, "game_start");
+        webSocketService.sendGame(roomId, gameType, "game_start");
     }
 
     // 방에 위치 정보를 스케쥴러로 보내주는 함수
-    public void broadcastRaceUpdate(Long roomId, double[] positions) {
+    public void broadcastRaceUpdate(Long roomId, double[] positions, String gameType) {
         List<Double> posList = new ArrayList<>();
         for(double p : positions) posList.add(p);
-        webSocketService.sendGame(roomId, "race_update", posList);
+        webSocketService.sendGame(roomId, "race_update", gameType, posList);
     }
 
-    public void broadcastRaceFinish(Long roomId, int winner, List<Map<String, Object>> results) {
+    public void broadcastRaceFinish(Long roomId, int winner, List<Map<String, Object>> results, String gameType) {
         Map<String, Object> msg = new HashMap<>();
         msg.put("winner", winner);
         msg.put("results",  results);
-        webSocketService.sendGame(roomId, "race_finish", msg);
+        webSocketService.sendGame(roomId, "race_finish", gameType, msg);
 
         // 게임 종료 상태
         gameFinishMap.put(roomId, true);
