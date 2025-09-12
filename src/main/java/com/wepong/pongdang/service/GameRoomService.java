@@ -8,7 +8,7 @@ import com.wepong.pongdang.entity.GameRoomEntity;
 import com.wepong.pongdang.entity.UserEntity;
 import com.wepong.pongdang.entity.enums.GameRoomStatus;
 import com.wepong.pongdang.exception.RoomNotFoundException;
-import com.wepong.pongdang.model.multi.turtle.PlayerDAO;
+import com.wepong.pongdang.model.multi.turtle.TurtlePlayerDAO;
 import com.wepong.pongdang.repository.GameRoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class GameRoomService {
 
-	private final PlayerDAO playerDAO;
+	private final TurtlePlayerDAO turtlePlayerDAO;
 	private final GameRoomRepository gameRoomRepository;
 	private final AuthService authService;
 	private final GameService gameService;
@@ -40,7 +40,7 @@ public class GameRoomService {
 				.map(room -> {
 					GameLevelEntity level = gameLevelService.selectByLevelUid(room.getGameLevel().getId());
 					GameEntity gameEntity = level != null ? gameService.selectById(level.getGame().getId()) : null;
-					int count = playerDAO.getAll(room.getId()) != null ? playerDAO.getAll(room.getId()).size() : 0;
+					int count = turtlePlayerDAO.getAll(room.getId()) != null ? turtlePlayerDAO.getAll(room.getId()).size() : 0;
 
 					return GameRoomResponseDTO.GameRoomDetailDTO.from(room, count);
 				});
@@ -54,7 +54,7 @@ public class GameRoomService {
 				room -> {
 					GameLevelEntity level = gameLevelService.selectByLevelUid(room.getGameLevel().getId());
 					GameEntity gameEntity = level != null ? gameService.selectById(level.getGame().getId()) : null;
-					int count = playerDAO.getAll(room.getId()) != null ? playerDAO.getAll(room.getId()).size() : 0;
+					int count = turtlePlayerDAO.getAll(room.getId()) != null ? turtlePlayerDAO.getAll(room.getId()).size() : 0;
 					return GameRoomResponseDTO.GameRoomDetailDTO.from(room, count);
 				}).collect(Collectors.toList());
 
@@ -69,8 +69,8 @@ public class GameRoomService {
 			if (level != null) {
 				GameEntity gameEntity = gameService.selectById(level.getGame().getId());
 				if (gameEntity != null) {
-					int count = playerDAO.getAll(room.getId()) != null
-							? playerDAO.getAll(room.getId()).size()
+					int count = turtlePlayerDAO.getAll(room.getId()) != null
+							? turtlePlayerDAO.getAll(room.getId()).size()
 							: 0;
 
 					return GameRoomResponseDTO.GameRoomDetailDTO.from(room, count);
@@ -80,7 +80,7 @@ public class GameRoomService {
 		return null;
 	}
 
-	public void insertRoom(GameRoomRequestDTO roomRequest, Long userId) {
+	public GameRoomResponseDTO.GameRoomDetailDTO insertRoom(GameRoomRequestDTO roomRequest, Long userId) {
 		UserEntity userEntity = authService.findById(userId);
 		GameLevelEntity level = gameLevelService.selectByLevelUid(roomRequest.getGameLevelId());
 
@@ -92,6 +92,8 @@ public class GameRoomService {
 				.build();
 
 		gameRoomRepository.save(room);
+
+		return GameRoomResponseDTO.GameRoomDetailDTO.from(room);
 	}
 
 	public void deleteRoom(Long roomId) {

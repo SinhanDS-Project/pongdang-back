@@ -62,5 +62,19 @@ public class GameRoomResponseDTO {
 					.status(room.getStatus())
 					.build();
 		}
+
+		public static GameRoomDetailDTO from(GameRoomEntity room) {
+			return GameRoomDetailDTO.builder()
+					.id(room.getId())
+					.title(room.getTitle())
+					.gameLevelId(room.getGameLevel().getId())
+					.level(room.getGameLevel().getLevel())
+					.gameName(room.getGameLevel().getGame().getName())
+					.entryFee(room.getGameLevel().getEntryFee())
+					.hostId(room.getUser().getId())
+					.createdAt(room.getCreatedAt())
+					.status(room.getStatus())
+					.build();
+		}
 	}
 }

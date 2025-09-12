@@ -36,16 +36,16 @@ public class GameRoomRestController {
 
 	// 게임방 생성
 	@PostMapping(value = "")
-	public ResponseEntity<?> insertRoom(@RequestBody GameRoomRequestDTO roomRequest,
+	public GameRoomResponseDTO.GameRoomDetailDTO insertRoom(@RequestBody GameRoomRequestDTO roomRequest,
 									 @RequestHeader(value = "Authorization", required = false) String authHeader) {
 		if (authHeader == null || authHeader.isBlank()) {
 			throw new UnauthorizedAccessException(); // "로그인 후 이용이 가능한 서비스입니다"
 		}
 		Long userId = authService.validateAndGetUserId(authHeader);
-		gameRoomService.insertRoom(roomRequest, userId);
+		GameRoomResponseDTO.GameRoomDetailDTO room = gameRoomService.insertRoom(roomRequest, userId);
 		webSocketService.sendList(gameRoomService.selectAll());
 
-		return ResponseEntity.ok(Map.of("message", "게임방이 생성되었습니다."));
+		return room;
 	}
 
 	// 게임 시작
