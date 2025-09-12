@@ -75,7 +75,6 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
             throw new IllegalArgumentException("Invalid destination path: " + destination);
         }
 
-        // ✅ gameType 정규화: 소문자 + 공백제거
         String gameType = parts[0];
         Long roomId = Long.parseLong(parts[1]);
 
