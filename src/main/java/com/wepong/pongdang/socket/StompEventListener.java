@@ -1,9 +1,12 @@
 package com.wepong.pongdang.socket;
 
 import com.wepong.pongdang.dto.response.GameRoomResponseDTO;
-import com.wepong.pongdang.dto.response.TurtlePlayerDTO;
+import com.wepong.pongdang.model.multi.board.BoardGameService;
+import com.wepong.pongdang.model.multi.board.BoardPlayerDTO;
+import com.wepong.pongdang.model.multi.board.BoardPlayerService;
+import com.wepong.pongdang.model.multi.turtle.TurtlePlayerDTO;
 import com.wepong.pongdang.entity.enums.GameRoomStatus;
-import com.wepong.pongdang.model.multi.turtle.PlayerService;
+import com.wepong.pongdang.model.multi.turtle.TurtlePlayerService;
 import com.wepong.pongdang.model.multi.turtle.TurtleGameService;
 import com.wepong.pongdang.service.GameRoomService;
 import com.wepong.pongdang.service.WebSocketService;
@@ -25,11 +28,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class StompEventListener {
 
     private final GameRoomService gameRoomService;
-    private final PlayerService playerService;
+    private final TurtlePlayerService turtlePlayerService;
     private final TurtleGameService turtleGameService;
+    private final BoardPlayerService boardPlayerService;
+    private final BoardGameService boardGameService;
+    private final WebSocketService webSocketService;
 
     private final Map<Long, List<TurtlePlayerDTO>> gameStartPlayersMap = new ConcurrentHashMap<>();
-    private final WebSocketService webSocketService;
 
     @EventListener
     public void handleConnect(SessionSubscribeEvent event) {
@@ -44,7 +49,7 @@ public class StompEventListener {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         Long roomId = (Long) accessor.getSessionAttributes().get("roomId");
 
-        if(type.equals("game")) {
+        if(type.equals("turtlegame")) {
             // (1) 게임 시작 전이면 검증 건너뛰고, 그냥 세션 등록
             List<TurtlePlayerDTO> startPlayers = gameStartPlayersMap.get(roomId);
             if (startPlayers == null) {
@@ -86,12 +91,11 @@ public class StompEventListener {
         GameRoomResponseDTO.GameRoomDetailDTO gameroom = gameRoomService.selectById(roomId);
         GameRoomStatus status = gameroom.getStatus();
 
-        List<TurtlePlayerDTO> players;
-
-        if("room".equals(type)) {
+        if("turtleroom".equals(type)) {
+            List<TurtlePlayerDTO> players;
             if(!status.equals(GameRoomStatus.PLAYING)) {
-                playerService.exitPlayer(roomId, userId);
-                players = playerService.getPlayers(roomId);
+                turtlePlayerService.exitPlayer(roomId, userId);
+                players = turtlePlayerService.getPlayers(roomId);
 
                 if(userId.equals(gameroom.getHostId())) {
                     if(players != null && !players.isEmpty()) {
@@ -106,12 +110,58 @@ public class StompEventListener {
 
                 webSocketService.sendRoom(roomId, "exit", players);
             }
-        } else if("game".equals(type)) {
+        } else if("turtlegame".equals(type)) {
+            List<TurtlePlayerDTO> players;
             if(!status.equals(GameRoomStatus.WAITING)) {
                 turtleGameService.processUserLose(roomId, userId);
 
-                playerService.exitPlayer(roomId, userId);
-                players = playerService.getPlayers(roomId);
+                turtlePlayerService.exitPlayer(roomId, userId);
+                players = turtlePlayerService.getPlayers(roomId);
+
+                if (userId.equals(gameroom.getHostId())) {
+                    if (players != null && !players.isEmpty()) {
+                        Long hostId = players.get(0).getUserId();
+                        gameRoomService.updateHost(roomId, hostId);
+
+                    } else {
+                        turtleGameService.removeGame(roomId);
+                        webSocketService.sendList(gameRoomService.selectAll());
+                    }
+                }
+
+                if(!event.getCloseStatus().equals(CloseStatus.NORMAL)) {
+                    Map<String, Object> msg = new HashMap<>();
+                    msg.put("reason", "connection_error");
+                    msg.put("targetUrl", "/game/rooms");
+                    webSocketService.sendGame(roomId, "force_exit", msg);
+                }
+            }
+        } else if("boardroom".equals(type)) {
+            List<BoardPlayerDTO> players;
+            if(!status.equals(GameRoomStatus.PLAYING)) {
+                boardPlayerService.exitPlayer(roomId, userId);
+                players = boardPlayerService.getPlayers(roomId);
+
+                if(userId.equals(gameroom.getHostId())) {
+                    if(players != null && !players.isEmpty()) {
+                        Long hostId = players.get(0).getUserId();
+                        gameRoomService.updateHost(roomId, hostId);
+
+                    } else {
+                        gameRoomService.deleteRoom(roomId);
+                        webSocketService.sendList(gameRoomService.selectAll());
+                    }
+                }
+
+                webSocketService.sendRoom(roomId, "exit", players);
+            }
+        } else if("boardgame".equals(type)) {
+            List<BoardPlayerDTO> players;
+            if(!status.equals(GameRoomStatus.WAITING)) {
+                boardGameService.processUserLose(roomId, userId);
+
+                boardPlayerService.exitPlayer(roomId, userId);
+                players = boardPlayerService.getPlayers(roomId);
 
                 if (userId.equals(gameroom.getHostId())) {
                     if (players != null && !players.isEmpty()) {

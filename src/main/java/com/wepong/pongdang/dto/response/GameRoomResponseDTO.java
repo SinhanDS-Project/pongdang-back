@@ -46,6 +46,7 @@ public class GameRoomResponseDTO {
 		private Long gameLevelId;
 		private Level level;
 		private String gameName;
+		private String gameType;
 		private int count;
 
 		public static GameRoomDetailDTO from(GameRoomEntity room, int count) {
@@ -56,6 +57,21 @@ public class GameRoomResponseDTO {
 					.level(room.getGameLevel().getLevel())
 					.gameName(room.getGameLevel().getGame().getName())
 					.count(count)
+					.entryFee(room.getGameLevel().getEntryFee())
+					.hostId(room.getUser().getId())
+					.createdAt(room.getCreatedAt())
+					.status(room.getStatus())
+					.build();
+		}
+
+		public static GameRoomDetailDTO from(GameRoomEntity room, String gameType) {
+			return GameRoomDetailDTO.builder()
+					.id(room.getId())
+					.title(room.getTitle())
+					.gameLevelId(room.getGameLevel().getId())
+					.level(room.getGameLevel().getLevel())
+					.gameName(room.getGameLevel().getGame().getName())
+					.gameType(gameType)
 					.entryFee(room.getGameLevel().getEntryFee())
 					.hostId(room.getUser().getId())
 					.createdAt(room.getCreatedAt())

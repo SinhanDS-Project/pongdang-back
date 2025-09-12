@@ -69,11 +69,13 @@ public class GameRoomService {
 			if (level != null) {
 				GameEntity gameEntity = gameService.selectById(level.getGame().getId());
 				if (gameEntity != null) {
-					int count = turtlePlayerDAO.getAll(room.getId()) != null
-							? turtlePlayerDAO.getAll(room.getId()).size()
-							: 0;
-
-					return GameRoomResponseDTO.GameRoomDetailDTO.from(room, count);
+					String gameType = null;
+					if(gameEntity.getName().equals("Turtle Run")) {
+						gameType = "turtle";
+					} else if(gameEntity.getName().equals("Pong Marble")) {
+						gameType = "board";
+					}
+					return GameRoomResponseDTO.GameRoomDetailDTO.from(room, gameType);
 				}
 			}
 		}
