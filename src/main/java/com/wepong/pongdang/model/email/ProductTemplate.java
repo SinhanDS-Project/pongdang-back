@@ -1,8 +1,8 @@
-package com.wepong.pongdang.model.product;
+package com.wepong.pongdang.model.email;
 
-public final class EmailTemplate {
+public final class ProductTemplate {
 
-    private EmailTemplate() {}
+    private ProductTemplate() {}
 
     /** 이메일 본문 HTML 생성 */
     public static String render(String productName, String barcodeValue) {
