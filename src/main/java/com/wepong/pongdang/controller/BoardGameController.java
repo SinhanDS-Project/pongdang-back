@@ -20,6 +20,7 @@ public class BoardGameController {
     private final WebSocketService webSocketService;
     private final BoardGameService boardGameService;
     private final LandService landService;
+    private final RoomStateService roomStateService;
 
     // 게임 시작
     @MessageMapping("/board/start/{roomId}")
@@ -92,10 +93,11 @@ public class BoardGameController {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
-        int landId = payload.get("landId");
-        boardGameService.bank(roomId, userId, landId);
+        Map<String, Object> data = new HashMap<>();
+        data.put("players", boardPlayerService.getPlayers(roomId));
+        data.put("roomState", roomStateService.getState(roomId));
 
-        webSocketService.sendGame(roomId, "bank", gameType, boardPlayerService.getPlayers(roomId));
+        webSocketService.sendGame(roomId, "bank", gameType, data);
     }
 
     // 금고/월급
@@ -109,7 +111,11 @@ public class BoardGameController {
         int landId = payload.get("landId");
         boardGameService.salary(roomId, userId, landId);
 
-        webSocketService.sendGame(roomId, "salary", gameType, boardPlayerService.getPlayers(roomId));
+        Map<String, Object> data = new HashMap<>();
+        data.put("players", boardPlayerService.getPlayers(roomId));
+        data.put("roomState", roomStateService.getState(roomId));
+
+        webSocketService.sendGame(roomId, "salary", gameType, data);
     }
 
     // 무인도 -> skipTurn=ture
