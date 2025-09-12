@@ -77,8 +77,8 @@ public class AdminService {
 
     // 상품 등록
     @Transactional
-    public void saveProduct(ProductRequestDTO request) {
-        List<String> keys = s3FileService.uploadFiles(request.getFiles());
+    public void saveProduct(ProductRequestDTO request, MultipartFile[] files) {
+        List<String> keys = s3FileService.uploadFiles(files);
 
         String description = keys.size() > 1 ? keys.get(1) : request.getDescription();
         ProductEntity product = ProductEntity.builder()

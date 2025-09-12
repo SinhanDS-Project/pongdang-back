@@ -1,5 +1,6 @@
 package com.wepong.pongdang.util;
 
+import com.wepong.pongdang.entity.enums.Role;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -28,20 +29,25 @@ public class JWTUtil {
 		this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
 	}
 
-	public String generateAccessToken(Long userId) {
-		return buildToken(userId, accessTokenExpiration);
+	public String generateAccessToken(Long userId, Role role) {
+		return buildToken(userId, role, accessTokenExpiration);
 	}
 
-	public String generateRefreshToken(Long userId) {
-		return buildToken(userId, refreshTokenExpiration);
+	public String generateRefreshToken(Long userId, Role role) {
+		return buildToken(userId, role, refreshTokenExpiration);
 	}
 
-	private String buildToken(Long userId, long expiration) {
+	private String buildToken(Long userId, Role role, long expiration) {
 		Date now = new Date();
 		Date expiryDate = new Date(now.getTime() + expiration);
 
-		return Jwts.builder().setSubject(String.valueOf(userId)).setIssuedAt(now).setExpiration(expiryDate)
-				.signWith(key, SignatureAlgorithm.HS256).compact();
+		return Jwts.builder()
+				.setSubject(String.valueOf(userId))
+				.claim("role", role.name())
+				.setIssuedAt(now)
+				.setExpiration(expiryDate)
+				.signWith(key, SignatureAlgorithm.HS256)
+				.compact();
 	}
 
 	// ✅ 토큰 유효성 검사 (만료 포함)
@@ -66,9 +72,17 @@ public class JWTUtil {
 			return false; // 잘못된 토큰이면 만료 확인 불가로 false
 		}
 	}
+
 	//✅ userId (sub) 가져오기
 	public Long getUserIdFromToken(String token) {
 		return Long.parseLong(
 			Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getSubject());
+	}
+
+	// 토큰에서 role 꺼내는 메서드 추가
+	public Role getRoleFromToken(String token) {
+		Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+		String role = claims.get("role", String.class);
+		return Role.valueOf(role);
 	}
 }
