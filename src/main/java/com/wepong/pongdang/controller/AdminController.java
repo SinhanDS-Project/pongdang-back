@@ -49,9 +49,11 @@ public class AdminController {
     }
 
     // 상품 등록
-    @PostMapping("/product")
-    public ResponseEntity<?> saveProduct(ProductRequestDTO request) {
-        adminService.saveProduct(request);
+    @PostMapping(value = "/product",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> saveProduct(@RequestBody ProductRequestDTO request,
+                                         @RequestPart("files") MultipartFile[] files) {
+        adminService.saveProduct(request, files);
         return ResponseEntity.ok(Map.of("message", "상품이 등록되었습니다."));
     }
 
@@ -62,8 +64,9 @@ public class AdminController {
     }
 
     // 기부 정보 수정
-    @PutMapping("/donation/{infoId}")
-    public ResponseEntity<?> updateDonationInfo(@PathVariable Long infoId, MultipartFile file) {
+    @PutMapping(value = "/donation/{infoId}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateDonationInfo(@PathVariable Long infoId, @RequestPart("file") MultipartFile file) {
         adminService.updateDonationInfo(infoId, file);
         return ResponseEntity.ok(Map.of("message", "기부 정보가 수정되었습니다."));
     }

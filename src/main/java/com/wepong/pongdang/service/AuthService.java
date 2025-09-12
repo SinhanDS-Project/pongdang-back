@@ -5,6 +5,7 @@ import com.wepong.pongdang.dto.request.UserRegisterDTO;
 import com.wepong.pongdang.dto.request.UserUpdateRequestDTO;
 import com.wepong.pongdang.entity.AuthTokenEntity;
 import com.wepong.pongdang.entity.UserEntity;
+import com.wepong.pongdang.entity.enums.Role;
 import com.wepong.pongdang.exception.*;
 import com.wepong.pongdang.model.aws.S3FileServiceReturnKey;
 import com.wepong.pongdang.repository.*;
@@ -50,8 +51,8 @@ public class AuthService {
         }
 
 		AuthTokenEntity token = tokenRepository.findByUserId(userEntity.getId());
-		String accessToken = jwtUtil.generateAccessToken(userEntity.getId());
-		String refreshToken = jwtUtil.generateRefreshToken(userEntity.getId());
+		String accessToken = jwtUtil.generateAccessToken(userEntity.getId(), userEntity.getRole());
+		String refreshToken = jwtUtil.generateRefreshToken(userEntity.getId(), userEntity.getRole());
 
 		if (token == null) {
 			token = AuthTokenEntity.builder()
@@ -76,7 +77,9 @@ public class AuthService {
 		}
 
 		Long userId = jwtUtil.getUserIdFromToken(refreshToken);
-		return jwtUtil.generateAccessToken(userId);
+		Role role = jwtUtil.getRoleFromToken(refreshToken);
+
+		return jwtUtil.generateAccessToken(userId, role);
 	}
 
 	public UserEntity findById(Long id) {
@@ -130,6 +133,7 @@ public class AuthService {
                 .tutorialCheck(false)
                 .linkedWithBetting(dto.isLinkedWithBetting())
                 .profileImage("")
+				.role(Role.USER)
 				.build();
 
 		userRepository.save(userEntity);

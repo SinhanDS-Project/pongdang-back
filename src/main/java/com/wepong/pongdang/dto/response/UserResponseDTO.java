@@ -2,6 +2,7 @@ package com.wepong.pongdang.dto.response;
 
 import com.wepong.pongdang.entity.UserEntity;
 import com.wepong.pongdang.entity.WalletEntity;
+import com.wepong.pongdang.entity.enums.Role;
 import com.wepong.pongdang.model.aws.S3ImagePathDeserializer;
 import com.wepong.pongdang.model.aws.S3ImageUrlSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -33,6 +34,7 @@ public class UserResponseDTO {
     private Boolean linkedWithBetting;
     private Boolean tutorialCheck;
     private LocalDateTime updatedAt;
+    private Role role;
 
     public static UserResponseDTO from(UserEntity userEntity, String profileImg, WalletEntity pong, WalletEntity dona) {
         return UserResponseDTO.builder()
@@ -48,6 +50,7 @@ public class UserResponseDTO {
                 .linkedWithBetting(userEntity.getLinkedWithBetting())
                 .tutorialCheck(userEntity.getTutorialCheck())
                 .updatedAt(userEntity.getUpdatedAt())
+                .role(userEntity.getRole())
                 .build();
     }
 }
