@@ -22,7 +22,7 @@ public class TurtleGameController {
     private final WebSocketService webSocketService;
 
     // 게임 진행
-    @MessageMapping("/game/start/{roomId}")
+    @MessageMapping("/turtle/start/{roomId}")
     public void startGame(@DestinationVariable Long roomId, SimpMessageHeaderAccessor accessor) {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
 
