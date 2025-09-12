@@ -102,10 +102,4 @@ public class GameRestController {
                 "reward", 1
         ));
     }
-
-    // 게임 난이도 상세 조회
-	@GetMapping("/level/{levelId}")
-	public GameLevelEntity selectLevelByRoom(@PathVariable Long levelId) {
-		return gameLevelService.selectByLevelUid(levelId);
-	}
 }
