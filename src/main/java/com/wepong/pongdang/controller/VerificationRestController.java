@@ -3,6 +3,7 @@ package com.wepong.pongdang.controller;
 import com.wepong.pongdang.exception.UserNotFoundException;
 import com.wepong.pongdang.service.AuthService;
 import com.wepong.pongdang.service.VerificationService;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,8 +22,8 @@ public class VerificationRestController {
 	@Autowired
 	private VerificationService verificationService;
 
-	@PostMapping(value = "/request", produces = "text/plain;charset=utf-8")
-	public ResponseEntity<?> requestVerification(@RequestBody Map<String, String> request) {
+	@PostMapping(value = "/request")
+	public ResponseEntity<?> requestVerification(@RequestBody Map<String, String> request) throws MessagingException {
 		String email = request.get("email");
 		
 		if(!authService.isEmailExists(email)) {
@@ -33,8 +34,8 @@ public class VerificationRestController {
 		return ResponseEntity.ok(Map.of("message", "이미 가입된 이메일입니다."));
 	}
 
-	@PostMapping(value = "/find/request", produces = "text/plain;charset=utf-8")
-	public ResponseEntity<?> findVerification(@RequestBody Map<String, String> request) {
+	@PostMapping(value = "/find/request")
+	public ResponseEntity<?> findVerification(@RequestBody Map<String, String> request) throws MessagingException {
 		String email = request.get("email");
 
 		if(!authService.isEmailExists(email)) {
@@ -45,7 +46,7 @@ public class VerificationRestController {
 		}
 	}
 
-	@PostMapping(value = "/verify", produces = "text/plain;charset=utf-8")
+	@PostMapping(value = "/verify")
 	public ResponseEntity<?> verifyCode(@RequestBody Map<String, String> request) {
 		String email = request.get("email");
 		String code = request.get("code");
@@ -53,8 +54,8 @@ public class VerificationRestController {
 		return ResponseEntity.ok(Map.of("message", "이메일 인증이 완료되었습니다."));
 	}
 
-	@PostMapping(value = "/password", produces = "text/plain;charset=utf-8")
-	public ResponseEntity<?> updatePassword(@RequestBody Map<String, String> request) {
+	@PostMapping(value = "/password")
+	public ResponseEntity<?> updatePassword(@RequestBody Map<String, String> request) throws MessagingException {
 		String email = request.get("email");
 		Long userId = authService.findByEmail(email).getId();
 		verificationService.updatePassword(email, userId);
