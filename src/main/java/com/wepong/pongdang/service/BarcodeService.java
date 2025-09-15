@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,7 +40,7 @@ public class BarcodeService {
     private final StoreService storeService;
     private final AmazonS3Config amazonS3Config;
 
-
+    @Async
     public void generateBarcode(Long userId, Long productId) throws IOException, WriterException, MessagingException {
         UserEntity user = authService.findById(userId);
         String email = user.getEmail();
