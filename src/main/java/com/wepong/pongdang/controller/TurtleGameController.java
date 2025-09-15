@@ -30,16 +30,9 @@ public class TurtleGameController {
     public void startGame(@DestinationVariable Long roomId, SimpMessageHeaderAccessor accessor) {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
+        int turtleCount = (int) accessor.getSessionAttributes().get("turtleCount");
 
         GameRoomResponseDTO.GameRoomDetailDTO gameroom = gameRoomService.selectById(roomId);
-        int turtleCount = switch (gameroom.getLevel()) {
-            case EASY -> 4;
-            case NORMAL -> 6;
-            case HARD -> 8;
-        };
-
-        // 랜덤 거북이 세팅
-        turtlePlayerService.setRandomTurtle(userId, roomId, turtleCount);
 
         turtleGameService.startGame(roomId, turtleCount, new TurtleGameService.RaceUpdateCallback() {
             @Override
@@ -49,7 +42,7 @@ public class TurtleGameController {
 
             @Override
             public void onRaceFinish(Long roomId, int winner, List<Map<String, Object>> results) {
-                turtleGameService.broadcastRaceFinish(roomId, winner, results, gameType);
+                turtleGameService.broadcastRaceFinish(roomId, results, gameType);
             }
         });
 

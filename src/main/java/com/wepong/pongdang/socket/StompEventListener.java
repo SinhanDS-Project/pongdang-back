@@ -52,6 +52,18 @@ public class StompEventListener {
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
         if(type.equals("turtlegame")) {
+            GameRoomResponseDTO.GameRoomDetailDTO gameroom = gameRoomService.selectById(roomId);
+            int turtleCount = switch (gameroom.getLevel()) {
+                case EASY -> 4;
+                case NORMAL -> 6;
+                case HARD -> 8;
+            };
+
+            accessor.getSessionAttributes().put("turtleCount", turtleCount);
+
+            // 랜덤 거북이 세팅
+            turtlePlayerService.setRandomTurtle(userId, roomId, turtleCount);
+
             // (1) 게임 시작 전이면 검증 건너뛰고, 그냥 세션 등록
             List<TurtlePlayerDTO> startPlayers = startTurtlePlayersMap.get(roomId);
             if (startPlayers == null) {
