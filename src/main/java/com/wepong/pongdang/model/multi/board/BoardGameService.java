@@ -1,17 +1,16 @@
 package com.wepong.pongdang.model.multi.board;
 
 import com.wepong.pongdang.dto.response.GameRoomResponseDTO;
-import com.wepong.pongdang.entity.GameEntity;
-import com.wepong.pongdang.entity.GameHistoryEntity;
-import com.wepong.pongdang.entity.PongHistoryEntity;
-import com.wepong.pongdang.entity.UserEntity;
+import com.wepong.pongdang.entity.*;
 import com.wepong.pongdang.entity.enums.PongHistoryType;
 import com.wepong.pongdang.entity.enums.RankType;
 import com.wepong.pongdang.entity.enums.WalletType;
 import com.wepong.pongdang.exception.GameNotFoundException;
+import com.wepong.pongdang.repository.RewardPerResultRepository;
 import com.wepong.pongdang.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,6 +33,7 @@ public class BoardGameService {
 
     private final Map<Long, List<BoardPlayerDTO>> startBoardPlayersMap = new ConcurrentHashMap<>();
     private final WebSocketService webSocketService;
+    private final RewardPerResultRepository rewardPerResultRepository;
 
     // 게임 시작
     public void startGame(Long roomId, String gameType) {
@@ -289,6 +289,8 @@ public class BoardGameService {
             players.get(i).setRank(i+1);
         }
 
+        saveBoardResult(roomId);
+
         webSocketService.sendGame(roomId, "game_end", gameType, boardPlayerService.getPlayers(roomId));
 
         // 메모리 정리
@@ -297,6 +299,7 @@ public class BoardGameService {
         roomStateService.removeRoomState(roomId);
     }
 
+    // 퀴즈 결과
     public void quiz(Long roomId, Long userId, int selectIdx, boolean isCorrect, String gameType) {
         BoardPlayerDTO player = boardPlayerService.getPlayer(roomId, userId);
         if(isCorrect) {
@@ -316,5 +319,90 @@ public class BoardGameService {
         webSocketService.sendGame(roomId, "quiz_check", gameType, data);
 
         endTurn(roomId, gameType);
+    }
+
+    // 게임 결과 저장
+    @Transactional
+    public void saveBoardResult(Long roomId) {
+        GameRoomResponseDTO.GameRoomDetailDTO gameroom = gameRoomService.selectById(roomId);
+        List<BoardPlayerDTO> players = boardPlayerService.getPlayers(roomId);
+        Long gameLevelId = gameroom.getGameLevelId();
+        int entryFee = gameroom.getEntryFee();
+        String gameName = gameroom.getGameName();
+
+        for (BoardPlayerDTO player : players) {
+            int rank = player.getRank();
+
+            RankType rankType;
+            switch (rank) {
+                case 1 -> rankType = RankType.FIRST;
+                case 2 -> rankType = RankType.SECOND;
+                default -> rankType = RankType.LOSE;
+            }
+
+            RewardPerResultEntity rewardConfig = rewardPerResultRepository.findByGameLevelIdAndRank(gameLevelId, rankType);
+
+            int reward = rewardConfig.getReward();
+            int donation = rewardConfig.getDonation();
+
+            WalletEntity pongWallet = walletService.findByIdAndType(player.getUserId(), WalletType.PONG);
+            WalletEntity donaWallet = walletService.findByIdAndType(player.getUserId(), WalletType.DONA);
+
+            if (pongWallet != null && donaWallet != null) {
+                if (!rankType.equals(RankType.LOSE)) {
+                    pongWallet.setPongBalance(pongWallet.getPongBalance() - entryFee + reward);
+                    donaWallet.setPongBalance(donaWallet.getPongBalance() + donation);
+                } else {
+                    pongWallet.setPongBalance(pongWallet.getPongBalance() - entryFee);
+                }
+
+                // 히스토리/포인트 히스토리 등도 기록
+                Long gameId = gameService.selectByName(gameName)
+                        .stream().findFirst()
+                        .orElseThrow(() -> new GameNotFoundException())
+                        .getId();
+
+                GameEntity gameEntity = gameService.selectById(gameId);
+
+                // 게임 히스토리 저장
+                GameHistoryEntity gameHistoryEntity = GameHistoryEntity.builder()
+                        .game(gameEntity)
+                        .entryFee(entryFee)
+                        .pongValue(reward)
+                        .rank(rankType)
+                        .build();
+
+                historyService.insertGameHistory(gameHistoryEntity, player.getUserId());
+
+                // 포인트 히스토리 저장
+                PongHistoryEntity rewardResult = PongHistoryEntity.builder()
+                        .type(PongHistoryType.GAME_P)
+                        .amount(reward)
+                        .build();
+
+                PongHistoryEntity entryFeeResult = PongHistoryEntity.builder()
+                        .type(PongHistoryType.ENTRY)
+                        .amount(entryFee)
+                        .build();
+
+                historyService.insertPointHistory(rewardResult, player.getUserId());
+                historyService.insertPointHistory(entryFeeResult, player.getUserId());
+
+                if (donation > 0) {
+                    PongHistoryEntity donaHistory = PongHistoryEntity.builder()
+                            .type(PongHistoryType.GAME_D)
+                            .amount(donation)
+                            .build();
+
+                    historyService.insertPointHistory(donaHistory, player.getUserId());
+                }
+
+                if (rankType.equals(RankType.FIRST)) {
+                    webSocketService.sendMain("first", player.getNickname() + "님이 " + gameName + "에서 1등을 차지했습니다! \uD83E\uDD47");
+                } else if (rankType.equals(RankType.SECOND)) {
+                    webSocketService.sendMain("second", player.getNickname() + "님이 " + gameName + "에서 2등을 차지했습니다! \uD83E\uDD48");
+                }
+            }
+        }
     }
 }
