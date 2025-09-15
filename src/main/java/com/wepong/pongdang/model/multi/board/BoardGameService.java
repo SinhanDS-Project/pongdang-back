@@ -32,7 +32,7 @@ public class BoardGameService {
     private final RoomStateService roomStateService;
     private final LandService landService;
 
-    private final Map<Long, List<BoardPlayerDTO>> gameStartPlayersMap = new ConcurrentHashMap<>();
+    private final Map<Long, List<BoardPlayerDTO>> startBoardPlayersMap = new ConcurrentHashMap<>();
     private final WebSocketService webSocketService;
 
     // 게임 시작
@@ -40,22 +40,23 @@ public class BoardGameService {
         List<BoardPlayerDTO> startPlayers = boardPlayerService.getPlayers(roomId);
 
         if(startPlayers != null) {
-            gameStartPlayersMap.put(roomId, new ArrayList<>(startPlayers));
+            startBoardPlayersMap.put(roomId, new ArrayList<>(startPlayers));
         }
 
-        roomStateService.setRoomState(roomId, 10, 0);
+        roomStateService.setRoomState(roomId);
         landService.setLands(roomId);
 
         Map<String, Object> data = new HashMap<>();
         data.put("roomState", roomStateService.getState(roomId));
         data.put("lands", landService.getLands(roomId));
+        data.put("players", startPlayers);
 
         webSocketService.sendGame(roomId, "game_start", gameType, data);
     }
 
     public void processUserLose(Long roomId, Long userId) {
         // 나간사람  패배처리
-        List<BoardPlayerDTO> startPlayers = gameStartPlayersMap.get(roomId);
+        List<BoardPlayerDTO> startPlayers = startBoardPlayersMap.get(roomId);
         GameRoomResponseDTO.GameRoomDetailDTO gameroom = gameRoomService.selectById(roomId);
         if (startPlayers != null) {
             for (BoardPlayerDTO player : startPlayers) {
@@ -100,8 +101,51 @@ public class BoardGameService {
         }
     }
 
+    // 주사위 굴리기
+    public void roll(Long roomId, Long userId, int dice, boolean isDouble, String gameType) {
+        BoardPlayerDTO player = boardPlayerService.getPlayer(roomId, userId);
+        RoomStateDTO roomState = roomStateService.getState(roomId);
+
+        if(player.isSkipTurn() && !isDouble) {
+            player.setSkipTurn(false);
+            endTurn(roomId, gameType);
+            return;
+        }
+
+        if(isDouble) {
+            roomState.setDouble(true);
+            roomState.setDoubleCount(roomState.getDoubleCount() + 1);
+            if(roomState.getDoubleCount() >= 3) {
+                player.setSkipTurn(true);
+                player.setPosition(6);
+                roomState.setDouble(false);
+
+                endTurn(roomId, gameType);
+                return;
+            }
+        } else {
+            roomState.setDouble(false);
+            roomState.setDoubleCount(0);
+        }
+
+        int position = (player.getPosition() + dice) % 24;
+        player.setPosition(position);
+
+        if (position == 6) {
+            player.setSkipTurn(true);
+        }
+
+        roomState.setDouble(isDouble);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("players", boardPlayerService.getPlayers(roomId));
+        data.put("roomState", roomState);
+
+        webSocketService.sendGame(roomId, "roll", gameType, data);
+    }
+
     // 통행료 지급
-    public void toll(Long roomId, Long userId, int landId) {
+    public void toll(Long roomId, Long userId, int landId, String gameType) {
         LandDTO land = landService.getLand(roomId, landId);
         BoardPlayerDTO player = boardPlayerService.getPlayer(roomId, userId);
         BoardPlayerDTO owner = boardPlayerService.getPlayer(roomId, land.getOwnerId());
@@ -111,29 +155,38 @@ public class BoardGameService {
         owner.setBalance(owner.getBalance() + land.getToll());
 
         // 파산 처리
-        bankruptcy(player, land);
+        bankruptcy(roomId, player);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("players", boardPlayerService.getPlayers(roomId));
+        data.put("lands", landService.getLands(roomId));
+
+        webSocketService.sendGame(roomId, "toll", gameType, data);
+
+        endTurn(roomId, gameType);
     }
 
-    // 주사위 굴리기
-    public void roll(Long roomId, Long userId, int dice) {
-        BoardPlayerDTO player = boardPlayerService.getPlayer(roomId, userId);
-
-        int position = (player.getPosition() + dice) % 24;
-        player.setPosition(position);
-    }
 
     // 땅 구매
-    public void purchase(Long roomId, Long userId, int landId) {
+    public void purchase(Long roomId, Long userId, int landId, String gameType) {
         LandDTO land = landService.getLand(roomId, landId);
         BoardPlayerDTO player = boardPlayerService.getPlayer(roomId, userId);
 
-        player.setBalance(land.getPrice());
+        player.setBalance(player.getBalance() - land.getPrice());
         land.setOwnerId(player.getUserId());
         land.setColor(player.getTurtleId());
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("players", boardPlayerService.getPlayers(roomId));
+        data.put("lands", landService.getLand(roomId, landId));
+
+        webSocketService.sendGame(roomId, "purchase", gameType, data);
+
+        endTurn(roomId, gameType);
     }
 
     // 저금/세금 지불
-    public void bank(Long roomId, Long userId, int landId) {
+    public void bank(Long roomId, Long userId, int landId, String gameType) {
         LandDTO land = landService.getLand(roomId, landId);
         BoardPlayerDTO player = boardPlayerService.getPlayer(roomId, userId);
 
@@ -145,17 +198,33 @@ public class BoardGameService {
         }
 
         // 파산 처리
-        bankruptcy(player, land);
+        bankruptcy(roomId, player);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("players", boardPlayerService.getPlayers(roomId));
+        data.put("roomState", roomStateService.getState(roomId));
+        data.put("lands", landService.getLands(roomId));
+
+        webSocketService.sendGame(roomId, "tax", gameType, data);
+
+        endTurn(roomId, gameType);
     }
 
-    private void bankruptcy(BoardPlayerDTO player, LandDTO land) {
-        if(player.getBalance() < land.getToll()) {
+    private void bankruptcy(Long roomId, BoardPlayerDTO player) {
+        if(player.getBalance() < 0) {
             player.setActive(false);
+
+            List<LandDTO> lands = landService.getLands(roomId);
+            for(LandDTO land : lands) {
+                if(player.getUserId().equals(land.getOwnerId())) {
+                    land.setOwnerId(null);
+                }
+            }
         }
     }
 
     // 월급/금고
-    public void salary(Long roomId, Long userId, int landId) {
+    public void salary(Long roomId, Long userId, int landId, String gameType) {
         LandDTO land = landService.getLand(roomId, landId);
         BoardPlayerDTO player = boardPlayerService.getPlayer(roomId, userId);
 
@@ -166,34 +235,23 @@ public class BoardGameService {
             player.setBalance(player.getBalance() + roomState.getPot());
             roomState.setPot(0);
         }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("players", boardPlayerService.getPlayers(roomId));
+        data.put("roomState", roomStateService.getState(roomId));
+
+        webSocketService.sendGame(roomId, "salary", gameType, data);
+
+        endTurn(roomId, gameType);
     }
 
-    public void endTurn(Long roomId, boolean isDouble, String gameType) {
+    public void endTurn(Long roomId, String gameType) {
         RoomStateDTO roomState = roomStateService.getState(roomId);
         List<BoardPlayerDTO> players = boardPlayerService.getPlayers(roomId);
 
-        BoardPlayerDTO player = players.get(roomState.getCurrentTurn());
-
-        if(isDouble) {
-            roomState.setDoubleCount(roomState.getDoubleCount() + 1);
-            if(roomState.getDoubleCount() < 3) {
-                webSocketService.sendGame(roomId, "double", gameType, roomState);
-                return;
-            } else {
-                player.setSkipTurn(true);
-                player.setPosition(6);
-            }
-        }
-
-        roomState.setDoubleCount(0);
-
         int nextTurn = (roomState.getCurrentTurn() + 1) % players.size();
 
-        while(!players.get(nextTurn).isActive() || players.get(nextTurn).isSkipTurn()) {
-            // 무인도에서 한 턴 쉬었으면 skipTurn 해제
-            if(players.get(nextTurn).isSkipTurn()) {
-                players.get(nextTurn).setSkipTurn(false);
-            }
+        while(!players.get(nextTurn).isActive()) {
             nextTurn = (nextTurn + 1) % players.size();
         }
 
@@ -201,16 +259,62 @@ public class BoardGameService {
             roomState.setRound(roomState.getRound() + 1);
 
             if(roomState.getRound() > 10) {
-                endGame(roomId);
+                endGame(roomId, gameType);
                 return;
             }
         }
 
         roomState.setCurrentTurn(nextTurn);
+        roomState.setDouble(false);
 
         webSocketService.sendGame(roomId, "turn_end", gameType, roomState);
     }
 
-    public void endGame(Long roomId) {
+    public void endGame(Long roomId, String gameType) {
+        List<BoardPlayerDTO> players = boardPlayerService.getPlayers(roomId);
+
+        for(BoardPlayerDTO player : players) {
+            int totalAssets = player.getBalance(); // 현금
+            for(LandDTO land : landService.getLands(roomId)) {
+                if(player.getUserId().equals(land.getOwnerId())) { // 부동산
+                    totalAssets += land.getPrice() / 2;
+                }
+            }
+            player.setBalance(totalAssets);
+        }
+
+        // 내림차순 정렬
+        players.sort((p1, p2) -> Integer.compare(p2.getBalance(), p1.getBalance()));
+        for(int i = 0; i < players.size(); i++) {
+            players.get(i).setRank(i+1);
+        }
+
+        webSocketService.sendGame(roomId, "game_end", gameType, boardPlayerService.getPlayers(roomId));
+
+        // 메모리 정리
+        startBoardPlayersMap.remove(roomId);
+        landService.removeLands(roomId);
+        roomStateService.removeRoomState(roomId);
+    }
+
+    public void quiz(Long roomId, Long userId, int selectIdx, boolean isCorrect, String gameType) {
+        BoardPlayerDTO player = boardPlayerService.getPlayer(roomId, userId);
+        if(isCorrect) {
+            player.setBalance(player.getBalance() + 5);
+        } else {
+            player.setBalance(player.getBalance() - 5);
+        }
+
+        bankruptcy(roomId, player);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("players", boardPlayerService.getPlayers(roomId));
+        data.put("selectIdx", selectIdx);
+        data.put("isCorrect", isCorrect);
+        data.put("lands", landService.getLands(roomId));
+
+        webSocketService.sendGame(roomId, "quiz_check", gameType, data);
+
+        endTurn(roomId, gameType);
     }
 }
