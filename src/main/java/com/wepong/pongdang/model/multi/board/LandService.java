@@ -38,7 +38,7 @@ public class LandService {
         lands.add(new LandDTO(13, "SC제일은행", 7, 14, null, null));
         lands.add(new LandDTO(14, "KDB산업은행", 7, 14, null, null));
         lands.add(new LandDTO(15, "저금", 0, 5, null, null));
-        lands.add(new LandDTO(16, "NH농협으헹", 8, 16, null, null));
+        lands.add(new LandDTO(16, "NH농협은행", 8, 16, null, null));
         lands.add(new LandDTO(17,  "IBK기업은행", 8, 16, null, null));
         lands.add(new LandDTO(18, "여행", 0, 0, null, null));
         lands.add(new LandDTO(19, "우리은행", 9, 18, null, null));
