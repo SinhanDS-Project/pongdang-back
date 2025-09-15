@@ -144,6 +144,11 @@ public class AuthRestController {
         String name = req.get("name");
         String phone = req.get("phone");
 
+        // 퐁당서비스 DB에서 중복 확인
+        if (authService.isPhoneNumberExists(phone)) {
+            throw new UserAlreadyRegisteredException();
+        }
+
         BettingUserResponseDTO dto = bettingUserService.findUser(name, phone);
 
         if (dto == null) {
