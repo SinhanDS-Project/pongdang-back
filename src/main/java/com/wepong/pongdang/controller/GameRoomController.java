@@ -1,6 +1,8 @@
 package com.wepong.pongdang.controller;
 
 import com.wepong.pongdang.dto.response.ChatResponseDTO;
+import com.wepong.pongdang.dto.response.GameRoomResponseDTO;
+import com.wepong.pongdang.entity.enums.GameRoomStatus;
 import com.wepong.pongdang.model.multi.board.BoardPlayerDTO;
 import com.wepong.pongdang.model.multi.board.BoardPlayerService;
 import com.wepong.pongdang.model.multi.turtle.TurtlePlayerDTO;
@@ -138,6 +140,12 @@ public class GameRoomController {
     @MessageMapping("/gameroom/start/{roomId}")
     public void handleStart(@DestinationVariable Long roomId, SimpMessageHeaderAccessor accessor) {
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
+
+        GameRoomResponseDTO.GameRoomDetailDTO room = gameRoomService.selectById(roomId);
+        if(!room.getStatus().equals(GameRoomStatus.PLAYING)) {
+            gameRoomService.updateStatus(roomId, GameRoomStatus.PLAYING);
+            webSocketService.sendList(gameRoomService.selectAll());
+        }
 
         Map<String, Object> data = new HashMap<>();
         data.put("gameType", gameType);
