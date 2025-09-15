@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 public class BoardPlayerService {
 
     private final BoardPlayerDAO boardPlayerDAO;
-    private final GameRoomService gameRoomService;
     private final AuthService authService;
 
     public BoardPlayerDTO getPlayer(Long roomId, Long userId) {
@@ -29,11 +28,19 @@ public class BoardPlayerService {
     public void enterPlayer(Long roomId, Long userId) {
         UserEntity user = authService.findById(userId);
 
+        List<BoardPlayerDTO> players = getPlayers(roomId);
+        int turnOrder = (players != null) ? players.size() : 0;
+
         BoardPlayerDTO player = BoardPlayerDTO.builder()
                 .userId(userId)
                 .nickname(user.getNickname())
                 .roomId(roomId)
                 .isReady(false)
+                .balance(80)
+                .position(0)
+                .turnOrder(turnOrder)
+                .skipTurn(false)
+                .active(true)
                 .build();
 
         boardPlayerDAO.addPlayer(roomId, player);
