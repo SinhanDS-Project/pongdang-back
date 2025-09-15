@@ -29,7 +29,7 @@ public class AdminController {
             produces = MediaType.TEXT_PLAIN_VALUE + ";charset=UTF-8"
     )
     public ResponseEntity<?> insertBanner(@RequestPart("banner") BannerRequestDTO banner,
-                                       @RequestPart("file") MultipartFile file) {
+                                          @RequestPart("file") MultipartFile file) {
         adminService.insertBanner(banner, file);
         return ResponseEntity.ok(Map.of("message", "배너 등록 성공"));
     }
@@ -51,7 +51,7 @@ public class AdminController {
     // 상품 등록
     @PostMapping(value = "/product",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> saveProduct(@RequestBody ProductRequestDTO request,
+    public ResponseEntity<?> saveProduct(@RequestPart ProductRequestDTO request,
                                          @RequestPart("files") MultipartFile[] files) {
         adminService.saveProduct(request, files);
         return ResponseEntity.ok(Map.of("message", "상품이 등록되었습니다."));
