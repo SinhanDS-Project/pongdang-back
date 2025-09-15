@@ -1,14 +1,12 @@
 package com.wepong.pongdang.service;
 
 import com.wepong.pongdang.entity.EmailVerificationEntity;
-import com.wepong.pongdang.model.email.ProductTemplate;
 import com.wepong.pongdang.model.email.TempPasswordTemplate;
 import com.wepong.pongdang.model.email.VerificationTemplate;
 import com.wepong.pongdang.repository.VerificationRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -28,6 +26,7 @@ public class VerificationService {
 	private final AuthService authService;
 
 	// 인증 요청 시
+	// @Async
 	public void requestVerification(String email) throws MessagingException {
 		// 인증 코드 생성
 		String code = generateVerificationCode();
@@ -49,6 +48,7 @@ public class VerificationService {
 	}
 
 	// 임시 비밀번호 발급
+	// @Async
 	public void updatePassword(String email, Long userId) throws MessagingException {
 		String tempPassword = generateTempPassword();
 
@@ -141,5 +141,4 @@ public class VerificationService {
 		int code = 100000 + random.nextInt(900000); // 6자리 숫자
 		return String.valueOf(code);
 	}
-
 }
