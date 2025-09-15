@@ -295,11 +295,8 @@ public class TurtleGameService {
         webSocketService.sendGame(roomId, "race_update", gameType, posList);
     }
 
-    public void broadcastRaceFinish(Long roomId, int winner, List<Map<String, Object>> results, String gameType) {
-        Map<String, Object> msg = new HashMap<>();
-        msg.put("winner", winner);
-        msg.put("results",  results);
-        webSocketService.sendGame(roomId, "race_finish", gameType, msg);
+    public void broadcastRaceFinish(Long roomId, List<Map<String, Object>> results, String gameType) {
+        webSocketService.sendGame(roomId, "race_finish", gameType, results);
 
         // 게임 종료 상태
         gameFinishMap.put(roomId, true);
