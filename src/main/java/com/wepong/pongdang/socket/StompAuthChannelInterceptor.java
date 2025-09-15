@@ -79,7 +79,7 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
         Long roomId = Long.parseLong(parts[1]);
 
         accessor.getSessionAttributes().put("roomId", roomId);
-        accessor.getSessionAttributes().put("type", gameType+"room");
+        accessor.getSessionAttributes().put("type", gameType+suffix);
         accessor.getSessionAttributes().put("gameType", gameType);
     }
 }
