@@ -61,7 +61,7 @@ public class BoardPlayerService {
 
         if (player != null && "random".equals(player.getTurtleId())) {
             // 1) 전체 색상 목록
-            List<String> allColors = List.of("green", "orange", "pink", "yellow", "brown", "purple", "gray", "blue");
+            List<String> allColors = List.of("green", "orange", "pink", "yellow");
 
             // 2) 현재 방의 플레이어들이 이미 선택한 색상 추출
             List<BoardPlayerDTO> players = getPlayers(roomId);

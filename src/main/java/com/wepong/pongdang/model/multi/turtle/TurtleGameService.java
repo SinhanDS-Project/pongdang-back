@@ -78,7 +78,7 @@ public class TurtleGameService {
 
                     // 2) 종료 체크
                     if (state.isFinished()) {
-                        int[] top3 = state.getTop3TurtleIds();
+                        String[] top3 = state.getTop3TurtleIds();
                         List<Map<String, Object>> results = gameResultAndPointCalc(roomId, top3);
 
                         callback.onRaceFinish(roomId, state.getWinner(), results);
@@ -104,17 +104,17 @@ public class TurtleGameService {
     }
 
     // 선택 거북이의 순위 판단
-    private int rankOf(Integer selectedTurtle, int firstTid, int secondTid, int thirdTid) {
-        if (selectedTurtle == null) return 0;
-        if (selectedTurtle == firstTid) return 1;
-        if (selectedTurtle == secondTid) return 2;
-        if (selectedTurtle == thirdTid) return 3;
+    private int rankOf(String selectedColor, String firstColor, String secondColor, String thirdColor) {
+        if (selectedColor == null) return 0;
+        if (selectedColor.equals(firstColor)) return 1;
+        if (selectedColor.equals(secondColor)) return 2;
+        if (selectedColor.equals(thirdColor)) return 3;
         return 0;
     }
 
     // 결과에 따른 포인트, 승패 계산
     @Transactional
-    public List<Map<String, Object>> gameResultAndPointCalc(Long roomId, int[] top3) {
+    public List<Map<String, Object>> gameResultAndPointCalc(Long roomId, String[] top3) {
         List<TurtlePlayerDTO> players = turtlePlayerService.getPlayers(roomId);
 
         GameRoomResponseDTO.GameRoomDetailDTO gameroom = gameRoomService.selectById(roomId);
@@ -122,16 +122,16 @@ public class TurtleGameService {
         int entryFee = gameroom.getEntryFee();
         Long gameLevelId = gameroom.getGameLevelId();
 
-        int firstTid = top3.length > 0 ? top3[0] : -1;
-        int secondTid = top3.length > 1 ? top3[1] : -1;
-        int thirdTid = top3.length > 2 ? top3[2] : -1;
+        String firstTurtle  = top3.length > 0 ? top3[0] : null;
+        String secondTurtle = top3.length > 1 ? top3[1] : null;
+        String thirdTurtle  = top3.length > 2 ? top3[2] : null;
 
         // 결과 리스트 준비
         List<Map<String, Object>> results = new ArrayList<>();
 
         for (TurtlePlayerDTO player : players) {
-            int selectedTurtle = player.getTurtleId() != null ? Integer.parseInt(player.getTurtleId()) - 1 : -1;
-            int rank = rankOf(selectedTurtle, firstTid, secondTid, thirdTid); // 1/2/3 or 0
+            String selectedTurtle = player.getTurtleId();
+            int rank = rankOf(selectedTurtle, firstTurtle, secondTurtle, thirdTurtle);
 
             RankType rankType;
             switch (rank) {
@@ -273,15 +273,13 @@ public class TurtleGameService {
     public void onGameStart(Long roomId, String gameType) {
         // 게임 시작 시점의 참가자 전체 정보 저장
         List<TurtlePlayerDTO> startPlayers = turtlePlayerService.getPlayers(roomId);
+
         // null 방지
         if (startPlayers != null) {
             startTurtlePlayersMap.put(roomId, new ArrayList<>(startPlayers));
         }
 
-        Map<String, Object> data = new HashMap<>();
-        data.put("players", startPlayers);
-
-        webSocketService.sendGame(roomId, "game_start", gameType, data);
+        webSocketService.sendGame(roomId, "game_start", gameType, startPlayers);
     }
 
     // 방에 위치 정보를 스케쥴러로 보내주는 함수
@@ -305,6 +303,7 @@ public class TurtleGameService {
         startTurtlePlayersMap.remove(roomId);
         gameFinishMap.remove(roomId);
         gameRoomService.deleteRoom(roomId);
+        gameStates.remove(roomId);
 
         ScheduledFuture<?> task = broadcastTasks.remove(roomId);
         if (task != null)
