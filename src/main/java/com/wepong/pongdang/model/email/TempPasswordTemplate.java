@@ -35,7 +35,7 @@ public final class TempPasswordTemplate {
                               반드시 마이페이지에서 새로운 비밀번호로 변경해 주세요.
                         </div>
                         <div style="font-size:18px;font-weight:700;margin-bottom:10px">
-                              임시 비밀번호 : <span style="font-weight:bold;color:#0046ff">%s</span>
+                              임시 비밀번호 : <span style="font-weight:bold;color:#0046ff"><b>%s</b></span>
                         </div>
                         <hr style="margin:32px 0 0 0;border-color:#d9d9d9">
                         <div style="margin-top:10px;font-size:12px;line-height:18px;letter-spacing:-1px;color:#767676">

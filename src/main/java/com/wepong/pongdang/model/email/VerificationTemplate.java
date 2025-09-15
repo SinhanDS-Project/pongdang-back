@@ -35,7 +35,7 @@ public final class VerificationTemplate {
                               인증번호 유효시간은 5분입니다.
                         </div>
                         <div style="font-size:18px;font-weight:700;margin-bottom:10px">
-                              인증번호 : <span style="font-weight:bold;color:#0046ff">%s</span>
+                              인증번호 : <span style="font-weight:bold;color:#0046ff"><b>%s</b></span>
                         </div>
                         <hr style="margin:32px 0 0 0;border-color:#d9d9d9">
                         <div style="margin-top:10px;font-size:12px;line-height:18px;letter-spacing:-1px;color:#767676">
