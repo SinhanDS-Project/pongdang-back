@@ -1,10 +1,16 @@
 package com.wepong.pongdang.service;
 
 import com.wepong.pongdang.entity.EmailVerificationEntity;
+import com.wepong.pongdang.model.email.ProductTemplate;
+import com.wepong.pongdang.model.email.TempPasswordTemplate;
+import com.wepong.pongdang.model.email.VerificationTemplate;
 import com.wepong.pongdang.repository.VerificationRepository;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +28,7 @@ public class VerificationService {
 	private final AuthService authService;
 
 	// 인증 요청 시
-	public void requestVerification(String email) {
+	public void requestVerification(String email) throws MessagingException {
 		// 인증 코드 생성
 		String code = generateVerificationCode();
 
@@ -43,7 +49,7 @@ public class VerificationService {
 	}
 
 	// 임시 비밀번호 발급
-	public void updatePassword(String email, Long userId) {
+	public void updatePassword(String email, Long userId) throws MessagingException {
 		String tempPassword = generateTempPassword();
 
 		authService.updatePassword(userId, tempPassword);
@@ -52,11 +58,16 @@ public class VerificationService {
 	}
 
 	// 임시 비밀번호 이메일 발송
-	private void sendTempPassword(String email, String tempPassword) {
-		SimpleMailMessage message = new SimpleMailMessage();
-		message.setTo(email);
-		message.setSubject("[퐁당퐁당] 임시 비밀번호 발급 안내");
-		message.setText("임시 비밀번호: " + tempPassword + "\n로그인 후 반드시 비밀번호를 변경해 주세요.");
+	private void sendTempPassword(String email, String tempPassword) throws MessagingException {
+		MimeMessage message = mailSender.createMimeMessage();
+		MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+		helper.setTo(email);
+		helper.setSubject("[퐁당퐁당] 임시 비밀번호 발급 안내");
+
+		String htmlContent = TempPasswordTemplate.render(tempPassword);
+		helper.setText(htmlContent, true);
+
 		mailSender.send(message);
 	}
 
@@ -112,11 +123,16 @@ public class VerificationService {
 		return true;
 	}
 
-	private void sendEmail(String email, String code) {
-		SimpleMailMessage message = new SimpleMailMessage();
-		message.setTo(email);
-		message.setSubject("[퐁당퐁당] 이메일 인증번호 안내");
-		message.setText("인증번호: " + code + "\n인증번호 유효시간은 5분입니다.");
+	private void sendEmail(String email, String code) throws MessagingException {
+		MimeMessage message = mailSender.createMimeMessage();
+		MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+		helper.setTo(email);
+		helper.setSubject("[퐁당퐁당] 이메일 인증번호 안내");
+
+		String htmlContent = VerificationTemplate.render(code);
+		helper.setText(htmlContent, true);
+
 		mailSender.send(message);
 	}
 
