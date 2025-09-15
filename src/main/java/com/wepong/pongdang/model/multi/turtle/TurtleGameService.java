@@ -197,12 +197,18 @@ public class TurtleGameService {
             historyService.insertGameHistory(gameHistoryEntity, userId);
 
             // 포인트 히스토리 저장
-            PongHistoryEntity pongHistory = PongHistoryEntity.builder()
+            PongHistoryEntity rewardResult = PongHistoryEntity.builder()
                 .type(PongHistoryType.GAME_P)
-                .amount(Math.abs(reward - entryFee))
+                .amount(reward)
                 .build();
 
-            historyService.insertPointHistory(pongHistory, userId);
+            PongHistoryEntity entryFeeResult = PongHistoryEntity.builder()
+                .type(PongHistoryType.ENTRY)
+                .amount(entryFee)
+                .build();
+
+            historyService.insertPointHistory(rewardResult, userId);
+            historyService.insertPointHistory(entryFeeResult, userId);
 
             if (donation > 0) {
                 PongHistoryEntity donaHistory = PongHistoryEntity.builder()
