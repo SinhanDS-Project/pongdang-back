@@ -15,4 +15,5 @@ public class RoomStateDTO {
     private int maxRound;
     private int pot; // 금고 보유금
     private int doubleCount;
+    private boolean isDouble;
 }

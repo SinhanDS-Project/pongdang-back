@@ -13,12 +13,14 @@ public class RoomStateService {
         return roomStateDAO.getState(roomId);
     }
 
-    public void setRoomState(Long roomId, int maxRound, int pot) {
+    public void setRoomState(Long roomId) {
         RoomStateDTO state = RoomStateDTO.builder()
-                .currentTurn(1)
+                .currentTurn(0)
                 .round(1)
-                .maxRound(maxRound)
-                .pot(pot)
+                .maxRound(10)
+                .pot(0)
+                .doubleCount(0)
+                .isDouble(false)
                 .build();
         roomStateDAO.addState(roomId, state);
     }
