@@ -21,4 +21,5 @@ public class BoardPlayerDTO {
     private int turnOrder; // 차례(1~4)
     private boolean skipTurn; // 무인도 여부
     private boolean active; // false: 파산
+    private int rank; // 순위
 }
