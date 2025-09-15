@@ -37,7 +37,7 @@ public class TurtleGameService {
     private final Map<Long, TurtleGameState> gameStates = new ConcurrentHashMap<>();
 
     private final Map<Long, ScheduledFuture<?>> broadcastTasks = new ConcurrentHashMap<>();
-    private final Map<Long, List<TurtlePlayerDTO>> gameStartPlayersMap = new ConcurrentHashMap<>();
+    private final Map<Long, List<TurtlePlayerDTO>> startTurtlePlayersMap = new ConcurrentHashMap<>();
     private final Map<Long, Boolean> gameFinishMap = new ConcurrentHashMap<>();
 
     private final WalletService walletService;
@@ -57,7 +57,7 @@ public class TurtleGameService {
         List<TurtlePlayerDTO> startPlayers = turtlePlayerService.getPlayers(roomId);
         // null 방지
         if (startPlayers != null) {
-            gameStartPlayersMap.put(roomId, new ArrayList<>(startPlayers));
+            startTurtlePlayersMap.put(roomId, new ArrayList<>(startPlayers));
         }
 
         runRaceLoop(roomId, state, callback);
@@ -225,7 +225,7 @@ public class TurtleGameService {
 
     public void processUserLose(Long roomId, Long userId) {
         // 나간사람  패배처리
-        List<TurtlePlayerDTO> startPlayers = gameStartPlayersMap.get(roomId);
+        List<TurtlePlayerDTO> startPlayers = startTurtlePlayersMap.get(roomId);
         GameRoomResponseDTO.GameRoomDetailDTO gameroom = gameRoomService.selectById(roomId);
         if (startPlayers != null) {
             for (TurtlePlayerDTO player : startPlayers) {
@@ -275,10 +275,13 @@ public class TurtleGameService {
         List<TurtlePlayerDTO> startPlayers = turtlePlayerService.getPlayers(roomId);
         // null 방지
         if (startPlayers != null) {
-            gameStartPlayersMap.put(roomId, new ArrayList<>(startPlayers));
+            startTurtlePlayersMap.put(roomId, new ArrayList<>(startPlayers));
         }
 
-        webSocketService.sendGame(roomId, gameType, "game_start");
+        Map<String, Object> data = new HashMap<>();
+        data.put("players", startPlayers);
+
+        webSocketService.sendGame(roomId, "game_start", gameType, data);
     }
 
     // 방에 위치 정보를 스케쥴러로 보내주는 함수
@@ -299,7 +302,7 @@ public class TurtleGameService {
     }
 
     public void removeGame(Long roomId) {
-        gameStartPlayersMap.remove(roomId);
+        startTurtlePlayersMap.remove(roomId);
         gameFinishMap.remove(roomId);
         gameRoomService.deleteRoom(roomId);
 
