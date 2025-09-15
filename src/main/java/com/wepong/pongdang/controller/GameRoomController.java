@@ -15,6 +15,7 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,9 +28,14 @@ public class GameRoomController {
     private final GameRoomService gameRoomService;
     private final BoardPlayerService boardPlayerService;
 
+    // 리스트 페이지
+    // type null 방지
+    @MessageMapping("/gameroom")
+    public void handlerList() {}
+
     // 게임 입장
     @MessageMapping("/gameroom/enter/{roomId}")
-        public void handleEnter(@DestinationVariable Long roomId, StompHeaderAccessor accessor) {
+    public void handleEnter(@DestinationVariable Long roomId, StompHeaderAccessor accessor) {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         String type = (String) accessor.getSessionAttributes().get("type");
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
@@ -132,6 +138,11 @@ public class GameRoomController {
     @MessageMapping("/gameroom/start/{roomId}")
     public void handleStart(@DestinationVariable Long roomId, SimpMessageHeaderAccessor accessor) {
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
-        webSocketService.sendRoom(roomId, "start", gameType, "/game/" + roomId);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("gameType", gameType);
+        data.put("roomId", roomId);
+
+        webSocketService.sendRoom(roomId, "start", gameType, data);
     }
 }
