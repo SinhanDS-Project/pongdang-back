@@ -4,9 +4,12 @@ import com.wepong.pongdang.dto.response.AttendanceResponseDTO;
 import com.wepong.pongdang.entity.AttendanceEntity;
 import com.wepong.pongdang.entity.PongHistoryEntity;
 import com.wepong.pongdang.entity.UserEntity;
+import com.wepong.pongdang.entity.enums.EventType;
 import com.wepong.pongdang.entity.enums.PongHistoryType;
 import com.wepong.pongdang.entity.enums.WalletType;
 import com.wepong.pongdang.exception.AlreadyAttendanceException;
+import com.wepong.pongdang.exception.AlreadyBubbleException;
+import com.wepong.pongdang.exception.AlreadyTransferException;
 import com.wepong.pongdang.repository.AttendanceRepository;
 import com.wepong.pongdang.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +43,7 @@ public class AttendanceService {
         if(attendanceRepository.existsByUserIdAndAttendanceDate(userId, today)) {
             throw new AlreadyAttendanceException(); // 이미 오늘의 출석이 완료되었습니다.
         }
+
         AttendanceEntity attendance = AttendanceEntity.builder()
                 .user(user)
                 .attendanceDate(today)
@@ -75,10 +79,26 @@ public class AttendanceService {
         // 이번 달 출석일수
         int countAttendance = attendanceDates.size();
 
-
         return AttendanceResponseDTO.builder()
                         .count(countAttendance)
                         .attendanceDate(attendanceDates)
                         .build();
+    }
+
+    @Transactional
+    public void eventCheck(EventType event, Long userId) {
+        AttendanceEntity attendance = attendanceRepository.findByUserId(userId);
+
+        if(attendance.isBubble()) {
+            throw new AlreadyBubbleException();
+        } else if(attendance.isTransfer()) {
+            throw new AlreadyTransferException();
+        } else {
+            if(event.equals(EventType.BUBBLE)) {
+                attendance.setBubble(true);
+            } else if(event.equals(EventType.TRANSFER)) {
+                attendance.setTransfer(true);
+            }
+        }
     }
 }

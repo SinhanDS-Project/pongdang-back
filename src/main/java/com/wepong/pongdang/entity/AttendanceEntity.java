@@ -21,6 +21,12 @@ public class AttendanceEntity extends BaseEntity {
     @Column(name = "attendance_date", nullable = false)
     private LocalDate attendanceDate;
 
+    @Column
+    private boolean bubble; // 비눗방울 터트리기
+
+    @Column
+    private boolean transfer; // 환율 맞추기
+
     //  유저 연관관계
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

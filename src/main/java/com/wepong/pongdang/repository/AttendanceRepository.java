@@ -18,4 +18,6 @@ public interface AttendanceRepository extends JpaRepository<AttendanceEntity, Lo
             LocalDate startDate,
             LocalDate endDate
     );
+
+    AttendanceEntity findByUserId(Long userId);
 }
