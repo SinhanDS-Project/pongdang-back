@@ -151,8 +151,9 @@ public class TurtleGameService {
 
             // ✅ 각 플레이어 결과 Map 저장
             Map<String, Object> result = new HashMap<>();
-            result.put("user_id", player.getUserId());
+            result.put("userId", player.getUserId());
             result.put("selectedTurtle", selectedTurtle);
+            result.put("nickname", player.getNickname());
             result.put("rank", rank);
             result.put("winAmount", reward);
             result.put("pointChange", pongChange);
