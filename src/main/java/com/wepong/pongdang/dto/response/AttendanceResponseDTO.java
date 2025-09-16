@@ -15,6 +15,4 @@ import java.util.List;
 public class AttendanceResponseDTO {
     private int count;
     private List<LocalDate> attendanceDate;
-    private boolean bubble;
-    private boolean transfer;
 }

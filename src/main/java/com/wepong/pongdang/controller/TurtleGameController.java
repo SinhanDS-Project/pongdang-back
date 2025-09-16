@@ -3,7 +3,6 @@ package com.wepong.pongdang.controller;
 import com.wepong.pongdang.dto.response.GameRoomResponseDTO;
 import com.wepong.pongdang.entity.enums.GameRoomStatus;
 import com.wepong.pongdang.model.multi.turtle.TurtleGameService;
-import com.wepong.pongdang.model.multi.turtle.TurtlePlayerService;
 import com.wepong.pongdang.service.GameRoomService;
 import com.wepong.pongdang.service.WebSocketService;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,6 @@ public class TurtleGameController {
     private final GameRoomService gameRoomService;
     private final TurtleGameService turtleGameService;
     private final WebSocketService webSocketService;
-    private final TurtlePlayerService turtlePlayerService;
 
     // 게임 진행
     @MessageMapping("/turtle/start/{roomId}")
