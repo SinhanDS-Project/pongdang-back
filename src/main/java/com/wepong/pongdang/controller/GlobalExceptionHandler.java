@@ -89,6 +89,23 @@ public class GlobalExceptionHandler {
 		return ResponseEntity
 				.status(HttpStatus.CONFLICT) // 409 Conflict
 				.body(Map.of("error", "ALREADY_ATTENDANCE_FINISHED", "message", ex.getMessage()));
+	}
+
+	// 물방울 터트리기 완료
+	@ExceptionHandler(AlreadyBubbleException.class)
+	public ResponseEntity<?> handleBubbleAlreadyTaken(AlreadyBubbleException ex) {
+		return ResponseEntity
+				.status(HttpStatus.CONFLICT) // 409 Conflict
+				.body(Map.of("error", "ALREADY_BUBBLE_FINISHED", "message", ex.getMessage()));
+
+	}
+
+	// 환율 맞추기 완료
+	@ExceptionHandler(AlreadyTransferException.class)
+	public ResponseEntity<?> handleTransferAlreadyTaken(AlreadyTransferException ex) {
+		return ResponseEntity
+				.status(HttpStatus.CONFLICT) // 409 Conflict
+				.body(Map.of("error", "ALREADY_TRANSFER_FINISHED", "message", ex.getMessage()));
 
 	}
 
