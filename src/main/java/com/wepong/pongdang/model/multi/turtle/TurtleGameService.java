@@ -154,7 +154,7 @@ public class TurtleGameService {
             result.put("userId", player.getUserId());
             result.put("selectedTurtle", selectedTurtle);
             result.put("nickname", player.getNickname());
-            result.put("rank", rank);
+            result.put("rank", rankType);
             result.put("winAmount", reward);
             result.put("pointChange", pongChange);
             results.add(result);
