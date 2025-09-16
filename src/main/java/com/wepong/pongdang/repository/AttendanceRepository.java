@@ -10,8 +10,6 @@ import java.util.List;
 
 @Repository
 public interface AttendanceRepository extends JpaRepository<AttendanceEntity, Long> {
-    boolean existsByUserIdAndAttendanceDate(Long userId, LocalDate attendanceDate);
-    int countByUserId(Long userId);
     // 이번 달 출석 기록만 조회
     List<AttendanceEntity> findAllByUserIdAndAttendanceDateBetweenOrderByAttendanceDateDesc(
             Long userId,
@@ -20,4 +18,6 @@ public interface AttendanceRepository extends JpaRepository<AttendanceEntity, Lo
     );
 
     AttendanceEntity findByUserId(Long userId);
+
+    AttendanceEntity findByUserIdAndAttendanceDate(Long userId, LocalDate today);
 }
