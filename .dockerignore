@@ -1,0 +1,27 @@
+# 빌드 산출물 디렉토리
+/build
+/target
+/out
+
+# Gradle 캐시
+.gradle/
+
+# IDE 설정
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS & 로그
+*.class
+*.log
+*.DS_Store
+
+# Git & 문서
+.git
+.gitignore
+HELP.md
+
+# 비밀파일
+.env
