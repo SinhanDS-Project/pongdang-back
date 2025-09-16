@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -15,6 +17,7 @@ public class PurchaseResponseDTO {
     private Long userId;
     private String name;
     private int price;
+    private LocalDateTime createdAt;
 
     public static PurchaseResponseDTO from(PurchaseEntity purchase) {
         return PurchaseResponseDTO.builder()
@@ -22,6 +25,7 @@ public class PurchaseResponseDTO {
                 .price(purchase.getProduct().getPrice())
                 .userId(purchase.getUser().getId())
                 .name(purchase.getProduct().getName())
+                .createdAt(purchase.getCreatedAt())
                 .build();
     }
 }
