@@ -18,6 +18,8 @@ public class ProductResponseDTO {
     private Long id;
     private String name;
     private int price;
+    @JsonSerialize(using = S3ImageUrlSerializer.class)
+    @JsonDeserialize(using = S3ImagePathDeserializer.class)
     private String description;
     @JsonSerialize(using = S3ImageUrlSerializer.class)
     @JsonDeserialize(using = S3ImagePathDeserializer.class)

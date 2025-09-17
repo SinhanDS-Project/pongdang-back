@@ -63,7 +63,7 @@ public class S3FileService {
 		}
 		
 		// 업로드 후 URL 생성
-        return "https://" + bucketName + ".s3." + region + ".amazonaws.com/" + key;
+        return key;
 	}
 
 	// 다중 파일 업로드
