@@ -68,7 +68,7 @@ public class BoardGameService {
                     // 1) 유저 정보 조회
                     UserEntity userEntity = authService.findById(userId);
                     if (userEntity != null) {
-                        walletService.lose(entryFee, userEntity.getId(), WalletType.PONG);
+                        walletService.lose(entryFee, userEntity, WalletType.PONG);
                         Long gameId = gameService.selectByName(gameName).stream().findFirst()
                                 .orElseThrow(() -> new GameNotFoundException())
                                 .getId();
@@ -83,7 +83,7 @@ public class BoardGameService {
                                 .rank(gameResult)
                                 .build();
 
-                        historyService.insertGameHistory(gameHistoryEntity, userId);
+                        historyService.insertGameHistory(gameHistoryEntity, userEntity);
 
                         // 포인트 히스토리 저장
                         PongHistoryEntity pongHistoryEntity = PongHistoryEntity.builder()
@@ -91,7 +91,7 @@ public class BoardGameService {
                                 .amount(Math.abs(winAmount - entryFee))
                                 .build();
 
-                        historyService.insertPointHistory(pongHistoryEntity, userId);
+                        historyService.insertPointHistory(pongHistoryEntity, userEntity);
                     }
                     break;
                 }
@@ -345,8 +345,9 @@ public class BoardGameService {
             int reward = rewardConfig.getReward();
             int donation = rewardConfig.getDonation();
 
-            WalletEntity pongWallet = walletService.findByIdAndType(player.getUserId(), WalletType.PONG);
-            WalletEntity donaWallet = walletService.findByIdAndType(player.getUserId(), WalletType.DONA);
+            UserEntity user = authService.findById(player.getUserId());
+            WalletEntity pongWallet = walletService.findByIdAndType(user.getId(), WalletType.PONG);
+            WalletEntity donaWallet = walletService.findByIdAndType(user.getId(), WalletType.DONA);
 
             if (pongWallet != null && donaWallet != null) {
                 if (!rankType.equals(RankType.LOSE)) {
@@ -372,7 +373,7 @@ public class BoardGameService {
                         .rank(rankType)
                         .build();
 
-                historyService.insertGameHistory(gameHistoryEntity, player.getUserId());
+                historyService.insertGameHistory(gameHistoryEntity, user);
 
                 // 포인트 히스토리 저장
                 PongHistoryEntity rewardResult = PongHistoryEntity.builder()
@@ -385,8 +386,8 @@ public class BoardGameService {
                         .amount(entryFee)
                         .build();
 
-                historyService.insertPointHistory(rewardResult, player.getUserId());
-                historyService.insertPointHistory(entryFeeResult, player.getUserId());
+                historyService.insertPointHistory(rewardResult, user);
+                historyService.insertPointHistory(entryFeeResult, user);
 
                 if (donation > 0) {
                     PongHistoryEntity donaHistory = PongHistoryEntity.builder()
@@ -394,7 +395,7 @@ public class BoardGameService {
                             .amount(donation)
                             .build();
 
-                    historyService.insertPointHistory(donaHistory, player.getUserId());
+                    historyService.insertPointHistory(donaHistory, user);
                 }
 
                 if (rankType.equals(RankType.FIRST)) {

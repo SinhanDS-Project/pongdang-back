@@ -1,5 +1,7 @@
 package com.wepong.pongdang.service;
 
+import com.wepong.pongdang.entity.PongHistoryEntity;
+import com.wepong.pongdang.entity.enums.PongHistoryType;
 import com.wepong.pongdang.exception.InsufficientBalanceException;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 public class WalletService {
 
 	private final WalletRepository walletRepository;
+	private final HistoryService historyService;
 
 	public WalletEntity findByIdAndType(Long userId, WalletType type) {
 		return walletRepository.findByUserIdAndWalletType(userId, type);
@@ -40,8 +43,8 @@ public class WalletService {
 	}
 
 	// 퐁 차감
-	public void lose(int point, Long userId, WalletType type) {
-		WalletEntity pongWallet = walletRepository.findByUserIdAndWalletType(userId, type);
+	public void lose(int point, UserEntity user, WalletType type) {
+		WalletEntity pongWallet = walletRepository.findByUserIdAndWalletType(user.getId(), type);
 
 		if(pongWallet.getPongBalance() < point) {
 			throw new InsufficientBalanceException();
@@ -49,12 +52,27 @@ public class WalletService {
 
 		pongWallet.setPongBalance(pongWallet.getPongBalance() - point);
 		walletRepository.save(pongWallet);
+
+		PongHistoryEntity history = PongHistoryEntity.builder()
+				.amount(point)
+				.type(PongHistoryType.PURCHASE)
+				.build();
+
+		historyService.insertPointHistory(history, user);
 	}
 
 	// 퐁 증가
-	public void add(int point, Long userId, WalletType type) {
-		WalletEntity pongWallet = walletRepository.findByUserIdAndWalletType(userId, type);
+	public void add(int point, UserEntity user, WalletType type) {
+		WalletEntity pongWallet = walletRepository.findByUserIdAndWalletType(user.getId(), type);
+
 		pongWallet.setPongBalance(pongWallet.getPongBalance() + point);
 		walletRepository.save(pongWallet);
+
+		PongHistoryEntity history = PongHistoryEntity.builder()
+				.amount(point)
+				.type(PongHistoryType.ADD)
+				.build();
+
+		historyService.insertPointHistory(history, user);
 	}
 }

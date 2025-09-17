@@ -4,7 +4,6 @@ import com.wepong.pongdang.dto.response.HistoryResponseDTO;
 import com.wepong.pongdang.entity.GameHistoryEntity;
 import com.wepong.pongdang.entity.PongHistoryEntity;
 import com.wepong.pongdang.entity.UserEntity;
-import com.wepong.pongdang.entity.enums.PongHistoryType;
 import com.wepong.pongdang.repository.GameHistoryRepository;
 import com.wepong.pongdang.repository.PongHistoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,25 +20,6 @@ public class HistoryService {
 
     private final GameHistoryRepository gameHistoryRepository;
     private final PongHistoryRepository pongHistoryRepository;
-
-    private final AuthService authService;
-
-    public HistoryResponseDTO.GameResponseDTO gameHistoryList(Long userId) {
-        return gameHistoryRepository.findByUserId(userId);
-    }
-
-    public HistoryResponseDTO.PointResponseDTO pointHistoryList(Long userId) {
-        return pongHistoryRepository.findByUserId(userId);
-    }
-    
-    public int gameHistoryCount(Long userId) {
-      return gameHistoryRepository.countByUserId(userId);
-    }
-
-    public int pointHistoryCount(Long userId) {
-      return pongHistoryRepository.countByUserId(userId);
-    }
-
     
     public HistoryResponseDTO.GameResponseDTO gameHistoryList(Long userId, int page) {
         int size = 10;
@@ -62,37 +42,23 @@ public class HistoryService {
         return HistoryResponseDTO.PointResponseDTO.from(details);
     }
 
-    public void insertGameHistory(GameHistoryEntity gameHistoryEntity, Long userId) {
-        UserEntity userEntity = authService.findById(userId);
+    public void insertGameHistory(GameHistoryEntity gameHistoryEntity, UserEntity user) {
         GameHistoryEntity history = GameHistoryEntity.builder()
-                .user(userEntity)
+                .user(user)
                 .game(gameHistoryEntity.getGame())
                 .pongValue(gameHistoryEntity.getPongValue())
                 .rank(gameHistoryEntity.getRank())
                 .entryFee(gameHistoryEntity.getEntryFee())
                 .build();
+
         gameHistoryRepository.save(history);
     }
 
-    public void insertPointHistory(PongHistoryEntity pongHistoryEntity, Long userId) {
-        UserEntity userEntity = authService.findById(userId);
-
+    public void insertPointHistory(PongHistoryEntity pongHistoryEntity, UserEntity user) {
         PongHistoryEntity history = PongHistoryEntity.builder()
-                .user(userEntity)
+                .user(user)
                 .type(pongHistoryEntity.getType())
                 .amount(pongHistoryEntity.getAmount())
-                .build();
-
-        pongHistoryRepository.save(history);
-    }
-
-    public void insertPointHistory(Long userId, int amount) {
-        UserEntity userEntity = authService.findById(userId);
-
-        PongHistoryEntity history = PongHistoryEntity.builder()
-                .user(userEntity)
-                .type(PongHistoryType.CHARGE)
-                .amount(amount)
                 .build();
 
         pongHistoryRepository.save(history);
