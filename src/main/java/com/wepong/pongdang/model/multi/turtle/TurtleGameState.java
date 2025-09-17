@@ -8,11 +8,11 @@ public class TurtleGameState {
     private final double[] positions;       // 각 거북이 위치(0~100)
     private final double[] baseSpeeds;      // 기본 속도
     private final double[] burstChances;    // 버스트 확률
-    private final List<Integer> finishOrder = new CopyOnWriteArrayList<>();   // 추가: 완주 순서(거북이 인덱스)를 저장  // 완주 시간 기록용
-    private final List<String> podiumUserIds = new CopyOnWriteArrayList<>();  // 순위 기록용
+    private final List<String> finishOrder = new CopyOnWriteArrayList<>();   // 추가: 완주 순서(거북이 인덱스)를 저장  // 완주 시간 기록용
     private boolean finished = false;       // 레이스 종료 여부
     private int winner = -1;                // 우승자(0~n-1)
     private String status = "WAITING";      // WAITING, RUNNING, FINISHED
+    List<String> turtleColors = List.of("green", "orange", "pink", "yellow", "brown", "purple", "gray", "blue");
 
     public TurtleGameState(int turtleCount) {
         this.turtleCount = turtleCount;
@@ -36,9 +36,11 @@ public class TurtleGameState {
                 if (positions[i] >= 100) {
                     positions[i] = 100;
 
+                    String turtleId = turtleColors.get(i);
+
                     // ✅ 완주 순서에 한 번만 추가
-                    if (!finishOrder.contains(i)) {
-                        finishOrder.add(i);
+                    if (!finishOrder.contains(turtleId)) {
+                        finishOrder.add(turtleId);
                     }
 
                     // ✅ 1등은 winner로 기록(한 번만)
@@ -61,11 +63,11 @@ public class TurtleGameState {
     }
 
     // 추가: Top3 조회(없으면 -1)
-    public int[] getTop3TurtleIds() {
-        int first  = finishOrder.size() > 0 ? finishOrder.get(0) : -1;
-        int second = finishOrder.size() > 1 ? finishOrder.get(1) : -1;
-        int third  = finishOrder.size() > 2 ? finishOrder.get(2) : -1;
-        return new int[]{ first, second, third };
+    public String[] getTop3TurtleIds() {
+        String first  = finishOrder.size() > 0 ? finishOrder.get(0) : null;
+        String second = finishOrder.size() > 1 ? finishOrder.get(1) : null;
+        String third  = finishOrder.size() > 2 ? finishOrder.get(2) : null;
+        return new String[]{ first, second, third };
     }
 
     // getter

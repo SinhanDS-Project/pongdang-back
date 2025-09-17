@@ -38,6 +38,16 @@ public class QuizService {
     @Value("${gemini.model}")
     private String model;
 
+    // 랜덤 퀴즈 전송
+    public QuizResponseDTO.QuizView getRandomQuiz() {
+        List<QuizEntity> entity = quizRepository.findAll();
+        if(entity.isEmpty()) {
+            throw new QuizNotGeneratedException();
+        }
+
+        QuizEntity randomQuiz = entity.get((int) (Math.random() * entity.size()));
+        return randomQuiz.toDto();
+    }
 
     // 퀴즈 생성 요청
     public boolean getTodayWithAutoGenerate() {
@@ -69,7 +79,6 @@ public class QuizService {
 
         return quizzes;
     }
-
 
     @Transactional
     public void generateTodayAndSave() { // 퀴즈 생성

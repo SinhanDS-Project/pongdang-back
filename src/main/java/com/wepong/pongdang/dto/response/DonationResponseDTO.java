@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Builder
 @Data
 @AllArgsConstructor
@@ -15,6 +17,7 @@ public class DonationResponseDTO {
     private int amount;
     private Long userId;
     private String title;
+    private LocalDateTime createdAt;
 
     public static DonationResponseDTO from(DonationEntity donation) {
         return DonationResponseDTO.builder()
@@ -22,6 +25,7 @@ public class DonationResponseDTO {
                 .amount(donation.getAmount())
                 .userId(donation.getUser().getId())
                 .title(donation.getDonationInfo().getTitle())
+                .createdAt(donation.getCreatedAt())
                 .build();
     }
 
