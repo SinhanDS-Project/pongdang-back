@@ -1,7 +1,6 @@
 package com.wepong.pongdang.model.multi.turtle;
 
 import com.wepong.pongdang.dto.response.GameRoomResponseDTO;
-import com.wepong.pongdang.dto.response.TurtlePlayerDTO;
 import com.wepong.pongdang.entity.GameEntity;
 import com.wepong.pongdang.entity.GameHistoryEntity;
 import com.wepong.pongdang.entity.PongHistoryEntity;
@@ -26,8 +25,6 @@ import java.util.concurrent.*;
 @RequiredArgsConstructor
 public class TurtleGameService {
 
-    private final PlayerDAO playerDAO;
-
     private final GameRoomService gameRoomService;
     private final AuthService authService;
     private final GameService gameService;
@@ -40,11 +37,11 @@ public class TurtleGameService {
     private final Map<Long, TurtleGameState> gameStates = new ConcurrentHashMap<>();
 
     private final Map<Long, ScheduledFuture<?>> broadcastTasks = new ConcurrentHashMap<>();
-    private final Map<Long, List<TurtlePlayerDTO>> gameStartPlayersMap = new ConcurrentHashMap<>();
+    private final Map<Long, List<TurtlePlayerDTO>> startTurtlePlayersMap = new ConcurrentHashMap<>();
     private final Map<Long, Boolean> gameFinishMap = new ConcurrentHashMap<>();
 
     private final WalletService walletService;
-    private final PlayerService playerService;
+    private final TurtlePlayerService turtlePlayerService;
 
     // 콜백 인터페이스(핸들러에서 정의)
     public interface RaceUpdateCallback {
@@ -57,10 +54,10 @@ public class TurtleGameService {
         TurtleGameState state = new TurtleGameState(turtleCount);
         gameStates.put(roomId, state);
 
-        List<TurtlePlayerDTO> startPlayers = playerDAO.getAll(roomId);
+        List<TurtlePlayerDTO> startPlayers = turtlePlayerService.getPlayers(roomId);
         // null 방지
         if (startPlayers != null) {
-            gameStartPlayersMap.put(roomId, new ArrayList<>(startPlayers));
+            startTurtlePlayersMap.put(roomId, new ArrayList<>(startPlayers));
         }
 
         runRaceLoop(roomId, state, callback);
@@ -81,7 +78,7 @@ public class TurtleGameService {
 
                     // 2) 종료 체크
                     if (state.isFinished()) {
-                        int[] top3 = state.getTop3TurtleIds();
+                        String[] top3 = state.getTop3TurtleIds();
                         List<Map<String, Object>> results = gameResultAndPointCalc(roomId, top3);
 
                         callback.onRaceFinish(roomId, state.getWinner(), results);
@@ -107,34 +104,34 @@ public class TurtleGameService {
     }
 
     // 선택 거북이의 순위 판단
-    private int rankOf(Integer selectedTurtle, int firstTid, int secondTid, int thirdTid) {
-        if (selectedTurtle == null) return 0;
-        if (selectedTurtle == firstTid) return 1;
-        if (selectedTurtle == secondTid) return 2;
-        if (selectedTurtle == thirdTid) return 3;
+    private int rankOf(String selectedColor, String firstColor, String secondColor, String thirdColor) {
+        if (selectedColor == null) return 0;
+        if (selectedColor.equals(firstColor)) return 1;
+        if (selectedColor.equals(secondColor)) return 2;
+        if (selectedColor.equals(thirdColor)) return 3;
         return 0;
     }
 
     // 결과에 따른 포인트, 승패 계산
     @Transactional
-    public List<Map<String, Object>> gameResultAndPointCalc(Long roomId, int[] top3) {
-        List<TurtlePlayerDTO> players = playerDAO.getAll(roomId);
+    public List<Map<String, Object>> gameResultAndPointCalc(Long roomId, String[] top3) {
+        List<TurtlePlayerDTO> players = turtlePlayerService.getPlayers(roomId);
 
         GameRoomResponseDTO.GameRoomDetailDTO gameroom = gameRoomService.selectById(roomId);
         String gameName = gameroom.getGameName();
         int entryFee = gameroom.getEntryFee();
         Long gameLevelId = gameroom.getGameLevelId();
 
-        int firstTid = top3.length > 0 ? top3[0] : -1;
-        int secondTid = top3.length > 1 ? top3[1] : -1;
-        int thirdTid = top3.length > 2 ? top3[2] : -1;
+        String firstTurtle  = top3.length > 0 ? top3[0] : null;
+        String secondTurtle = top3.length > 1 ? top3[1] : null;
+        String thirdTurtle  = top3.length > 2 ? top3[2] : null;
 
         // 결과 리스트 준비
         List<Map<String, Object>> results = new ArrayList<>();
 
         for (TurtlePlayerDTO player : players) {
-            int selectedTurtle = player.getTurtleId() != null ? Integer.parseInt(player.getTurtleId()) - 1 : -1;
-            int rank = rankOf(selectedTurtle, firstTid, secondTid, thirdTid); // 1/2/3 or 0
+            String selectedTurtle = player.getTurtleId();
+            int rank = rankOf(selectedTurtle, firstTurtle, secondTurtle, thirdTurtle);
 
             RankType rankType;
             switch (rank) {
@@ -154,9 +151,10 @@ public class TurtleGameService {
 
             // ✅ 각 플레이어 결과 Map 저장
             Map<String, Object> result = new HashMap<>();
-            result.put("user_id", player.getUserId());
+            result.put("userId", player.getUserId());
             result.put("selectedTurtle", selectedTurtle);
-            result.put("rank", rank);
+            result.put("nickname", player.getNickname());
+            result.put("rank", rankType);
             result.put("winAmount", reward);
             result.put("pointChange", pongChange);
             results.add(result);
@@ -200,12 +198,18 @@ public class TurtleGameService {
             historyService.insertGameHistory(gameHistoryEntity, userId);
 
             // 포인트 히스토리 저장
-            PongHistoryEntity pongHistory = PongHistoryEntity.builder()
+            PongHistoryEntity rewardResult = PongHistoryEntity.builder()
                 .type(PongHistoryType.GAME_P)
-                .amount(Math.abs(reward - entryFee))
+                .amount(reward)
                 .build();
 
-            historyService.insertPointHistory(pongHistory, userId);
+            PongHistoryEntity entryFeeResult = PongHistoryEntity.builder()
+                .type(PongHistoryType.ENTRY)
+                .amount(entryFee)
+                .build();
+
+            historyService.insertPointHistory(rewardResult, userId);
+            historyService.insertPointHistory(entryFeeResult, userId);
 
             if (donation > 0) {
                 PongHistoryEntity donaHistory = PongHistoryEntity.builder()
@@ -228,19 +232,19 @@ public class TurtleGameService {
 
     public void processUserLose(Long roomId, Long userId) {
         // 나간사람  패배처리
-        List<TurtlePlayerDTO> startPlayers = gameStartPlayersMap.get(roomId);
+        List<TurtlePlayerDTO> startPlayers = startTurtlePlayersMap.get(roomId);
         GameRoomResponseDTO.GameRoomDetailDTO gameroom = gameRoomService.selectById(roomId);
         if (startPlayers != null) {
             for (TurtlePlayerDTO player : startPlayers) {
                 if (player.getUserId().equals(userId)) {
-                    int betAmount = player.getEntryFee();
+                    int entryFee = gameroom.getEntryFee();
                     String gameName = gameroom.getGameName();
                     RankType gameResult = RankType.LOSE;
                     int winAmount = 0;
                     // 1) 유저 정보 조회
                     UserEntity userEntity = authService.findById(userId);
                     if (userEntity != null) {
-                        walletService.lose(betAmount, userEntity.getId(), WalletType.PONG);
+                        walletService.lose(entryFee, userEntity.getId(), WalletType.PONG);
                         Long gameId = gameService.selectByName(gameName).stream().findFirst()
                                 .orElseThrow(() -> new GameNotFoundException())
                                 .getId();
@@ -250,8 +254,8 @@ public class TurtleGameService {
                         // 게임 히스토리 저장 (gameName도 같이)
                         GameHistoryEntity gameHistoryEntity = GameHistoryEntity.builder()
                                 .game(gameEntity)
-                                .entryFee(betAmount)
-                                .pongValue(Math.abs(winAmount - betAmount))
+                                .entryFee(entryFee)
+                                .pongValue(Math.abs(winAmount - entryFee))
                                 .rank(gameResult)
                                 .build();
 
@@ -260,7 +264,7 @@ public class TurtleGameService {
                         // 포인트 히스토리 저장
                         PongHistoryEntity pongHistoryEntity = PongHistoryEntity.builder()
                                 .type(PongHistoryType.GAME_P)
-                                .amount(Math.abs(winAmount - betAmount))
+                                .amount(Math.abs(winAmount - entryFee))
                                 .build();
 
                         historyService.insertPointHistory(pongHistoryEntity, userId);
@@ -273,38 +277,37 @@ public class TurtleGameService {
         }
     }
 
-    public void onGameStart(Long roomId) {
+    public void onGameStart(Long roomId, String gameType) {
         // 게임 시작 시점의 참가자 전체 정보 저장
-        List<TurtlePlayerDTO> startPlayers = playerService.getPlayers(roomId);
+        List<TurtlePlayerDTO> startPlayers = turtlePlayerService.getPlayers(roomId);
+
         // null 방지
         if (startPlayers != null) {
-            gameStartPlayersMap.put(roomId, new ArrayList<>(startPlayers));
+            startTurtlePlayersMap.put(roomId, new ArrayList<>(startPlayers));
         }
 
-        webSocketService.sendGame(roomId, "game_start");
+        webSocketService.sendGame(roomId, "game_start", gameType, startPlayers);
     }
 
     // 방에 위치 정보를 스케쥴러로 보내주는 함수
-    public void broadcastRaceUpdate(Long roomId, double[] positions) {
+    public void broadcastRaceUpdate(Long roomId, double[] positions, String gameType) {
         List<Double> posList = new ArrayList<>();
         for(double p : positions) posList.add(p);
-        webSocketService.sendGame(roomId, "race_update", posList);
+        webSocketService.sendGame(roomId, "race_update", gameType, posList);
     }
 
-    public void broadcastRaceFinish(Long roomId, int winner, List<Map<String, Object>> results) {
-        Map<String, Object> msg = new HashMap<>();
-        msg.put("winner", winner);
-        msg.put("results",  results);
-        webSocketService.sendGame(roomId, "race_finish", msg);
+    public void broadcastRaceFinish(Long roomId, List<Map<String, Object>> results, String gameType) {
+        webSocketService.sendGame(roomId, "race_finish", gameType, results);
 
         // 게임 종료 상태
         gameFinishMap.put(roomId, true);
     }
 
     public void removeGame(Long roomId) {
-        gameStartPlayersMap.remove(roomId);
+        startTurtlePlayersMap.remove(roomId);
         gameFinishMap.remove(roomId);
         gameRoomService.deleteRoom(roomId);
+        gameStates.remove(roomId);
 
         ScheduledFuture<?> task = broadcastTasks.remove(roomId);
         if (task != null)

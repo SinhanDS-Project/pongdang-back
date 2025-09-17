@@ -1,6 +1,5 @@
 package com.wepong.pongdang.model.multi.turtle;
 
-import com.wepong.pongdang.dto.response.TurtlePlayerDTO;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -10,7 +9,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-public class PlayerDAO {
+public class TurtlePlayerDAO {
 
     private final Map<Long, List<TurtlePlayerDTO>> roomPlayers = new ConcurrentHashMap<>();
 

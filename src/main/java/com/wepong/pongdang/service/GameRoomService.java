@@ -2,20 +2,18 @@ package com.wepong.pongdang.service;
 
 import com.wepong.pongdang.dto.request.GameRoomRequestDTO;
 import com.wepong.pongdang.dto.response.GameRoomResponseDTO;
-import com.wepong.pongdang.dto.response.WebSocketResponseDTO;
 import com.wepong.pongdang.entity.GameEntity;
 import com.wepong.pongdang.entity.GameLevelEntity;
 import com.wepong.pongdang.entity.GameRoomEntity;
 import com.wepong.pongdang.entity.UserEntity;
 import com.wepong.pongdang.entity.enums.GameRoomStatus;
 import com.wepong.pongdang.exception.RoomNotFoundException;
-import com.wepong.pongdang.model.multi.turtle.PlayerDAO;
+import com.wepong.pongdang.model.multi.turtle.TurtlePlayerDAO;
 import com.wepong.pongdang.repository.GameRoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,9 +25,8 @@ import java.util.stream.Collectors;
 @Transactional
 public class GameRoomService {
 
-	private final PlayerDAO playerDAO;
+	private final TurtlePlayerDAO turtlePlayerDAO;
 	private final GameRoomRepository gameRoomRepository;
-	private final SimpMessagingTemplate messagingTemplate;
 	private final AuthService authService;
 	private final GameService gameService;
 	private final GameLevelService gameLevelService;
@@ -43,7 +40,7 @@ public class GameRoomService {
 				.map(room -> {
 					GameLevelEntity level = gameLevelService.selectByLevelUid(room.getGameLevel().getId());
 					GameEntity gameEntity = level != null ? gameService.selectById(level.getGame().getId()) : null;
-					int count = playerDAO.getAll(room.getId()) != null ? playerDAO.getAll(room.getId()).size() : 0;
+					int count = turtlePlayerDAO.getAll(room.getId()) != null ? turtlePlayerDAO.getAll(room.getId()).size() : 0;
 
 					return GameRoomResponseDTO.GameRoomDetailDTO.from(room, count);
 				});
@@ -52,12 +49,12 @@ public class GameRoomService {
 	}
 
 	public List<GameRoomResponseDTO.GameRoomDetailDTO> selectAll() {
-		List<GameRoomEntity> roomlist = gameRoomRepository.findAll();
+		List<GameRoomEntity> roomlist = gameRoomRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
 		List<GameRoomResponseDTO.GameRoomDetailDTO> details = roomlist.stream().map(
 				room -> {
 					GameLevelEntity level = gameLevelService.selectByLevelUid(room.getGameLevel().getId());
 					GameEntity gameEntity = level != null ? gameService.selectById(level.getGame().getId()) : null;
-					int count = playerDAO.getAll(room.getId()) != null ? playerDAO.getAll(room.getId()).size() : 0;
+					int count = turtlePlayerDAO.getAll(room.getId()) != null ? turtlePlayerDAO.getAll(room.getId()).size() : 0;
 					return GameRoomResponseDTO.GameRoomDetailDTO.from(room, count);
 				}).collect(Collectors.toList());
 
@@ -72,18 +69,20 @@ public class GameRoomService {
 			if (level != null) {
 				GameEntity gameEntity = gameService.selectById(level.getGame().getId());
 				if (gameEntity != null) {
-					int count = playerDAO.getAll(room.getId()) != null
-							? playerDAO.getAll(room.getId()).size()
-							: 0;
-
-					return GameRoomResponseDTO.GameRoomDetailDTO.from(room, count);
+					String gameType = null;
+					if(gameEntity.getName().equals("Turtle Run")) {
+						gameType = "turtle";
+					} else if(gameEntity.getName().equals("Pong Marble")) {
+						gameType = "board";
+					}
+					return GameRoomResponseDTO.GameRoomDetailDTO.from(room, gameType);
 				}
 			}
 		}
 		return null;
 	}
 
-	public void insertRoom(GameRoomRequestDTO.InsertGameRoomRequestDTO roomRequest, Long userId) {
+	public GameRoomResponseDTO.GameRoomDetailDTO insertRoom(GameRoomRequestDTO roomRequest, Long userId) {
 		UserEntity userEntity = authService.findById(userId);
 		GameLevelEntity level = gameLevelService.selectByLevelUid(roomRequest.getGameLevelId());
 
@@ -95,6 +94,8 @@ public class GameRoomService {
 				.build();
 
 		gameRoomRepository.save(room);
+
+		return GameRoomResponseDTO.GameRoomDetailDTO.from(room);
 	}
 
 	public void deleteRoom(Long roomId) {

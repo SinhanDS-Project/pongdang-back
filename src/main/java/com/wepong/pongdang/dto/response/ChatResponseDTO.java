@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class ChatResponseDTO {
     private String sender;
     private String message;
+    private boolean system;
 }

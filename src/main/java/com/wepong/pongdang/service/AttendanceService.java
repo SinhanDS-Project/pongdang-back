@@ -4,11 +4,13 @@ import com.wepong.pongdang.dto.response.AttendanceResponseDTO;
 import com.wepong.pongdang.entity.AttendanceEntity;
 import com.wepong.pongdang.entity.PongHistoryEntity;
 import com.wepong.pongdang.entity.UserEntity;
+import com.wepong.pongdang.entity.enums.EventType;
 import com.wepong.pongdang.entity.enums.PongHistoryType;
 import com.wepong.pongdang.entity.enums.WalletType;
 import com.wepong.pongdang.exception.AlreadyAttendanceException;
+import com.wepong.pongdang.exception.AlreadyBubbleException;
+import com.wepong.pongdang.exception.AlreadyTransferException;
 import com.wepong.pongdang.repository.AttendanceRepository;
-import com.wepong.pongdang.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,27 +25,33 @@ import java.util.List;
 public class AttendanceService {
 
     private final AttendanceRepository attendanceRepository;
-    private final UserRepository userRepository;
     private final HistoryService historyService;
     private final WalletService walletService;
 
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    private final AuthService authService;
+    LocalDate today = LocalDate.now(KST);
 
     // 출석체크시 출석테이블에 표시 및 포인트 지급
     @Transactional
     public String attendanceInsert(Long userId) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        UserEntity user = authService.findById(userId);
 
-        LocalDate today = LocalDate.now(KST);
+        AttendanceEntity attendance = attendanceRepository.findByUserIdAndAttendanceDate(userId, today);
 
-        if(attendanceRepository.existsByUserIdAndAttendanceDate(userId, today)) {
-            throw new AlreadyAttendanceException(); // 이미 오늘의 출석이 완료되었습니다.
+        if(attendance != null) {
+            if(attendance.isAttended()) {
+                throw new AlreadyAttendanceException();
+            }
+            attendance.setAttended(true);
+        } else {
+            attendance = AttendanceEntity.builder()
+                    .user(user)
+                    .attendanceDate(today)
+                    .attended(true)
+                    .build();
         }
-        AttendanceEntity attendance = AttendanceEntity.builder()
-                .user(user)
-                .attendanceDate(today)
-                .build();
+
         attendanceRepository.save(attendance);
 
         PongHistoryEntity history = PongHistoryEntity.builder()
@@ -60,8 +68,8 @@ public class AttendanceService {
     // user별 출석일수 조회
     public AttendanceResponseDTO countAttendance(Long userId) {
         YearMonth currentMonth = YearMonth.now();
-        LocalDate startOfMonth = currentMonth.atDay(1);                  // 이번 달 1일
-        LocalDate endOfMonth = currentMonth.atEndOfMonth();               // 이번 달 말일
+        LocalDate startOfMonth = currentMonth.atDay(1); // 이번 달 1일
+        LocalDate endOfMonth = currentMonth.atEndOfMonth(); // 이번 달 말일
 
         // 이번 달 출석 날짜 list
         List<LocalDate> attendanceDates = attendanceRepository
@@ -69,16 +77,43 @@ public class AttendanceService {
                         userId, startOfMonth, endOfMonth
                 )
                 .stream()
+                .filter(AttendanceEntity::isAttended)
                 .map(AttendanceEntity::getAttendanceDate)
                 .toList();
 
         // 이번 달 출석일수
         int countAttendance = attendanceDates.size();
 
-
         return AttendanceResponseDTO.builder()
-                        .count(countAttendance)
-                        .attendanceDate(attendanceDates)
-                        .build();
+                    .count(countAttendance)
+                    .attendanceDate(attendanceDates)
+                    .build();
+    }
+
+    @Transactional
+    public void eventCheck(EventType event, Long userId) {
+        AttendanceEntity attendance = attendanceRepository.findByUserIdAndAttendanceDate(userId, today);
+        UserEntity user = authService.findById(userId);
+
+        if (attendance == null) {
+            attendance = AttendanceEntity.builder()
+                .user(user)
+                .attendanceDate(today)
+                .build();
+        }
+
+        if (event.equals(EventType.BUBBLE)) {
+            if (attendance.isBubble()) {
+                throw new AlreadyBubbleException();
+            }
+            attendance.setBubble(true);
+        } else if (event.equals(EventType.TRANSFER)) {
+            if (attendance.isTransfer()) {
+                throw new AlreadyTransferException();
+            }
+            attendance.setTransfer(true);
+        }
+
+        attendanceRepository.save(attendance);
     }
 }

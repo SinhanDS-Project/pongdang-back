@@ -37,6 +37,8 @@ public class ExceptionMessage {
     public static final String ALREADY_TODAY_QUIZ_FINISHED = "오늘 퀴즈는 이미 참여 완료되었습니다.";
 
 	public static final String ALREADY_ATTENDANCE_FINISHED = "이미 오늘의 출석이 완료되었습니다.";
+	public static final String ALREADY_BUBBLE_FINISHED = "이미 물방울 터트리기가 완료되었습니다.";
+	public static final String ALREADY_TRANSFER_FINISHED = "이미 환율 맞추기가 완료되었습니다.";
 
 	// Product
 	public static final String PRODUCT_NOT_FOUND = "상품이 존재하지 않습니다.";
