@@ -25,8 +25,7 @@ public class AdminController {
     // 배너 등록
     @PostMapping(
             value = "/banner",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
-            produces = MediaType.TEXT_PLAIN_VALUE + ";charset=UTF-8"
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     public ResponseEntity<?> insertBanner(@RequestPart("banner") BannerRequestDTO banner,
                                           @RequestPart("file") MultipartFile file) {
