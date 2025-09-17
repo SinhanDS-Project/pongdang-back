@@ -1,6 +1,5 @@
 package com.wepong.pongdang.service;
 
-
 import com.wepong.pongdang.dto.request.QuizRequestDTO;
 import com.wepong.pongdang.dto.response.QuizResponseDTO;
 import com.wepong.pongdang.entity.PongHistoryEntity;
@@ -27,6 +26,7 @@ public class QuizCheckService {
     private final QuizCheckRepository quizCheckRepository;
     private final HistoryService historyService;
     private final WalletService walletService;
+    private final AuthService authService;
 
     @Transactional
     public QuizResponseDTO.QuizCheckResponse markTodayQuizTaken(Long userId) { // check
@@ -70,6 +70,8 @@ public class QuizCheckService {
     public QuizResponseDTO.QuizSubmitResponse submitQuiz(
             Long userId, QuizRequestDTO request
     ) {
+        UserEntity user = authService.findById(userId);
+
         int reward = Math.min(
                 request.getCorrectCount() != null ? request.getCorrectCount() : 0,
                 3
@@ -81,8 +83,8 @@ public class QuizCheckService {
                     .amount(reward)
                     .build();
 
-            historyService.insertPointHistory(history, userId);
-            walletService.add(reward, userId, WalletType.PONG);
+            historyService.insertPointHistory(history, user);
+            walletService.add(reward, user, WalletType.PONG);
         }
 
         return QuizResponseDTO.QuizSubmitResponse.builder()

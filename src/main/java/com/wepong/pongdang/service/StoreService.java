@@ -61,7 +61,7 @@ public class StoreService {
         UserEntity user = authService.findById(userId);
 
         // 일반 퐁 차감
-        walletService.lose(request.getPrice(), userId, WalletType.PONG);
+        walletService.lose(request.getPrice(), user, WalletType.PONG);
 
         // 퐁 내역 저장
         PongHistoryEntity pongHistory = PongHistoryEntity.builder()
@@ -70,7 +70,7 @@ public class StoreService {
                 .user(user)
                 .build();
 
-        historyService.insertPointHistory(pongHistory, userId);
+        historyService.insertPointHistory(pongHistory, user);
 
         // 상품 구매 내역 저장
         PurchaseEntity purchase = PurchaseEntity.builder()

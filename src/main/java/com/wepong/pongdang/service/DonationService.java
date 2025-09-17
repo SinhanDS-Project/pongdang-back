@@ -59,7 +59,7 @@ public class DonationService {
         PongHistoryType historyType = null;
 
         // 타입 별 지갑에서 차감
-        walletService.lose(request.getAmount(), userId, walletType);
+        walletService.lose(request.getAmount(), user, walletType);
 
         if(walletType.equals(WalletType.PONG)) {
             historyType = PongHistoryType.DONATION_P;
@@ -74,7 +74,7 @@ public class DonationService {
                 .user(user)
                 .build();
 
-        historyService.insertPointHistory(pongHistory, userId);
+        historyService.insertPointHistory(pongHistory, user);
 
         // 기부 모금액 증가
         Long current = donationInfo.getCurrent() != null ? donationInfo.getCurrent() : 0L;
