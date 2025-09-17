@@ -1,28 +1,12 @@
 package com.wepong.pongdang.dto.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class GameRoomRequestDTO {
-
-	@Data
-	@Builder
-	@NoArgsConstructor
-	@AllArgsConstructor
-	public static class InsertGameRoomRequestDTO {
-		private String title;
-		private int entryFee;
-		private Long gameLevelId;
-	}
-
-	@Data
-	@Builder
-	@NoArgsConstructor
-	@AllArgsConstructor
-	public static class UpdateGameRoomRequestDTO {
-		private String title;
-		private Long gameLevelId;
-	}
+	private String title;
+	private Long gameLevelId;
 }

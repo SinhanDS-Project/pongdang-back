@@ -1,4 +1,4 @@
-package com.wepong.pongdang.dto.response;
+package com.wepong.pongdang.model.multi.turtle;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,5 +15,4 @@ public class TurtlePlayerDTO {
     private Long roomId;
     private boolean isReady;
     private String turtleId;
-    private int entryFee;
 }

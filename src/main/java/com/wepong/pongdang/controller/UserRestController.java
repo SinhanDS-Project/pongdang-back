@@ -52,9 +52,8 @@ public class UserRestController {
 		Long userId = authService.validateAndGetUserId(authHeader);
 		UserEntity userEntity = authService.findById(userId); // 또는 getUserByUid(userId)
 
-		String baseUrl = "https://bettopia-s3-bucket.s3.ap-northeast-2.amazonaws.com/";
 		String profileFullUrl = (userEntity.getProfileImage() != null && !userEntity.getProfileImage().isBlank())
-		                        ? baseUrl + userEntity.getProfileImage()
+		                        ? userEntity.getProfileImage()
 		                        : "";
 
 		WalletEntity pong = walletService.findByIdAndType(userEntity.getId(), WalletType.PONG);

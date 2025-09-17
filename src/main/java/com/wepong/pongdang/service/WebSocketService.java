@@ -11,13 +11,13 @@ public class WebSocketService {
 
     private final SimpMessagingTemplate messagingTemplate;
 
-    public void sendRoom(Long roomId, String type, Object data) {
+    public void sendRoom(Long roomId, String type, String gameType, Object data) {
         WebSocketResponseDTO payload = WebSocketResponseDTO.builder()
                 .type(type)
                 .data(data)
                 .build();
 
-        messagingTemplate.convertAndSend("/topic/gameroom/" + roomId, payload);
+        messagingTemplate.convertAndSend("/topic/gameroom/" + gameType + "/" + roomId, payload);
     }
 
     public void sendList(Object data) {
@@ -29,21 +29,21 @@ public class WebSocketService {
         messagingTemplate.convertAndSend("/topic/gameroom", payload);
     }
 
-    public void sendGame(Long roomId, String type, Object data) {
+    public void sendGame(Long roomId, String type, String gameType, Object data) {
         WebSocketResponseDTO payload = WebSocketResponseDTO.builder()
                 .type(type)
                 .data(data)
                 .build();
 
-        messagingTemplate.convertAndSend("/topic/game/" + roomId, payload);
+        messagingTemplate.convertAndSend("/topic/game/" + gameType + "/" + roomId, payload);
     }
 
-    public void sendGame(Long roomId, String type) {
+    public void sendGame(Long roomId, String gameType, String type) {
         WebSocketResponseDTO payload = WebSocketResponseDTO.builder()
                 .type(type)
                 .build();
 
-        messagingTemplate.convertAndSend("/topic/game/" + roomId, payload);
+        messagingTemplate.convertAndSend("/topic/game/" + gameType + "/" + roomId, payload);
     }
 
     public void sendMain(String type, Object data) {

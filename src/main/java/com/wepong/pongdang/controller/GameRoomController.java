@@ -1,8 +1,12 @@
 package com.wepong.pongdang.controller;
 
 import com.wepong.pongdang.dto.response.ChatResponseDTO;
-import com.wepong.pongdang.dto.response.TurtlePlayerDTO;
-import com.wepong.pongdang.model.multi.turtle.PlayerService;
+import com.wepong.pongdang.dto.response.GameRoomResponseDTO;
+import com.wepong.pongdang.entity.enums.GameRoomStatus;
+import com.wepong.pongdang.model.multi.board.BoardPlayerDTO;
+import com.wepong.pongdang.model.multi.board.BoardPlayerService;
+import com.wepong.pongdang.model.multi.turtle.TurtlePlayerDTO;
+import com.wepong.pongdang.model.multi.turtle.TurtlePlayerService;
 import com.wepong.pongdang.service.GameRoomService;
 import com.wepong.pongdang.service.WebSocketService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +17,7 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,50 +25,132 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class GameRoomController {
 
-    private final PlayerService playerService;
-    private final GameRoomService gameRoomService;
+    private final TurtlePlayerService turtlePlayerService;
     private final WebSocketService webSocketService;
+    private final GameRoomService gameRoomService;
+    private final BoardPlayerService boardPlayerService;
+
+    // 리스트 페이지
+    // type null 방지
+    @MessageMapping("/gameroom")
+    public void handlerList() {}
+
+    // 게임 입장
+    @MessageMapping("/gameroom/enter/{roomId}")
+    public void handleEnter(@DestinationVariable Long roomId, StompHeaderAccessor accessor) {
+        Long userId = (Long) accessor.getSessionAttributes().get("userId");
+        String type = (String) accessor.getSessionAttributes().get("type");
+        String gameType = (String) accessor.getSessionAttributes().get("gameType");
+
+        List<?> players = null;
+
+        // 거북이
+        if(type.equals("turtleroom")) {
+            // 중복 입장 처리
+            if (turtlePlayerService.exists(roomId, userId)) {
+                turtlePlayerService.exitPlayer(roomId, userId);
+            }
+
+            turtlePlayerService.enterPlayer(roomId, userId);
+
+            players = turtlePlayerService.getPlayers(roomId);
+        }
+        // 보드
+        else if(type.equals("boardroom")) {
+            if (boardPlayerService.exists(roomId, userId)) {
+                boardPlayerService.exitPlayer(roomId, userId);
+            }
+
+            boardPlayerService.enterPlayer(roomId, userId);
+
+            players = boardPlayerService.getPlayers(roomId);
+        }
+
+        webSocketService.sendRoom(roomId, "enter", gameType, players);
+        webSocketService.sendList(gameRoomService.selectAll());
+    }
 
     // 채팅
     @MessageMapping("/gameroom/chat/{roomId}")
-    public void handleGameAction(@DestinationVariable Long roomId, @Payload Map<String, String> payload, StompHeaderAccessor accessor) {
+    public void handleChat(@DestinationVariable Long roomId, @Payload Map<String, Object> payload, StompHeaderAccessor accessor) {
         String nickname = (String) accessor.getSessionAttributes().get("nickname");
-        String msg = payload.get("msg");
+        String gameType = (String) accessor.getSessionAttributes().get("gameType");
+        String msg = (String) payload.get("msg");
+        boolean system = (boolean) payload.get("system");
 
         ChatResponseDTO chat = ChatResponseDTO.builder()
                 .message(msg)
                 .sender(nickname)
+                .system(system)
                 .build();
 
-        webSocketService.sendRoom(roomId, "chat", chat);
+        webSocketService.sendRoom(roomId, "chat", gameType, chat);
     }
 
     // 거북이 선택
     @MessageMapping("/gameroom/choice/{roomId}")
     public void handleChoice(@DestinationVariable Long roomId, @Payload Map<String, String> payload, SimpMessageHeaderAccessor accessor) {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
-        TurtlePlayerDTO player = playerService.getPlayer(roomId, userId);
-        player.setTurtleId(payload.get("turtle_id"));
+        String type = (String) accessor.getSessionAttributes().get("type");
+        String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
-        List<TurtlePlayerDTO> players = playerService.getPlayers(roomId);
-        webSocketService.sendRoom(roomId, "choice", players);
+        List<?> players = null;
+
+        // 거북이
+        if(type.equals("turtleroom")) {
+            TurtlePlayerDTO player = turtlePlayerService.getPlayer(roomId, userId);
+            player.setTurtleId(payload.get("turtle_id"));
+
+            players = turtlePlayerService.getPlayers(roomId);
+        } else if(type.equals("boardroom")) {
+            BoardPlayerDTO player = boardPlayerService.getPlayer(roomId, userId);
+            player.setTurtleId(payload.get("turtle_id"));
+
+            players = boardPlayerService.getPlayers(roomId);
+        }
+
+        webSocketService.sendRoom(roomId, "choice", gameType, players);
     }
 
     // 준비 완료/취소
     @MessageMapping("/gameroom/ready/{roomId}")
     public void handleReady(@DestinationVariable Long roomId, @Payload Map<String, Boolean> payload, SimpMessageHeaderAccessor accessor) {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
-        TurtlePlayerDTO player = playerService.getPlayer(roomId, userId);
-        player.setReady(payload.get("isReady"));
+        String type = (String) accessor.getSessionAttributes().get("type");
+        String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
-        List<TurtlePlayerDTO> players = playerService.getPlayers(roomId);
-        webSocketService.sendRoom(roomId, "ready", players);
+        List<?> players = null;
+
+        if(type.equals("turtleroom")) {
+            TurtlePlayerDTO player = turtlePlayerService.getPlayer(roomId, userId);
+            player.setReady(payload.get("isReady"));
+
+            players = turtlePlayerService.getPlayers(roomId);
+        } else if(type.equals("boardroom")) {
+            BoardPlayerDTO player = boardPlayerService.getPlayer(roomId, userId);
+            player.setReady(payload.get("isReady"));
+
+            players = boardPlayerService.getPlayers(roomId);
+        }
+
+        webSocketService.sendRoom(roomId, "ready", gameType, players);
     }
 
     // 게임 시작
     @MessageMapping("/gameroom/start/{roomId}")
-    public void handleStart(@DestinationVariable Long roomId) {
-        webSocketService.sendRoom(roomId, "start", "/multi/" + roomId + "/turtlerun");
-        webSocketService.sendList(gameRoomService.selectAll());
+    public void handleStart(@DestinationVariable Long roomId, SimpMessageHeaderAccessor accessor) {
+        String gameType = (String) accessor.getSessionAttributes().get("gameType");
+
+        GameRoomResponseDTO.GameRoomDetailDTO room = gameRoomService.selectById(roomId);
+        if(!room.getStatus().equals(GameRoomStatus.PLAYING)) {
+            gameRoomService.updateStatus(roomId, GameRoomStatus.PLAYING);
+            webSocketService.sendList(gameRoomService.selectAll());
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("gameType", gameType);
+        data.put("roomId", roomId);
+
+        webSocketService.sendRoom(roomId, "start", gameType, data);
     }
 }

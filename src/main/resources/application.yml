@@ -2,6 +2,10 @@ server:
   port: ${PORT_NUM}
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
   datasource:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
