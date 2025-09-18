@@ -298,15 +298,12 @@ public class TurtleGameService {
 
     public void broadcastRaceFinish(Long roomId, List<Map<String, Object>> results, String gameType) {
         webSocketService.sendGame(roomId, "race_finish", gameType, results);
-
-        // 게임 종료 상태
-        gameFinishMap.put(roomId, true);
+        removeGame(roomId);
     }
 
     public void removeGame(Long roomId) {
         startTurtlePlayersMap.remove(roomId);
         gameFinishMap.remove(roomId);
-        gameRoomService.deleteRoom(roomId);
         gameStates.remove(roomId);
 
         ScheduledFuture<?> task = broadcastTasks.remove(roomId);
