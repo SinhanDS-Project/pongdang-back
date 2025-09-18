@@ -43,7 +43,7 @@ public class StompEventListener {
         String type = (String) accessor.getSessionAttributes().get("type");
 
         // 게임 대기방 리스트 연결 시
-        if(type.equals("list")) {
+        if(type == null || type.equals("list")) {
             return;
         }
 
@@ -117,7 +117,7 @@ public class StompEventListener {
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
         // 게임 대기방 리스트 연결 종료 시
-        if(type.equals("list")) {
+        if(type == null || type.equals("list")) {
             return;
         }
 
@@ -161,6 +161,7 @@ public class StompEventListener {
 
                     } else {
                         turtleGameService.removeGame(roomId);
+                        gameRoomService.deleteRoom(roomId);
                         webSocketService.sendList(gameRoomService.selectAll());
                     }
                 }
@@ -192,23 +193,25 @@ public class StompEventListener {
                 webSocketService.sendRoom(roomId, "exit", gameType, players);
             }
         } else if("boardgame".equals(type)) {
-            List<BoardPlayerDTO> players;
-            if(!status.equals(GameRoomStatus.WAITING)) {
-                boardGameService.processUserLose(roomId, userId);
-
-                boardPlayerService.exitPlayer(roomId, userId);
-                players = boardPlayerService.getPlayers(roomId);
-
-                if (userId.equals(gameroom.getHostId())) {
-                    if (players != null && !players.isEmpty()) {
-                        Long hostId = players.get(0).getUserId();
-                        gameRoomService.updateHost(roomId, hostId);
-
-                    } else {
-                        turtleGameService.removeGame(roomId);
-                        webSocketService.sendList(gameRoomService.selectAll());
-                    }
-                }
+//            List<BoardPlayerDTO> players;
+//            if(!status.equals(GameRoomStatus.WAITING)) {
+//                boardGameService.processUserLose(roomId, userId);
+//
+//                boardPlayerService.exitPlayer(roomId, userId);
+//                players = boardPlayerService.getPlayers(roomId);
+//
+//                if (userId.equals(gameroom.getHostId())) {
+//                    if (players != null && !players.isEmpty()) {
+//                        Long hostId = players.get(0).getUserId();
+//                        gameRoomService.updateHost(roomId, hostId);
+//
+//                    } else {
+//                        gameRoomService.deleteRoom(roomId);
+//                        webSocketService.sendList(gameRoomService.selectAll());
+//                    }
+//                }
+//
+//                webSocketService.sendGame(roomId, "exit", gameType, players);
 
                 if(!event.getCloseStatus().equals(CloseStatus.NORMAL)) {
                     Map<String, Object> msg = new HashMap<>();
@@ -216,8 +219,8 @@ public class StompEventListener {
                     msg.put("targetUrl", "/game/rooms");
                     webSocketService.sendGame(roomId, "force_exit", gameType, msg);
                 }
-            }
+//            }
         }
-        webSocketService.sendList(gameRoomService.selectAll());
+//        webSocketService.sendList(gameRoomService.selectAll());
     }
 }
