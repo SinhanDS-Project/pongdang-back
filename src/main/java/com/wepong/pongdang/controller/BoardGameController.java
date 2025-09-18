@@ -44,7 +44,7 @@ public class BoardGameController {
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
         int dice = (int) payload.get("dice");
-        boolean isDouble = (boolean) payload.get("isDouble");
+        boolean isDouble = (boolean) payload.get("is_double");
         boardGameService.roll(roomId, userId, dice, isDouble, gameType);
     }
 
@@ -56,7 +56,7 @@ public class BoardGameController {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
-        int landId = (int) payload.get("landId");
+        int landId = (int) payload.get("land_id");
         boardGameService.purchase(roomId, userId, landId, gameType);
     }
 
@@ -68,7 +68,7 @@ public class BoardGameController {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
-        int landId = (int) payload.get("landId");
+        int landId = (int) payload.get("land_id");
         boardGameService.toll(roomId, userId, landId, gameType);
     }
 
@@ -90,8 +90,8 @@ public class BoardGameController {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
-        int selectIdx = (int) payload.get("selectIdx");
-        boolean isCorrect = (boolean) payload.get("isCorrect");
+        int selectIdx = (int) payload.get("select_idx");
+        boolean isCorrect = (boolean) payload.get("is_correct");
         boardGameService.quiz(roomId, userId, selectIdx, isCorrect, gameType);
     }
 
@@ -103,7 +103,7 @@ public class BoardGameController {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
-        int landId = (int) payload.get("landId");
+        int landId = (int) payload.get("land_id");
         boardGameService.bank(roomId, userId, landId, gameType);
     }
 
@@ -115,7 +115,7 @@ public class BoardGameController {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
-        int landId = (int) payload.get("landId");
+        int landId = (int) payload.get("land_id");
         boardGameService.salary(roomId, userId, landId, gameType);
     }
 }
