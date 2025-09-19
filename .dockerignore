@@ -3,6 +3,9 @@
 /target
 /out
 
+# jar 제외
+!build/libs/*.jar
+
 # Gradle 캐시
 .gradle/
 
