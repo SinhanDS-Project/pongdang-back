@@ -11,6 +11,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -31,6 +32,12 @@ public class BoardGameController {
         // 랜덤 색상 세팅
         boardPlayerService.setRandomTurtle(userId, roomId);
 
+        // 턴 세팅
+        List<BoardPlayerDTO> players = boardPlayerService.getPlayers(roomId);
+        for (int i = 0; i < players.size(); i++) {
+            players.get(i).setTurnOrder(i);
+        }
+
         // RoomState, Land 메모리 생성 후 전송
         boardGameService.startGame(roomId, gameType);
     }
@@ -44,7 +51,7 @@ public class BoardGameController {
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
         int dice = (int) payload.get("dice");
-        boolean isDouble = (boolean) payload.get("isDouble");
+        boolean isDouble = (boolean) payload.get("is_double");
         boardGameService.roll(roomId, userId, dice, isDouble, gameType);
     }
 
@@ -56,7 +63,7 @@ public class BoardGameController {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
-        int landId = (int) payload.get("landId");
+        int landId = (int) payload.get("land_id");
         boardGameService.purchase(roomId, userId, landId, gameType);
     }
 
@@ -68,7 +75,7 @@ public class BoardGameController {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
-        int landId = (int) payload.get("landId");
+        int landId = (int) payload.get("land_id");
         boardGameService.toll(roomId, userId, landId, gameType);
     }
 
@@ -90,8 +97,8 @@ public class BoardGameController {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
-        int selectIdx = (int) payload.get("selectIdx");
-        boolean isCorrect = (boolean) payload.get("isCorrect");
+        int selectIdx = (int) payload.get("select_idx");
+        boolean isCorrect = (boolean) payload.get("is_correct");
         boardGameService.quiz(roomId, userId, selectIdx, isCorrect, gameType);
     }
 
@@ -103,19 +110,27 @@ public class BoardGameController {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
-        int landId = (int) payload.get("landId");
+        int landId = (int) payload.get("land_id");
         boardGameService.bank(roomId, userId, landId, gameType);
     }
 
     // 금고/월급
     @MessageMapping("/salary/{roomId}")
-        public void handleSalary(@DestinationVariable Long roomId,
-                               @Payload Map<String, Object> payload,
-                               SimpMessageHeaderAccessor accessor) {
+    public void handleSalary(@DestinationVariable Long roomId,
+                           @Payload Map<String, Object> payload,
+                           SimpMessageHeaderAccessor accessor) {
         Long userId = (Long) accessor.getSessionAttributes().get("userId");
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
-        int landId = (int) payload.get("landId");
+        int landId = (int) payload.get("land_id");
         boardGameService.salary(roomId, userId, landId, gameType);
+    }
+
+    // 턴 종료
+    @MessageMapping("/turn/{roomId}")
+    public void handleTurn(@DestinationVariable Long roomId,
+                           SimpMessageHeaderAccessor accessor) {
+        String gameType = (String) accessor.getSessionAttributes().get("gameType");
+        boardGameService.endTurn(roomId, gameType);
     }
 }

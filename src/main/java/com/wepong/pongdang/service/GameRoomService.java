@@ -8,7 +8,9 @@ import com.wepong.pongdang.entity.GameRoomEntity;
 import com.wepong.pongdang.entity.UserEntity;
 import com.wepong.pongdang.entity.enums.GameRoomStatus;
 import com.wepong.pongdang.exception.RoomNotFoundException;
+import com.wepong.pongdang.model.multi.board.BoardPlayerService;
 import com.wepong.pongdang.model.multi.turtle.TurtlePlayerDAO;
+import com.wepong.pongdang.model.multi.turtle.TurtlePlayerService;
 import com.wepong.pongdang.repository.GameRoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,6 +32,8 @@ public class GameRoomService {
 	private final AuthService authService;
 	private final GameService gameService;
 	private final GameLevelService gameLevelService;
+	private final BoardPlayerService boardPlayerService;
+	private final TurtlePlayerService turtlePlayerService;
 
 	public GameRoomResponseDTO.GameRoomListDTO selectAll(int page) {
 		int size = 6;
@@ -40,9 +44,19 @@ public class GameRoomService {
 				.map(room -> {
 					GameLevelEntity level = gameLevelService.selectByLevelUid(room.getGameLevel().getId());
 					GameEntity gameEntity = level != null ? gameService.selectById(level.getGame().getId()) : null;
-					int count = turtlePlayerDAO.getAll(room.getId()) != null ? turtlePlayerDAO.getAll(room.getId()).size() : 0;
+					int count = (turtlePlayerService.getPlayers(room.getId()) != null) ?
+							turtlePlayerService.getPlayers(room.getId()).size() :
+							(boardPlayerService.getPlayers(room.getId()) != null ?
+									boardPlayerService.getPlayers(room.getId()).size() : 0);
 
-					return GameRoomResponseDTO.GameRoomDetailDTO.from(room, count);
+					String gameType = null;
+					if(gameEntity.getName().equals("Turtle Run")) {
+						gameType = "turtle";
+					} else if(gameEntity.getName().equals("Pong Marble")) {
+						gameType = "board";
+					}
+
+					return GameRoomResponseDTO.GameRoomDetailDTO.from(room, count, gameType);
 				});
 
 		return GameRoomResponseDTO.GameRoomListDTO.from(details);
@@ -54,8 +68,19 @@ public class GameRoomService {
 				room -> {
 					GameLevelEntity level = gameLevelService.selectByLevelUid(room.getGameLevel().getId());
 					GameEntity gameEntity = level != null ? gameService.selectById(level.getGame().getId()) : null;
-					int count = turtlePlayerDAO.getAll(room.getId()) != null ? turtlePlayerDAO.getAll(room.getId()).size() : 0;
-					return GameRoomResponseDTO.GameRoomDetailDTO.from(room, count);
+					int count = (turtlePlayerService.getPlayers(room.getId()) != null) ?
+							turtlePlayerService.getPlayers(room.getId()).size() :
+							(boardPlayerService.getPlayers(room.getId()) != null ?
+									boardPlayerService.getPlayers(room.getId()).size() : 0);
+
+					String gameType = null;
+					if(gameEntity.getName().equals("Turtle Run")) {
+						gameType = "turtle";
+					} else if(gameEntity.getName().equals("Pong Marble")) {
+						gameType = "board";
+					}
+
+					return GameRoomResponseDTO.GameRoomDetailDTO.from(room, count, gameType);
 				}).collect(Collectors.toList());
 
 		return details;

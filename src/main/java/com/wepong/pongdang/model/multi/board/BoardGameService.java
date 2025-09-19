@@ -108,17 +108,32 @@ public class BoardGameService {
 
         if(player.isSkipTurn() && !isDouble) {
             player.setSkipTurn(false);
+
+            Map<String, Object> msg = new HashMap<>();
+            msg.put("message", player.getNickname()+"님 탈출 실패!\uD83C\uDFDD\uFE0F");
+
+            webSocketService.sendGame(roomId, "prison", gameType, msg);
+
             endTurn(roomId, gameType);
             return;
         }
 
+        String result = String.valueOf(dice);
         if(isDouble) {
             roomState.setDouble(true);
             roomState.setDoubleCount(roomState.getDoubleCount() + 1);
+            result = dice+"(더블)";
+
             if(roomState.getDoubleCount() >= 3) {
                 player.setSkipTurn(true);
                 player.setPosition(6);
                 roomState.setDouble(false);
+
+                Map<String, Object> msg = new HashMap<>();
+                msg.put("players", boardPlayerService.getPlayers(roomId));
+                msg.put("message", player.getNickname()+"님이 무인도에 갇혔습니다!\uD83C\uDFDD\uFE0F");
+
+                webSocketService.sendGame(roomId, "prison", gameType, msg);
 
                 endTurn(roomId, gameType);
                 return;
@@ -128,20 +143,38 @@ public class BoardGameService {
             roomState.setDoubleCount(0);
         }
 
+        int startPos = player.getPosition();
         int position = (player.getPosition() + dice) % 24;
         player.setPosition(position);
-
-        if (position == 6) {
-            player.setSkipTurn(true);
-        }
 
         roomState.setDouble(isDouble);
 
         Map<String, Object> data = new HashMap<>();
         data.put("players", boardPlayerService.getPlayers(roomId));
         data.put("roomState", roomState);
+        data.put("message", player.getNickname()+"님이 "+result+"칸 이동!\uD83C\uDFB2");
 
         webSocketService.sendGame(roomId, "roll", gameType, data);
+
+        if(position < startPos) {
+            player.setBalance(player.getBalance() + 15);
+
+            Map<String, Object> msg = new HashMap<>();
+            msg.put("players", boardPlayerService.getPlayers(roomId));
+            msg.put("message", player.getNickname()+"님이 월급 획득!\uD83D\uDCB5");
+
+            webSocketService.sendGame(roomId, "salary", gameType, msg);
+        }
+
+        if (position == 6) {
+            player.setSkipTurn(true);
+
+            Map<String, Object> msg = new HashMap<>();
+            msg.put("message", player.getNickname()+"님이 무인도에 갇혔습니다!\uD83C\uDFDD\uFE0F");
+
+            webSocketService.sendGame(roomId, "prison", gameType, msg);
+            endTurn(roomId, gameType);
+        }
     }
 
     // 통행료 지급
@@ -160,6 +193,7 @@ public class BoardGameService {
         Map<String, Object> data = new HashMap<>();
         data.put("players", boardPlayerService.getPlayers(roomId));
         data.put("lands", landService.getLands(roomId));
+        data.put("message", player.getNickname()+"님이 "+owner.getNickname()+"님 에게 "+land.getToll()+"원 지불 완료!\uD83D\uDCB0");
 
         webSocketService.sendGame(roomId, "toll", gameType, data);
 
@@ -179,6 +213,7 @@ public class BoardGameService {
         Map<String, Object> data = new HashMap<>();
         data.put("players", boardPlayerService.getPlayers(roomId));
         data.put("lands", landService.getLand(roomId, landId));
+        data.put("message", player.getNickname()+"님이 "+land.getName()+" 구매!\uD83D\uDC5B");
 
         webSocketService.sendGame(roomId, "purchase", gameType, data);
 
@@ -204,6 +239,8 @@ public class BoardGameService {
         data.put("players", boardPlayerService.getPlayers(roomId));
         data.put("roomState", roomStateService.getState(roomId));
         data.put("lands", landService.getLands(roomId));
+        data.put("message", player.getNickname()+"님이 "+land.getToll()+"원 지불 완료!\uD83D\uDCB0");
+
 
         webSocketService.sendGame(roomId, "tax", gameType, data);
 
@@ -220,25 +257,29 @@ public class BoardGameService {
                     land.setOwnerId(null);
                 }
             }
+
+            // 파산 인원 확인
+            List<BoardPlayerDTO> players = boardPlayerService.getPlayers(roomId);
+            long active = players.stream().filter(BoardPlayerDTO::isActive).count();
+            if(active <= 1) {
+                endGame(roomId, "board");
+            }
         }
     }
 
     // 월급/금고
     public void salary(Long roomId, Long userId, int landId, String gameType) {
-        LandDTO land = landService.getLand(roomId, landId);
         BoardPlayerDTO player = boardPlayerService.getPlayer(roomId, userId);
 
-        if(land.getLandId() == 0) { // 월급
-            player.setBalance(player.getBalance() + land.getToll());
-        } else { // 금고 초기화
-            RoomStateDTO roomState = roomStateService.getState(roomId);
-            player.setBalance(player.getBalance() + roomState.getPot());
-            roomState.setPot(0);
-        }
+        RoomStateDTO roomState = roomStateService.getState(roomId);
+        int amount = roomState.getPot();
+        player.setBalance(player.getBalance() + amount);
+        roomState.setPot(0);
 
         Map<String, Object> data = new HashMap<>();
         data.put("players", boardPlayerService.getPlayers(roomId));
         data.put("roomState", roomStateService.getState(roomId));
+        data.put("message", player.getNickname()+"님이 "+amount+"원 획득!\uD83D\uDCB0");
 
         webSocketService.sendGame(roomId, "salary", gameType, data);
 
@@ -248,6 +289,10 @@ public class BoardGameService {
     public void endTurn(Long roomId, String gameType) {
         RoomStateDTO roomState = roomStateService.getState(roomId);
         List<BoardPlayerDTO> players = boardPlayerService.getPlayers(roomId);
+
+        if(roomState.isDouble()) {
+            return;
+        }
 
         int nextTurn = (roomState.getCurrentTurn() + 1) % players.size();
 
@@ -267,7 +312,11 @@ public class BoardGameService {
         roomState.setCurrentTurn(nextTurn);
         roomState.setDouble(false);
 
-        webSocketService.sendGame(roomId, "turn_end", gameType, roomState);
+        Map<String, Object> data = new HashMap<>();
+        data.put("roomState", roomState);
+        data.put("message", players.get(nextTurn).getNickname()+" 턴!\uD83D\uDC4B");
+
+        webSocketService.sendGame(roomId, "turn_end", gameType, data);
     }
 
     public void endGame(Long roomId, String gameType) {
@@ -315,6 +364,7 @@ public class BoardGameService {
         data.put("selectIdx", selectIdx);
         data.put("isCorrect", isCorrect);
         data.put("lands", landService.getLands(roomId));
+        data.put("message", player.getNickname()+"님의 퀴즈 결과는? "+(isCorrect ? "성공!\uD83C\uDF89" : "실패!\uD83D\uDCA9"));
 
         webSocketService.sendGame(roomId, "quiz_check", gameType, data);
 

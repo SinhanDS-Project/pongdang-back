@@ -43,7 +43,7 @@ public class StompEventListener {
         String type = (String) accessor.getSessionAttributes().get("type");
 
         // 게임 대기방 리스트 연결 시
-        if(type.equals("list")) {
+        if(type == null || type.equals("list")) {
             return;
         }
 
@@ -117,7 +117,7 @@ public class StompEventListener {
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
         // 게임 대기방 리스트 연결 종료 시
-        if(type.equals("list")) {
+        if(type == null || type.equals("list")) {
             return;
         }
 
@@ -161,6 +161,7 @@ public class StompEventListener {
 
                     } else {
                         turtleGameService.removeGame(roomId);
+                        gameRoomService.deleteRoom(roomId);
                         webSocketService.sendList(gameRoomService.selectAll());
                     }
                 }
@@ -197,7 +198,12 @@ public class StompEventListener {
                 boardGameService.processUserLose(roomId, userId);
 
                 boardPlayerService.exitPlayer(roomId, userId);
+                BoardPlayerDTO player = boardPlayerService.getPlayer(roomId, userId);
                 players = boardPlayerService.getPlayers(roomId);
+
+                if(players.size() <= 1) {
+                    boardGameService.endGame(roomId, gameType);
+                }
 
                 if (userId.equals(gameroom.getHostId())) {
                     if (players != null && !players.isEmpty()) {
@@ -205,10 +211,16 @@ public class StompEventListener {
                         gameRoomService.updateHost(roomId, hostId);
 
                     } else {
-                        turtleGameService.removeGame(roomId);
+                        gameRoomService.deleteRoom(roomId);
                         webSocketService.sendList(gameRoomService.selectAll());
                     }
                 }
+
+                Map<String, Object> data = new HashMap<>();
+                data.put("players", players);
+                data.put("message", player.getNickname()+"님 퇴장!\uD83D\uDEAA");
+
+                webSocketService.sendGame(roomId, "exit", gameType, data);
 
                 if(!event.getCloseStatus().equals(CloseStatus.NORMAL)) {
                     Map<String, Object> msg = new HashMap<>();
