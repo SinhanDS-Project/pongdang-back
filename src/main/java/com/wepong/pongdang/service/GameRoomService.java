@@ -49,7 +49,14 @@ public class GameRoomService {
 							(boardPlayerService.getPlayers(room.getId()) != null ?
 									boardPlayerService.getPlayers(room.getId()).size() : 0);
 
-					return GameRoomResponseDTO.GameRoomDetailDTO.from(room, count);
+					String gameType = null;
+					if(gameEntity.getName().equals("Turtle Run")) {
+						gameType = "turtle";
+					} else if(gameEntity.getName().equals("Pong Marble")) {
+						gameType = "board";
+					}
+
+					return GameRoomResponseDTO.GameRoomDetailDTO.from(room, count, gameType);
 				});
 
 		return GameRoomResponseDTO.GameRoomListDTO.from(details);
@@ -65,7 +72,15 @@ public class GameRoomService {
 							turtlePlayerService.getPlayers(room.getId()).size() :
 							(boardPlayerService.getPlayers(room.getId()) != null ?
 									boardPlayerService.getPlayers(room.getId()).size() : 0);
-					return GameRoomResponseDTO.GameRoomDetailDTO.from(room, count);
+
+					String gameType = null;
+					if(gameEntity.getName().equals("Turtle Run")) {
+						gameType = "turtle";
+					} else if(gameEntity.getName().equals("Pong Marble")) {
+						gameType = "board";
+					}
+
+					return GameRoomResponseDTO.GameRoomDetailDTO.from(room, count, gameType);
 				}).collect(Collectors.toList());
 
 		return details;

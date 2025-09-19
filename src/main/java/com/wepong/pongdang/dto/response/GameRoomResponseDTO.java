@@ -49,7 +49,7 @@ public class GameRoomResponseDTO {
 		private String gameType;
 		private int count;
 
-		public static GameRoomDetailDTO from(GameRoomEntity room, int count) {
+		public static GameRoomDetailDTO from(GameRoomEntity room, int count, String gameType) {
 			return GameRoomDetailDTO.builder()
 					.id(room.getId())
 					.title(room.getTitle())
@@ -61,6 +61,7 @@ public class GameRoomResponseDTO {
 					.hostId(room.getUser().getId())
 					.createdAt(room.getCreatedAt())
 					.status(room.getStatus())
+					.gameType(gameType)
 					.build();
 		}
 
