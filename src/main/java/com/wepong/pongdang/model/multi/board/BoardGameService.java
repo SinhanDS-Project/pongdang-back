@@ -257,6 +257,13 @@ public class BoardGameService {
                     land.setOwnerId(null);
                 }
             }
+
+            // 파산 인원 확인
+            List<BoardPlayerDTO> players = boardPlayerService.getPlayers(roomId);
+            long active = players.stream().filter(BoardPlayerDTO::isActive).count();
+            if(active <= 1) {
+                endGame(roomId, "board");
+            }
         }
     }
 

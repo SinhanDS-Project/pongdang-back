@@ -193,25 +193,34 @@ public class StompEventListener {
                 webSocketService.sendRoom(roomId, "exit", gameType, players);
             }
         } else if("boardgame".equals(type)) {
-//            List<BoardPlayerDTO> players;
-//            if(!status.equals(GameRoomStatus.WAITING)) {
-//                boardGameService.processUserLose(roomId, userId);
-//
-//                boardPlayerService.exitPlayer(roomId, userId);
-//                players = boardPlayerService.getPlayers(roomId);
-//
-//                if (userId.equals(gameroom.getHostId())) {
-//                    if (players != null && !players.isEmpty()) {
-//                        Long hostId = players.get(0).getUserId();
-//                        gameRoomService.updateHost(roomId, hostId);
-//
-//                    } else {
-//                        gameRoomService.deleteRoom(roomId);
-//                        webSocketService.sendList(gameRoomService.selectAll());
-//                    }
-//                }
-//
-//                webSocketService.sendGame(roomId, "exit", gameType, players);
+            List<BoardPlayerDTO> players;
+            if(!status.equals(GameRoomStatus.WAITING)) {
+                boardGameService.processUserLose(roomId, userId);
+
+                boardPlayerService.exitPlayer(roomId, userId);
+                BoardPlayerDTO player = boardPlayerService.getPlayer(roomId, userId);
+                players = boardPlayerService.getPlayers(roomId);
+
+                if(players.size() <= 1) {
+                    boardGameService.endGame(roomId, gameType);
+                }
+
+                if (userId.equals(gameroom.getHostId())) {
+                    if (players != null && !players.isEmpty()) {
+                        Long hostId = players.get(0).getUserId();
+                        gameRoomService.updateHost(roomId, hostId);
+
+                    } else {
+                        gameRoomService.deleteRoom(roomId);
+                        webSocketService.sendList(gameRoomService.selectAll());
+                    }
+                }
+
+                Map<String, Object> data = new HashMap<>();
+                data.put("players", players);
+                data.put("message", player.getNickname()+"님 퇴장!\uD83D\uDEAA");
+
+                webSocketService.sendGame(roomId, "exit", gameType, data);
 
                 if(!event.getCloseStatus().equals(CloseStatus.NORMAL)) {
                     Map<String, Object> msg = new HashMap<>();
@@ -219,8 +228,8 @@ public class StompEventListener {
                     msg.put("targetUrl", "/game/rooms");
                     webSocketService.sendGame(roomId, "force_exit", gameType, msg);
                 }
-//            }
+            }
         }
-//        webSocketService.sendList(gameRoomService.selectAll());
+        webSocketService.sendList(gameRoomService.selectAll());
     }
 }
