@@ -1,0 +1,89 @@
+version: "3.9"
+
+services:
+  # 프론트엔드
+  frontend:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    container_name: pongdang-front
+    ports:
+      - "80:3000"
+    depends_on:
+      - backend
+    env_file:
+      - ./front/.env
+      - ./front/.env.local
+    networks:
+      - pongdang-net
+
+  # Spring Boot 백엔드
+  backend:
+    image: pongdang/pongdang-back:v1.0.0
+    container_name: pongdang-back
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mariadb-db
+      - mysql-db
+    env_file:
+      - ./back/.env
+    networks:
+      - pongdang-net
+
+  # FastAPI (Python ML 서비스)
+  python:
+    image: pongdang/pongdang-python:v1.0.0
+    container_name: pongdang-python
+    expose:
+      - "8000:8000"
+    networks:
+      - pongdang-net
+
+  # MySQL DB
+  mysql-db:
+    image: mysql:8.0.42
+    container_name: pongdang-mysql
+    restart: always
+    environment:
+      TZ: Asia/Seoul
+      MYSQL_ROOT_PASSWORD: betting
+      MYSQL_DATABASE: betting
+      MYSQL_USER: betting
+      MYSQL_PASSWORD: betting
+    command: [
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_general_ci"
+    ]
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+    networks:
+      - pongdang-net
+
+  # MariaDB
+  mariadb-db:
+    image: mariadb:11.8.2
+    container_name: pongdang-mariadb
+    restart: always
+    environment:
+      TZ: Asia/Seoul
+      MARIADB_ROOT_PASSWORD: betting
+      MARIADB_DATABASE: pong
+      MARIADB_USER: betting
+      MARIADB_PASSWORD: betting
+    command: [
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_general_ci"
+    ]
+    ports:
+      - "3308:3306"
+    volumes:
+      - ./mariadb/data:/var/lib/mysql
+    networks:
+      - pongdang-net
+
+networks:
+  pongdang-net:
+    driver: bridge
