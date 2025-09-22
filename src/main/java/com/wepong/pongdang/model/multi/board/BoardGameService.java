@@ -1,6 +1,7 @@
 package com.wepong.pongdang.model.multi.board;
 
 import com.wepong.pongdang.dto.response.GameRoomResponseDTO;
+import com.wepong.pongdang.dto.response.QuizResponseDTO;
 import com.wepong.pongdang.entity.*;
 import com.wepong.pongdang.entity.enums.PongHistoryType;
 import com.wepong.pongdang.entity.enums.RankType;
@@ -30,6 +31,7 @@ public class BoardGameService {
     private final BoardPlayerService boardPlayerService;
     private final RoomStateService roomStateService;
     private final LandService landService;
+    private final QuizService quizService;
 
     private final Map<Long, List<BoardPlayerDTO>> startBoardPlayersMap = new ConcurrentHashMap<>();
     private final WebSocketService webSocketService;
@@ -369,6 +371,18 @@ public class BoardGameService {
         webSocketService.sendGame(roomId, "quiz_check", gameType, data);
 
         endTurn(roomId, gameType);
+    }
+
+    // 랜덤 퀴즈 전송
+    public void sendQuiz(Long roomId, Long userId, String gameType) {
+        BoardPlayerDTO player = boardPlayerService.getPlayer(roomId, userId);
+        QuizResponseDTO.QuizView quiz = quizService.getRandomQuiz();
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("quiz", quiz);
+        data.put("turnOrder", player.getTurnOrder());
+
+        webSocketService.sendGame(roomId, "quiz", gameType, data);
     }
 
     // 게임 결과 저장
