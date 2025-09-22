@@ -133,14 +133,12 @@ public class StompEventListener {
                 turtlePlayerService.exitPlayer(roomId, userId);
                 players = turtlePlayerService.getPlayers(roomId);
 
-                if(userId.equals(gameroom.getHostId())) {
-                    if(players != null && !players.isEmpty()) {
+                if(players == null || players.isEmpty()) {
+                    gameRoomService.deleteRoom(roomId);
+                } else {
+                    if (userId.equals(gameroom.getHostId())) {
                         Long hostId = players.get(0).getUserId();
                         gameRoomService.updateHost(roomId, hostId);
-
-                    } else {
-                        gameRoomService.deleteRoom(roomId);
-                        webSocketService.sendList(gameRoomService.selectAll());
                     }
                 }
 
@@ -154,15 +152,13 @@ public class StompEventListener {
                 turtlePlayerService.exitPlayer(roomId, userId);
                 players = turtlePlayerService.getPlayers(roomId);
 
-                if (userId.equals(gameroom.getHostId())) {
-                    if (players != null && !players.isEmpty()) {
+                if(players == null || players.isEmpty()) {
+                    turtleGameService.removeGame(roomId);
+                    gameRoomService.deleteRoom(roomId);
+                } else {
+                    if (userId.equals(gameroom.getHostId())) {
                         Long hostId = players.get(0).getUserId();
                         gameRoomService.updateHost(roomId, hostId);
-
-                    } else {
-                        turtleGameService.removeGame(roomId);
-                        gameRoomService.deleteRoom(roomId);
-                        webSocketService.sendList(gameRoomService.selectAll());
                     }
                 }
 
@@ -179,14 +175,12 @@ public class StompEventListener {
                 boardPlayerService.exitPlayer(roomId, userId);
                 players = boardPlayerService.getPlayers(roomId);
 
-                if(userId.equals(gameroom.getHostId())) {
-                    if(players != null && !players.isEmpty()) {
+                if(players == null || players.isEmpty()) {
+                    gameRoomService.deleteRoom(roomId);
+                } else {
+                    if(userId.equals(gameroom.getHostId())) {
                         Long hostId = players.get(0).getUserId();
                         gameRoomService.updateHost(roomId, hostId);
-
-                    } else {
-                        gameRoomService.deleteRoom(roomId);
-                        webSocketService.sendList(gameRoomService.selectAll());
                     }
                 }
 
@@ -197,22 +191,20 @@ public class StompEventListener {
             if(!status.equals(GameRoomStatus.WAITING)) {
                 boardGameService.processUserLose(roomId, userId);
 
-                boardPlayerService.exitPlayer(roomId, userId);
                 BoardPlayerDTO player = boardPlayerService.getPlayer(roomId, userId);
+
+                boardPlayerService.exitPlayer(roomId, userId);
                 players = boardPlayerService.getPlayers(roomId);
 
-                if(players.size() <= 1) {
-                    boardGameService.endGame(roomId, gameType);
-                }
-
-                if (userId.equals(gameroom.getHostId())) {
-                    if (players != null && !players.isEmpty()) {
+                if(players == null || players.isEmpty()) {
+                    gameRoomService.deleteRoom(roomId);
+                } else {
+                    if(players.size() <= 1) {
+                        boardGameService.endGame(roomId, gameType);
+                    }
+                    if (userId.equals(gameroom.getHostId())) {
                         Long hostId = players.get(0).getUserId();
                         gameRoomService.updateHost(roomId, hostId);
-
-                    } else {
-                        gameRoomService.deleteRoom(roomId);
-                        webSocketService.sendList(gameRoomService.selectAll());
                     }
                 }
 
