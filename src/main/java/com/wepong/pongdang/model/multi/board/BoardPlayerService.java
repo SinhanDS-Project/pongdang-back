@@ -33,7 +33,7 @@ public class BoardPlayerService {
                 .nickname(user.getNickname())
                 .roomId(roomId)
                 .isReady(false)
-                .balance(80)
+                .balance(30)
                 .position(0)
                 .skipTurn(false)
                 .active(true)
