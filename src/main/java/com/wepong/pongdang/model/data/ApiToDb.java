@@ -1,4 +1,4 @@
-package com.wepong.pongdang.model;
+package com.wepong.pongdang.model.data;
 
 import com.wepong.pongdang.entity.DonationInfoEntity;
 import com.wepong.pongdang.repository.DonationInfoRepository;
@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.stereotype.Component;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 
