@@ -158,6 +158,11 @@ public class BoardGameService {
 
         webSocketService.sendGame(roomId, "roll", gameType, data);
 
+        if(player.isSkipTurn()) {
+            player.setSkipTurn(false);
+            endTurn(roomId, gameType);
+        }
+
         if(position < startPos) {
             player.setBalance(player.getBalance() + 15);
 
