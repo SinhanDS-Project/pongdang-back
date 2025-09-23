@@ -52,29 +52,28 @@ public class BoardPlayerService {
         return players.stream().anyMatch(p -> p.getUserId().equals(userId));
     }
 
-    public void setRandomTurtle(Long userId, Long roomId) {
-        BoardPlayerDTO player = getPlayer(roomId, userId);
+    public void setRandomTurtle(Long roomId) {
+        List<BoardPlayerDTO> players = getPlayers(roomId);
 
-        if (player != null && "random".equals(player.getTurtleId())) {
-            // 1) 전체 색상 목록
-            List<String> allColors = List.of("green", "orange", "pink", "yellow");
+        if(players != null && !players.isEmpty()) {
+            List<String> allColors = new ArrayList<>(List.of("green", "orange", "pink", "yellow"));
 
-            // 2) 현재 방의 플레이어들이 이미 선택한 색상 추출
-            List<BoardPlayerDTO> players = getPlayers(roomId);
+            // 선택 색상 제외
             Set<String> usedColors = players.stream()
                     .map(BoardPlayerDTO::getTurtleId)
                     .filter(id -> id != null && !"random".equals(id))
                     .collect(Collectors.toSet());
 
-            // 3) 선택 가능한 색상만 필터링
-            List<String> availableColors = allColors.stream()
-                    .filter(color -> !usedColors.contains(color))
-                    .collect(Collectors.toList());
+            allColors.removeAll(usedColors);
 
-            // 4) 무작위 선택
-            if (!availableColors.isEmpty()) {
-                String randomColor = availableColors.get(new Random().nextInt(availableColors.size()));
-                player.setTurtleId(randomColor);
+            // 색상 랜덤 섞기
+            Collections.shuffle(allColors);
+
+            // 색상 할당
+            for (BoardPlayerDTO player : players) {
+                if ("random".equals(player.getTurtleId()) && !allColors.isEmpty()) {
+                    player.setTurtleId(allColors.remove(0));
+                }
             }
         }
     }

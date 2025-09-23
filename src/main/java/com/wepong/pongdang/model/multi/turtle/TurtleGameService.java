@@ -145,7 +145,6 @@ public class TurtleGameService {
 
             int reward = rewardConfig.getReward();
             int donation = rewardConfig.getDonation();
-            int pongChange = reward;
 
             saveTurtleRunResult(player.getUserId(), entryFee, reward, donation, rankType, gameName);
 
@@ -155,8 +154,7 @@ public class TurtleGameService {
             result.put("selectedTurtle", selectedTurtle);
             result.put("nickname", player.getNickname());
             result.put("rank", rankType);
-            result.put("winAmount", reward);
-            result.put("pointChange", pongChange);
+            result.put("winAmount", reward-donation);
             results.add(result);
         }
 
