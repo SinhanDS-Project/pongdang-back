@@ -1,9 +1,6 @@
 package com.wepong.pongdang.controller;
 
-import com.wepong.pongdang.dto.response.QuizResponseDTO;
 import com.wepong.pongdang.model.multi.board.*;
-import com.wepong.pongdang.service.QuizService;
-import com.wepong.pongdang.service.WebSocketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -18,23 +15,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class BoardGameController {
 
-    private final BoardPlayerService boardPlayerService;
     private final BoardGameService boardGameService;
 
     // 게임 시작
     @MessageMapping("/board/start/{roomId}")
     public void startGame(@DestinationVariable Long roomId, SimpMessageHeaderAccessor accessor) {
-        Long userId = (Long) accessor.getSessionAttributes().get("userId");
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
-
-        // 랜덤 색상 세팅
-        boardPlayerService.setRandomTurtle(userId, roomId);
-
-        // 턴 세팅
-        List<BoardPlayerDTO> players = boardPlayerService.getPlayers(roomId);
-        for (int i = 0; i < players.size(); i++) {
-            players.get(i).setTurnOrder(i);
-        }
 
         // RoomState, Land 메모리 생성 후 전송
         boardGameService.startGame(roomId, gameType);

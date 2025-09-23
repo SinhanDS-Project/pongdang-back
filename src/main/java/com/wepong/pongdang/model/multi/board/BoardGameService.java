@@ -42,6 +42,14 @@ public class BoardGameService {
         List<BoardPlayerDTO> startPlayers = boardPlayerService.getPlayers(roomId);
 
         if(startPlayers != null) {
+            // 턴 세팅
+            for (int i = 0; i < startPlayers.size(); i++) {
+                startPlayers.get(i).setTurnOrder(i);
+            }
+
+            // 랜덤 거북이 세팅
+            boardPlayerService.setRandomTurtle(roomId);
+
             startBoardPlayersMap.put(roomId, new ArrayList<>(startPlayers));
         }
 
