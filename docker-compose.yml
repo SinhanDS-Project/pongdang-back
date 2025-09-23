@@ -12,8 +12,7 @@ services:
     depends_on:
       - backend
     env_file:
-      - ./front/.env
-      - ./front/.env.local
+      - ./front/.env.production
     networks:
       - pongdang-net
 
