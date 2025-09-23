@@ -22,9 +22,12 @@ services:
     container_name: pongdang-back
     ports:
       - "8080:8080"
+    environment:
+      FASTAPI_URL: http://python:8000/predict
     depends_on:
       - mariadb-db
       - mysql-db
+      - python
     env_file:
       - ./back/.env
     networks:
@@ -35,7 +38,7 @@ services:
     image: pongdang/pongdang-python:v1.0.0
     container_name: pongdang-python
     expose:
-      - "8000:8000"
+      - "8000"
     networks:
       - pongdang-net
 
