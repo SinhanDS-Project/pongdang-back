@@ -22,4 +22,5 @@ public class BoardPlayerDTO {
     private boolean skipTurn; // 무인도 여부
     private boolean active; // false: 파산
     private int rank; // 순위
+    private int reward; // 적립 퐁
 }

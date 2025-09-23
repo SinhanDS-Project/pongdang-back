@@ -20,8 +20,6 @@ public class BoardGameController {
 
     private final BoardPlayerService boardPlayerService;
     private final BoardGameService boardGameService;
-    private final QuizService quizService;
-    private final WebSocketService webSocketService;
 
     // 게임 시작
     @MessageMapping("/board/start/{roomId}")
@@ -83,10 +81,10 @@ public class BoardGameController {
     @MessageMapping("/quiz/{roomId}")
     public void handleQuiz(@DestinationVariable Long roomId,
                            SimpMessageHeaderAccessor accessor) {
+        Long userId = (Long) accessor.getSessionAttributes().get("userId");
         String gameType = (String) accessor.getSessionAttributes().get("gameType");
 
-        QuizResponseDTO.QuizView quiz = quizService.getRandomQuiz();
-        webSocketService.sendGame(roomId, "quiz", gameType, quiz);
+        boardGameService.sendQuiz(roomId, userId, gameType);
     }
 
     // 퀴즈 풀기 -> 클라이언트가 정답 처리 후 보낸 결과값만 처리

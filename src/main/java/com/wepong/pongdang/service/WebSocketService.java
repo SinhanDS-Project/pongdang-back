@@ -38,14 +38,6 @@ public class WebSocketService {
         messagingTemplate.convertAndSend("/topic/game/" + gameType + "/" + roomId, payload);
     }
 
-    public void sendGame(Long roomId, String gameType, String type) {
-        WebSocketResponseDTO payload = WebSocketResponseDTO.builder()
-                .type(type)
-                .build();
-
-        messagingTemplate.convertAndSend("/topic/game/" + gameType + "/" + roomId, payload);
-    }
-
     public void sendMain(String type, Object data) {
         WebSocketResponseDTO payload = WebSocketResponseDTO.builder()
                 .type(type)
