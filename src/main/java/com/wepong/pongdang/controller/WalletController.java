@@ -34,14 +34,4 @@ public class WalletController {
         attendanceService.eventCheck(request.getEventType(), userId);
         return ResponseEntity.ok(Map.of("message", "퐁이 적립되었습니다."));
     }
-
-    @PutMapping("/lose")
-    public ResponseEntity<?> loseWallet(@RequestBody WalletRequestDTO request,
-                             @RequestHeader(value = "Authorization") String authHeader) {
-        Long userId = authService.validateAndGetUserId(authHeader);
-        UserEntity user = authService.findById(userId);
-
-        walletService.lose(request.getAmount(), user, request.getWalletType());
-        return ResponseEntity.ok(Map.of("message", "퐁이 차감되었습니다."));
-    }
 }

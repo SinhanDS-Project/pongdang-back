@@ -52,13 +52,6 @@ public class WalletService {
 
 		pongWallet.setPongBalance(pongWallet.getPongBalance() - point);
 		walletRepository.save(pongWallet);
-
-		PongHistoryEntity history = PongHistoryEntity.builder()
-				.amount(point)
-				.type(PongHistoryType.PURCHASE)
-				.build();
-
-		historyService.insertPointHistory(history, user);
 	}
 
 	// 퐁 증가
