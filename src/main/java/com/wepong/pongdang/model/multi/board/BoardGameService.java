@@ -8,6 +8,7 @@ import com.wepong.pongdang.entity.enums.RankType;
 import com.wepong.pongdang.entity.enums.WalletType;
 import com.wepong.pongdang.exception.GameNotFoundException;
 import com.wepong.pongdang.repository.RewardPerResultRepository;
+import com.wepong.pongdang.repository.WalletRepository;
 import com.wepong.pongdang.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,7 @@ public class BoardGameService {
     private final Map<Long, List<BoardPlayerDTO>> startBoardPlayersMap = new ConcurrentHashMap<>();
     private final WebSocketService webSocketService;
     private final RewardPerResultRepository rewardPerResultRepository;
+    private final WalletRepository walletRepository;
 
     // 게임 시작
     public void startGame(Long roomId, String gameType) {
@@ -447,11 +449,14 @@ public class BoardGameService {
 
             if (pongWallet != null && donaWallet != null) {
                 if (!rankType.equals(RankType.LOSE)) {
-                    pongWallet.setPongBalance(pongWallet.getPongBalance() - entryFee + reward);
+                    pongWallet.setPongBalance(pongWallet.getPongBalance() - entryFee + reward - donation);
                     donaWallet.setPongBalance(donaWallet.getPongBalance() + donation);
                 } else {
                     pongWallet.setPongBalance(pongWallet.getPongBalance() - entryFee);
                 }
+
+                walletRepository.save(pongWallet);
+                walletRepository.save(donaWallet);
 
                 // 히스토리/포인트 히스토리 등도 기록
                 Long gameId = gameService.selectByName(gameName)
@@ -472,17 +477,20 @@ public class BoardGameService {
                 historyService.insertGameHistory(gameHistoryEntity, user);
 
                 // 포인트 히스토리 저장
-                PongHistoryEntity rewardResult = PongHistoryEntity.builder()
-                        .type(PongHistoryType.GAME_P)
-                        .amount(reward)
-                        .build();
+                if(reward > 0) {
+                    PongHistoryEntity rewardResult = PongHistoryEntity.builder()
+                            .type(PongHistoryType.GAME_P)
+                            .amount(reward - donation)
+                            .build();
+
+                    historyService.insertPointHistory(rewardResult, user);
+                }
 
                 PongHistoryEntity entryFeeResult = PongHistoryEntity.builder()
                         .type(PongHistoryType.ENTRY)
                         .amount(entryFee)
                         .build();
 
-                historyService.insertPointHistory(rewardResult, user);
                 historyService.insertPointHistory(entryFeeResult, user);
 
                 if (donation > 0) {
