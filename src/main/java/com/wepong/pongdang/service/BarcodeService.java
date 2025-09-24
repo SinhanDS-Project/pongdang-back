@@ -14,6 +14,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -24,9 +25,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Random;
 
 @Service
@@ -106,8 +104,11 @@ public class BarcodeService {
         }
 
         // 로고 이미지 첨부 (예: resources/static/logo.png 에서 불러오기)
-        Path path = Paths.get("src/main/resources/static/images/pongdang.png");
-        byte[] logoBytes = Files.readAllBytes(path);
+        ClassPathResource resource = new ClassPathResource("static/images/pongdang.png");
+        byte[] logoBytes;
+        try (InputStream in = resource.getInputStream()) {
+            logoBytes = in.readAllBytes();
+        }
         helper.addInline("logoImage", new ByteArrayResource(logoBytes), "image/png");
 
         mailSender.send(message);
