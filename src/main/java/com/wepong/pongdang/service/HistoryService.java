@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +35,7 @@ public class HistoryService {
 
     public HistoryResponseDTO.PointResponseDTO pointHistoryList(Long userId, int page, int size) {
         int offset = (page - 1) * size;
-        Pageable pageable = PageRequest.of(offset / size, size);
+        Pageable pageable = PageRequest.of(offset / size, size, Sort.Direction.DESC, "createdAt");
         Page<PongHistoryEntity> list = pongHistoryRepository.findByUserId(userId, pageable);
 
         Page<HistoryResponseDTO.PointDetailResponseDTO> details = list.map(HistoryResponseDTO.PointDetailResponseDTO::from);
