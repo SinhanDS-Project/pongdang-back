@@ -87,14 +87,6 @@ public class GameRestController {
         Long id = authService.validateAndGetUserId(authHeader);
 		UserEntity user = authService.findById(id);
 
-        // 퐁 히스토리 저장 (ADD 타입)
-        PongHistoryEntity pongHistoryEntity = PongHistoryEntity.builder()
-                .type(PongHistoryType.ADD)   // ADD 타입 기록
-                .amount(1)                   // 1퐁 지급
-                .build();
-
-        historyService.insertPointHistory(pongHistoryEntity, user);
-
         //  실제 포인트 지급
         walletService.add(1, user, WalletType.PONG);
 

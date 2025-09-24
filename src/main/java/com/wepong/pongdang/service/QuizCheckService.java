@@ -78,12 +78,6 @@ public class QuizCheckService {
         ); // 최대 3 포인트 제한
 
         if (reward > 0) {
-            PongHistoryEntity history = PongHistoryEntity.builder()
-                    .type(PongHistoryType.ADD)
-                    .amount(reward)
-                    .build();
-
-            historyService.insertPointHistory(history, user);
             walletService.add(reward, user, WalletType.PONG);
         }
 
