@@ -75,4 +75,19 @@ public class WalletService {
 
 		historyService.insertPointHistory(history, user);
 	}
+
+	// 퐁 전환
+	public void convert(int point, UserEntity user, WalletType type) {
+		WalletEntity pongWallet = walletRepository.findByUserIdAndWalletType(user.getId(), type);
+
+		pongWallet.setPongBalance(pongWallet.getPongBalance() + point);
+		walletRepository.save(pongWallet);
+
+		PongHistoryEntity history = PongHistoryEntity.builder()
+				.amount(point)
+				.type(PongHistoryType.CONVERT)
+				.build();
+
+		historyService.insertPointHistory(history, user);
+	}
 }
