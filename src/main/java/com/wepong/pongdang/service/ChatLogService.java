@@ -8,11 +8,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -21,15 +21,11 @@ public class ChatLogService {
 
 	private final ChatLogRepository chatLogRepository;
 	private final AuthService authService;
-
-	public List<ChatLogsEntity> selectByUser(Long userId) {
-		return chatLogRepository.findByUserId(userId);
-	}
 	
 	public Page<ChatLogsEntity> selectByUser(Long userId, int page) {
 		int size = 10;
         int offset = (page-1) * size;
-		Pageable pageable = PageRequest.of(offset / size, size);
+		Pageable pageable = PageRequest.of(offset / size, size, Sort.Direction.DESC, "chatDate");
 		return chatLogRepository.findByUserId(userId, pageable);
 	}
 	

@@ -26,7 +26,7 @@ public class PointConvertService {
 
         // 3) pongdang 적립
         try {
-            walletService.add(pongAmount, user, WalletType.PONG);
+            walletService.convert(pongAmount, user, WalletType.PONG);
         } catch (RuntimeException e) {
             // 보상 트랜잭션: betting 되돌리기
             bettingUserPointService.addPoint(bettingUid, amount);

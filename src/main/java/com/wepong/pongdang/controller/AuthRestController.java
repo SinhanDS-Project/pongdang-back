@@ -144,8 +144,11 @@ public class AuthRestController {
         String name = req.get("name");
         String phone = req.get("phone");
 
+		// 전화번호에 - 삭제
+		String normalizedPhone = phone.replaceAll("-", "");
+
         // 퐁당서비스 DB에서 중복 확인
-        if (authService.isPhoneNumberExists(phone)) {
+        if (authService.isPhoneNumberExists(normalizedPhone)) {
             throw new UserAlreadyRegisteredException();
         }
 
