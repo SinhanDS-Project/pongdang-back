@@ -40,7 +40,9 @@ public final class VerificationTemplate {
                         <hr style="margin:32px 0 0 0;border-color:#d9d9d9">
                         <div style="margin-top:10px;font-size:12px;line-height:18px;letter-spacing:-1px;color:#767676">
                           본 메일은 발신전용입니다.<br>
-                          Copyright © PongDang.
+                          서비스 이용 안내는
+                          <a href="https://pongdang.shinhanacademy.co.kr/support/faq" target="_blank">FAQ</a> 를 참고해 주세요.<br>
+                          Copyright © <a href="https://pongdang.shinhanacademy.co.kr" target="_blank" style="color:inherit;text-decoration:none;">PongDang</a>.
                           All rights reserved.
                         </div>
                         </td>
