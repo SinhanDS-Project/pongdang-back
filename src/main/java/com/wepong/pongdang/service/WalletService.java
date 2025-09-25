@@ -61,12 +61,14 @@ public class WalletService {
 		pongWallet.setPongBalance(pongWallet.getPongBalance() + point);
 		walletRepository.save(pongWallet);
 
-		PongHistoryEntity history = PongHistoryEntity.builder()
-				.amount(point)
-				.type(PongHistoryType.ADD)
-				.build();
+		if(point > 0) {
+			PongHistoryEntity history = PongHistoryEntity.builder()
+					.amount(point)
+					.type(PongHistoryType.ADD)
+					.build();
 
-		historyService.insertPointHistory(history, user);
+			historyService.insertPointHistory(history, user);
+		}
 	}
 
 	// 퐁 전환
