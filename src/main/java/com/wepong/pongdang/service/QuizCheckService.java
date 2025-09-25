@@ -2,10 +2,8 @@ package com.wepong.pongdang.service;
 
 import com.wepong.pongdang.dto.request.QuizRequestDTO;
 import com.wepong.pongdang.dto.response.QuizResponseDTO;
-import com.wepong.pongdang.entity.PongHistoryEntity;
 import com.wepong.pongdang.entity.QuizCheckEntity;
 import com.wepong.pongdang.entity.UserEntity;
-import com.wepong.pongdang.entity.enums.PongHistoryType;
 import com.wepong.pongdang.entity.enums.WalletType;
 import com.wepong.pongdang.exception.QuizAlreadyTakenException;
 import com.wepong.pongdang.exception.UserCannotFoundException;
@@ -24,9 +22,9 @@ public class QuizCheckService {
 
     private final UserRepository userRepository;
     private final QuizCheckRepository quizCheckRepository;
-    private final HistoryService historyService;
     private final WalletService walletService;
     private final AuthService authService;
+    private final WebSocketService webSocketService;
 
     @Transactional
     public QuizResponseDTO.QuizCheckResponse markTodayQuizTaken(Long userId) { // check
@@ -79,6 +77,10 @@ public class QuizCheckService {
 
         if (reward > 0) {
             walletService.add(reward, user, WalletType.PONG);
+        }
+
+        if(request.getCorrectCount() == 3) {
+            webSocketService.sendMain("golden_bell", user.getNickname() + "님이 골든벨을 울리셨습니다! \uD83D\uDD14");
         }
 
         return QuizResponseDTO.QuizSubmitResponse.builder()
