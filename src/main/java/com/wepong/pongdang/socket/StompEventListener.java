@@ -34,9 +34,6 @@ public class StompEventListener {
     private final BoardGameService boardGameService;
     private final WebSocketService webSocketService;
 
-    private final Map<Long, List<TurtlePlayerDTO>> startTurtlePlayersMap = new ConcurrentHashMap<>();
-    private final Map<Long, List<BoardPlayerDTO>> startBoardPlayersMap = new ConcurrentHashMap<>();
-
     @EventListener
     public void handleConnect(SessionSubscribeEvent event) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
@@ -65,14 +62,14 @@ public class StompEventListener {
             turtlePlayerService.setRandomTurtle(userId, roomId, turtleCount);
 
             // (1) 게임 시작 전이면 검증 건너뛰고, 그냥 세션 등록
-            List<TurtlePlayerDTO> startPlayers = startTurtlePlayersMap.get(roomId);
-            if (startPlayers == null) {
+            List<TurtlePlayerDTO> players = turtlePlayerService.getPlayers(roomId);
+            if (players == null) {
                 return;
             }
 
             // (2) 게임 시작 후에는 userId가 freeze 목록에 없으면 강제퇴장
             boolean inGame = false;
-            for (TurtlePlayerDTO player : startPlayers) {
+            for (TurtlePlayerDTO player : players) {
                 if (player.getUserId().equals(userId)) {
                     inGame = true;
                     break;
@@ -87,13 +84,13 @@ public class StompEventListener {
                 try { Thread.sleep(50); } catch (InterruptedException ignored) {}
             }
         } else if(type.equals("boardgame")) {
-            List<BoardPlayerDTO> startPlayers = startBoardPlayersMap.get(roomId);
-            if (startPlayers == null) {
+            List<BoardPlayerDTO> players = boardPlayerService.getPlayers(roomId);
+            if (players == null) {
                 return;
             }
 
             boolean inGame = false;
-            for (BoardPlayerDTO player : startPlayers) {
+            for (BoardPlayerDTO player : players) {
                 if (player.getUserId().equals(userId)) {
                     inGame = true;
                     break;
