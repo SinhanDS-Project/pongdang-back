@@ -396,7 +396,6 @@ public class BoardGameService {
         data.put("players", boardPlayerService.getPlayers(roomId));
         data.put("selectIdx", selectIdx);
         data.put("isCorrect", isCorrect);
-        data.put("lands", landService.getLands(roomId));
         data.put("message", player.getNickname()+"님의 퀴즈 결과는? "+(isCorrect ? "성공!\uD83C\uDF89" : "실패!\uD83D\uDCA9"));
 
         webSocketService.sendGame(roomId, "quiz_check", gameType, data);
