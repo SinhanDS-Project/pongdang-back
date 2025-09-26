@@ -246,7 +246,6 @@ public class TurtleGameService {
                     int entryFee = gameroom.getEntryFee();
                     String gameName = gameroom.getGameName();
                     RankType gameResult = RankType.LOSE;
-                    int winAmount = 0;
                     // 1) 유저 정보 조회
                     UserEntity userEntity = authService.findById(userId);
                     if (userEntity != null) {
@@ -261,7 +260,7 @@ public class TurtleGameService {
                         GameHistoryEntity gameHistoryEntity = GameHistoryEntity.builder()
                                 .game(gameEntity)
                                 .entryFee(entryFee)
-                                .pongValue(Math.abs(winAmount - entryFee))
+                                .pongValue(0)
                                 .rank(gameResult)
                                 .build();
 
@@ -269,8 +268,8 @@ public class TurtleGameService {
 
                         // 포인트 히스토리 저장
                         PongHistoryEntity pongHistoryEntity = PongHistoryEntity.builder()
-                                .type(PongHistoryType.GAME_P)
-                                .amount(Math.abs(winAmount - entryFee))
+                                .type(PongHistoryType.ENTRY)
+                                .amount(entryFee)
                                 .build();
 
                         historyService.insertPointHistory(pongHistoryEntity, userEntity);

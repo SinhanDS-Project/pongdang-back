@@ -121,7 +121,21 @@ public class AuthService {
     } catch (ParseException e) {
         throw new IllegalArgumentException("생년월일 형식이 올바르지 않습니다. (yyyy-MM-dd)", e);
     }
-    
+
+		String[] profileImages = {
+				"7c372121-4078-4b43-b25a-b64bb1141e88.png",
+				"16f8c29d-9fdb-4b89-8ade-fa04f6815399.png",
+				"39637cae-22e1-407b-b65c-24546a18083c.png",
+				"8e19af35-b083-4cb0-b808-91c58c9b672c.png",
+				"d70ec61c-756d-4d19-85ae-c33d3bb264d2.png",
+				"cff1efd5-cc04-4ec2-8940-887bcb58f6bf.png",
+				"2cfae8ba-c4e3-4cbe-9ab8-9eaeda60f569.png",
+				"d321fc1e-010c-4231-be94-11f63dfa443a.png"
+		};
+
+		// 랜덤으로 하나 뽑기
+		String randomProfileImage = profileImages[new java.util.Random().nextInt(profileImages.length)];
+
 		UserEntity userEntity = UserEntity.builder()
 				.userName(dto.getUserName())
 				.password(passwordEncoder.encode(dto.getPassword()))
@@ -132,7 +146,7 @@ public class AuthService {
 				.agreePrivacy(dto.isAgreePrivacy())
                 .tutorialCheck(false)
                 .linkedWithBetting(dto.isLinkedWithBetting())
-                .profileImage("")
+                .profileImage(randomProfileImage)
 				.role(Role.USER)
 				.build();
 

@@ -30,8 +30,8 @@ public class WalletController {
         Long userId = authService.validateAndGetUserId(authHeader);
         UserEntity user = authService.findById(userId);
 
-        walletService.add(request.getAmount(), user, request.getWalletType());
         attendanceService.eventCheck(request.getEventType(), userId);
+        walletService.add(request.getAmount(), user, request.getWalletType());
         return ResponseEntity.ok(Map.of("message", "퐁이 적립되었습니다."));
     }
 }

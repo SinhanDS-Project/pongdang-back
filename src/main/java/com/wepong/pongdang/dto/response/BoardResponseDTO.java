@@ -53,6 +53,7 @@ public class BoardResponseDTO {
         private BoardType category;
         private int viewCount;
         private int likeCount;
+        private int replyCount;
         private Long userId;
         private String nickname;
         private LocalDateTime createdAt;
@@ -66,6 +67,7 @@ public class BoardResponseDTO {
                     .category(boardEntity.getCategory())
                     .viewCount(boardEntity.getViewCount())
                     .likeCount(boardEntity.getLikeCount())
+                    .replyCount(boardEntity.getReplies().size())
                     .userId(boardEntity.getUser().getId())
                     .nickname(boardEntity.getUser().getNickname())
                     .createdAt(boardEntity.getCreatedAt())
