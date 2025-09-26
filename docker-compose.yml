@@ -15,6 +15,7 @@ services:
       - ./front/.env.production
     networks:
       - pongdang-net
+    restart: always
 
   # Spring Boot 백엔드
   backend:
@@ -22,16 +23,14 @@ services:
     container_name: pongdang-back
     ports:
       - "8080:8080"
-    environment:
-      FASTAPI_URL: http://python:8000/predict
     depends_on:
       - mariadb-db
       - mysql-db
-      - python
     env_file:
       - ./back/.env
     networks:
       - pongdang-net
+    restart: always
 
   # FastAPI (Python ML 서비스)
   python:
@@ -41,6 +40,7 @@ services:
       - "8000"
     networks:
       - pongdang-net
+    restart: always
 
   # MySQL DB
   mysql-db:
@@ -53,6 +53,7 @@ services:
       MYSQL_DATABASE: betting
       MYSQL_USER: betting
       MYSQL_PASSWORD: betting
+      LANG: C.UTF-8
     command: [
       "--character-set-server=utf8mb4",
       "--collation-server=utf8mb4_general_ci"
