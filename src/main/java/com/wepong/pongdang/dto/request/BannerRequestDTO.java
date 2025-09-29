@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @Data
 public class BannerRequestDTO {
     private String title;
-    private String imagePath;
     private String bannerLinkUrl;
     private String description;
 }
