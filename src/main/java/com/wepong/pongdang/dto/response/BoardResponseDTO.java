@@ -1,7 +1,11 @@
 package com.wepong.pongdang.dto.response;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.wepong.pongdang.entity.BoardEntity;
 import com.wepong.pongdang.entity.enums.BoardType;
+import com.wepong.pongdang.model.aws.S3ImagePathDeserializer;
+import com.wepong.pongdang.model.aws.S3ImageUrlSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -55,6 +59,9 @@ public class BoardResponseDTO {
         private int likeCount;
         private int replyCount;
         private Long userId;
+        @JsonSerialize(using = S3ImageUrlSerializer.class)
+        @JsonDeserialize(using = S3ImagePathDeserializer.class)
+        private String profileImg;
         private String nickname;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
@@ -62,17 +69,18 @@ public class BoardResponseDTO {
         public static BoardDetailDTO from(BoardEntity boardEntity) {
             return BoardDetailDTO.builder()
                 .id(boardEntity.getId())
-                    .title(boardEntity.getTitle())
-                    .content(boardEntity.getContent())
-                    .category(boardEntity.getCategory())
-                    .viewCount(boardEntity.getViewCount())
-                    .likeCount(boardEntity.getLikeCount())
-                    .replyCount(boardEntity.getReplies().size())
-                    .userId(boardEntity.getUser().getId())
-                    .nickname(boardEntity.getUser().getNickname())
-                    .createdAt(boardEntity.getCreatedAt())
-                    .updatedAt(boardEntity.getUpdatedAt())
-                    .build();
+                .title(boardEntity.getTitle())
+                .content(boardEntity.getContent())
+                .category(boardEntity.getCategory())
+                .viewCount(boardEntity.getViewCount())
+                .likeCount(boardEntity.getLikeCount())
+                .replyCount(boardEntity.getReplies().size())
+                .userId(boardEntity.getUser().getId())
+                .profileImg(boardEntity.getUser().getProfileImage())
+                .nickname(boardEntity.getUser().getNickname())
+                .createdAt(boardEntity.getCreatedAt())
+                .updatedAt(boardEntity.getUpdatedAt())
+                .build();
         }
     }
 }

@@ -38,23 +38,13 @@ public class ReplyService {
 
         ReplyEntity saved = replyRepository.save(reply);
 
-        return new ReplyResponseDTO(
-                saved.getId(),
-                saved.getContent(),
-                user.getNickname(),
-                saved.getCreatedAt().toString()
-        );
+        return ReplyResponseDTO.from(saved);
     }
 
     // 댓글 목록 조회
     public List<ReplyResponseDTO> getReplies(Long boardId) {
         return replyRepository.findByBoardId(boardId).stream()
-                .map(r -> new ReplyResponseDTO(
-                        r.getId(),
-                        r.getContent(),
-                        r.getUser().getNickname(),
-                        r.getCreatedAt().toString()
-                ))
+                .map(r -> ReplyResponseDTO.from(r))
                 .toList();
     }
 
@@ -74,12 +64,7 @@ public class ReplyService {
         // save 호출 시 JPA가 dirty checking으로 업데이트 쿼리 실행
         ReplyEntity updated = replyRepository.save(reply);
 
-        return new ReplyResponseDTO(
-                updated.getId(),
-                updated.getContent(),
-                updated.getUser().getNickname(),
-                updated.getCreatedAt().toString()
-        );
+        return ReplyResponseDTO.from(updated);
     }
 
     // 댓글삭제
