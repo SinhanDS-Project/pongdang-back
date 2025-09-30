@@ -187,21 +187,10 @@ public class AuthService {
 		}
 
 	    // ✅ 프로필 이미지 처리
-	    MultipartFile newImage = profileImage;
-	    String oldImg = existingUserEntity.getProfileImage();
-	    if (newImage != null && !newImage.isEmpty()) {
-	        if (oldImg != null && !oldImg.isBlank()) {
-		        // 기존 이미지가 있다면 S3에서 삭제
-	            String key = extractObjectKeyFromUrl(oldImg);
-	            s3FileService.deleteObject(key);
-	        }
-
+	    if (profileImage != null && !profileImage.isEmpty()) {
 	        // 새 이미지 업로드
-	        String newUrl = s3FileService.uploadFile(newImage);
+	        String newUrl = s3FileService.uploadFile(profileImage);
 	        existingUserEntity.setProfileImage(newUrl);
-	    } else {
-	    	// 이미지 변경 안 했다면
-	    	existingUserEntity.setProfileImage(oldImg != null ? oldImg : "");
 	    }
 
 		userRepository.save(existingUserEntity);
