@@ -66,7 +66,7 @@ public class UserRestController {
 	// 회원정보 수정
 	@PutMapping("/update")
 	public ResponseEntity<?> updateMyInfo(@RequestPart UserUpdateRequestDTO userRequest,
-                                          @RequestPart(required = false) MultipartFile profileImage,
+                                          @RequestPart(name = "profile_image", required = false) MultipartFile profileImage,
 							 			  @RequestHeader("Authorization") String authHeader) {
 		Long userId = authService.validateAndGetUserId(authHeader);
 		authService.updateUser(userRequest, userId, profileImage);
