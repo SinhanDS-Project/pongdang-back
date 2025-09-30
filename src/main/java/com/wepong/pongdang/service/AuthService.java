@@ -157,7 +157,7 @@ public class AuthService {
 
 	}
 
-	public void updateUser(UserUpdateRequestDTO userRequest, Long userId) {
+	public void updateUser(UserUpdateRequestDTO userRequest, Long userId, MultipartFile profileImage) {
 		// 기존 정보 조회
 		UserEntity existingUserEntity = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException());
 
@@ -187,12 +187,12 @@ public class AuthService {
 		}
 
 	    // ✅ 프로필 이미지 처리
-	    MultipartFile newImage = userRequest.getProfileImage();
-	    String oldUrl = existingUserEntity.getProfileImage();
+	    MultipartFile newImage = profileImage;
+	    String oldImg = existingUserEntity.getProfileImage();
 	    if (newImage != null && !newImage.isEmpty()) {
-	        if (oldUrl != null && !oldUrl.isBlank()) {
+	        if (oldImg != null && !oldImg.isBlank()) {
 		        // 기존 이미지가 있다면 S3에서 삭제
-	            String key = extractObjectKeyFromUrl(oldUrl);
+	            String key = extractObjectKeyFromUrl(oldImg);
 	            s3FileService.deleteObject(key);
 	        }
 
@@ -201,8 +201,7 @@ public class AuthService {
 	        existingUserEntity.setProfileImage(newUrl);
 	    } else {
 	    	// 이미지 변경 안 했다면
-	    	oldUrl = extractObjectKeyFromUrl(oldUrl);
-	    	existingUserEntity.setProfileImage(oldUrl != null ? oldUrl : "");
+	    	existingUserEntity.setProfileImage(oldImg != null ? oldImg : "");
 	    }
 
 		userRepository.save(existingUserEntity);

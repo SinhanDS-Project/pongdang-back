@@ -143,7 +143,7 @@ public class BoardGameService {
 
                 Map<String, Object> msg = new HashMap<>();
                 msg.put("players", boardPlayerService.getPlayers(roomId));
-                msg.put("message", player.getNickname()+"님이 무인도에 갇혔습니다!\uD83C\uDFDD\uFE0F");
+                msg.put("message", player.getNickname()+"님이 휴게소에 도착했습니다!\uD83C\uDFDD\uFE0F");
 
                 webSocketService.sendGame(roomId, "prison", gameType, msg);
 
@@ -191,7 +191,7 @@ public class BoardGameService {
 
             Map<String, Object> msg = new HashMap<>();
             msg.put("players", boardPlayerService.getPlayers(roomId));
-            msg.put("message", player.getNickname()+"님이 무인도에 갇혔습니다!\uD83C\uDFDD\uFE0F");
+            msg.put("message", player.getNickname()+"님이 휴게소에 도착했습니다!\uD83C\uDFDD\uFE0F");
 
             webSocketService.sendGame(roomId, "prison", gameType, msg);
 

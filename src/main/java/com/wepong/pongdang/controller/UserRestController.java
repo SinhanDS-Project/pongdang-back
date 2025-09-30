@@ -22,6 +22,7 @@ import com.wepong.pongdang.service.PointConvertService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
@@ -64,10 +65,11 @@ public class UserRestController {
 
 	// 회원정보 수정
 	@PutMapping("/update")
-	public ResponseEntity<?> updateMyInfo(@RequestBody UserUpdateRequestDTO userRequest,
+	public ResponseEntity<?> updateMyInfo(@RequestPart UserUpdateRequestDTO userRequest,
+                                          @RequestPart(required = false) MultipartFile profileImage,
 							 			  @RequestHeader("Authorization") String authHeader) {
 		Long userId = authService.validateAndGetUserId(authHeader);
-		authService.updateUser(userRequest, userId);
+		authService.updateUser(userRequest, userId, profileImage);
 		return ResponseEntity.ok(Map.of("message", "회원 정보가 수정되었습니다."));
 	}
 
